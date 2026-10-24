@@ -4677,7 +4677,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs"
+          "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs",
+          "tests/issue-3268-owned-tunnel-controls.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4702,7 +4703,7 @@
           ".artifacts/verification-shadow/agent-runtime.json"
         ]
       },
-      "notes": "#3254 owner Windows PowerShell launcher and local-only profile/CSRF, without importing credentials into browser. Unit fixtures are not native UAT."
+      "notes": "#3254/#3268 local owner launcher start/stop/recheck/stale-session and profile/CSRF controls. Synthetic process/HTTP and filesystem fixtures do not establish native terminal, remote auth or bilateral conversation acceptance."
     },
     {
       "id": "experience.settings-tunnel-navigation-3254",
@@ -10857,15 +10858,15 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs",
-            "digest": "cd100ba5e05df49445be684f892440a5ee49a0c1097532aba03ff8e11938ed6c"
+            "digest": "3c0e8c4b1a0aed018d85c511398299f8f6d0b6fe2ee3e10b8c410f6d980034ea"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/tunnel-http.mjs",
-            "digest": "2ef24a85e60a102021803f81a3544f37663e5e35967b47a37e2dbaf1cbd47f9b"
+            "digest": "2ef37bc7cdacfd4c35b6d2cd0cc31bd97991b86f7430a0406177ccff0b8798bf"
           },
           {
             "path": "app/api/factory/tunnel/route.ts",
-            "digest": "9c7063079242996bd795c3b9fda299147c517379f43ffa881f96cc644c6009c6"
+            "digest": "52279ad7c8ad975455873684673c722212b568bf9ac44189b34843196edd60d8"
           },
           {
             "path": "build/local-profile-auth-gateway.ts",
@@ -10873,7 +10874,7 @@
           },
           {
             "path": "app/skin-v1/tunnel-settings-panel.tsx",
-            "digest": "1d19529e0ce896f76d9f0b2f55607b58b4d73baf46d59d7f5e0f97efd371d722"
+            "digest": "3813d9eca50d4a5753ce5f2efb34603ca344f2732ab715216f714897c7548a1d"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
@@ -11135,7 +11136,7 @@
       },
       {
         "target": "tests/issue-3266-library-tunnel-windows-uat.test.mjs",
-        "targetDigest": "186672de49fb24a798e66c671093ac19d034ad73cfcb3593bafe9eed691faa21",
+        "targetDigest": "fd8d95ca03d3107ada577419f31badb7a0df3784e2354b6afe64a345d53cc829",
         "catalogueIds": [
           "experience.library-tunnel-windows-uat-3266"
         ],
@@ -11165,7 +11166,7 @@
           },
           {
             "path": "app/skin-v1/tunnel-settings-panel.tsx",
-            "digest": "1d19529e0ce896f76d9f0b2f55607b58b4d73baf46d59d7f5e0f97efd371d722"
+            "digest": "3813d9eca50d4a5753ce5f2efb34603ca344f2732ab715216f714897c7548a1d"
           },
           {
             "path": "app/skin-v1/continue-this-film.tsx",
@@ -11210,6 +11211,37 @@
           {
             "path": "config/skin-v1-surface-registry.json",
             "digest": "29a569c8843d2111303d60274fa5239a149480d2b183662c118b81da0364b872"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3268-owned-tunnel-controls.test.mjs",
+        "targetDigest": "b522bb8c53887e062231744086102062324257fc0dad84e3eda7ff593a05caeb",
+        "catalogueIds": [
+          "agent.settings-compute-tunnel-3254"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Synthetic child handles, injected stop/probe/Git operations, local temporary launcher file and Request/Response fixtures. Does not prove native process-tree stop, exact running owner Windows launcher, remote auth, Factory startup, browser actions or a genuine external ChatGPT conversation. No model or tunnel is invoked.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs",
+            "digest": "3c0e8c4b1a0aed018d85c511398299f8f6d0b6fe2ee3e10b8c410f6d980034ea"
+          },
+          {
+            "path": "scripts/engineering-team/windows/tunnel/tunnel-http.mjs",
+            "digest": "2ef37bc7cdacfd4c35b6d2cd0cc31bd97991b86f7430a0406177ccff0b8798bf"
           }
         ]
       }

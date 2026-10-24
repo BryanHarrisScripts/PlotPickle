@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "issue": 2932,
+  "phase": "exact-source-head-before-test-truth-admission",
+  "brief": "docs/developer-briefs/2932-exact-head-before-truth-admission.md",
+  "allowedChanges": [
+    "scripts/verification-core.mjs",
+    "docs/developer-briefs/2932-exact-head-before-truth-admission.md",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/2932-exact-head-before-truth-admission.json"
+  ],
+  "acceptance": [
+    {
+      "id": "EXACT-HEAD-BEFORE-ADMISSION",
+      "criterion": "A mismatched supplied commit is rejected before mutable test truth assessment and any runner.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-core.mjs",
+          "contains": "const exactSha = resolveCommitSha(options);"
+        }
+      ]
+    },
+    {
+      "id": "KEEP-TRUTH-ADMISSION",
+      "criterion": "Matching source still requires full approved test truth before any execution.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-core.mjs",
+          "contains": "const truthAdmission = await assessRepositoryTestTruth"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-core.mjs",
+          "contains": "if (truthAdmission.status !== \"ready\") throw new Error"
+        }
+      ]
+    },
+    {
+      "id": "EXISTING-NEGATIVE-TEST",
+      "criterion": "The existing test rejects a forged checked-out revision without weakening its expected error.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2932-approved-truth-claims.test.mjs",
+          "contains": "CI and local evidence reject a supplied revision different from checked-out HEAD"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2932-approved-truth-claims.test.mjs",
+          "contains": "/checked-out HEAD/u"
+        }
+      ]
+    },
+    {
+      "id": "REUSE-VERIFIED-SHA",
+      "criterion": "Emitted evidence uses the already validated checked-out revision.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-core.mjs",
+          "contains": "commitSha: exactSha,"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No change to approved normative sources, verification gates, test-oracle expectation or protected merge requirements.",
+    "No local Windows process, queue, Pi dispatcher, provider, worktree, project, credential or asset mutation.",
+    "Independent seven-layer exact-head CI and code-owner review required; native Windows and product proof remain separate."
+  ]
+}

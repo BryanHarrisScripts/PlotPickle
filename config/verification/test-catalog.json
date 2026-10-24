@@ -4238,7 +4238,7 @@
           "tests/issue-3110-factory-named-test-mcp.test.mjs",
           "tests/issue-3159-pi-headless-inference.test.mjs",
           "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
-        "tests/issue-3278-storage-mcp.test.mjs"
+          "tests/issue-3278-storage-mcp.test.mjs"
         ]
       },
       "cost": "fast",
@@ -7790,19 +7790,19 @@
           },
           {
             "path": ".pi/managed/package.json",
-            "digest": "9aa0a44bd01def1b625675782996c83f1a40ce72a9ad6b232461ab1340234013"
+            "digest": "0441a26c51bb84b6d0dccf249fc5897e548e677e07974cae320f3c9095c12685"
           },
           {
             "path": ".pi/managed/package-lock.json",
-            "digest": "a5f73ba09546c469646b40ab321621a91ab93cdbeb128472a6e96386b4200642"
+            "digest": "0afe872081d1328782a55182a564fb029e5ba689247a5781f3259acb797c980e"
           },
           {
             "path": ".pi/npm/package.json",
-            "digest": "b119cada940ff7f09b59dfd78959d636542377d7570e2d3b6765dfd3863c0808"
+            "digest": "766adc50dd1c7c65cc2f6f23ebb5c7de8a370d847cfd52e212198271dc2f9bac"
           },
           {
             "path": ".pi/npm/package-lock.json",
-            "digest": "2d5bdbd20c9742a7597b1c51b923b0a91cb8058e50c1cacb01862b83ffedf00e"
+            "digest": "be06ccf2992df36afa882c35381bac44439d15e520c1c2da5373bbd09e931595"
           },
           {
             "path": ".pi/settings.json",
@@ -7882,19 +7882,19 @@
           },
           {
             "path": ".pi/managed/package.json",
-            "digest": "9aa0a44bd01def1b625675782996c83f1a40ce72a9ad6b232461ab1340234013"
+            "digest": "0441a26c51bb84b6d0dccf249fc5897e548e677e07974cae320f3c9095c12685"
           },
           {
             "path": ".pi/managed/package-lock.json",
-            "digest": "a5f73ba09546c469646b40ab321621a91ab93cdbeb128472a6e96386b4200642"
+            "digest": "0afe872081d1328782a55182a564fb029e5ba689247a5781f3259acb797c980e"
           },
           {
             "path": ".pi/npm/package.json",
-            "digest": "b119cada940ff7f09b59dfd78959d636542377d7570e2d3b6765dfd3863c0808"
+            "digest": "766adc50dd1c7c65cc2f6f23ebb5c7de8a370d847cfd52e212198271dc2f9bac"
           },
           {
             "path": ".pi/npm/package-lock.json",
-            "digest": "2d5bdbd20c9742a7597b1c51b923b0a91cb8058e50c1cacb01862b83ffedf00e"
+            "digest": "be06ccf2992df36afa882c35381bac44439d15e520c1c2da5373bbd09e931595"
           },
           {
             "path": ".pi/settings.json",
@@ -7959,19 +7959,19 @@
           },
           {
             "path": ".pi/managed/package.json",
-            "digest": "9aa0a44bd01def1b625675782996c83f1a40ce72a9ad6b232461ab1340234013"
+            "digest": "0441a26c51bb84b6d0dccf249fc5897e548e677e07974cae320f3c9095c12685"
           },
           {
             "path": ".pi/managed/package-lock.json",
-            "digest": "a5f73ba09546c469646b40ab321621a91ab93cdbeb128472a6e96386b4200642"
+            "digest": "0afe872081d1328782a55182a564fb029e5ba689247a5781f3259acb797c980e"
           },
           {
             "path": ".pi/npm/package.json",
-            "digest": "b119cada940ff7f09b59dfd78959d636542377d7570e2d3b6765dfd3863c0808"
+            "digest": "766adc50dd1c7c65cc2f6f23ebb5c7de8a370d847cfd52e212198271dc2f9bac"
           },
           {
             "path": ".pi/npm/package-lock.json",
-            "digest": "2d5bdbd20c9742a7597b1c51b923b0a91cb8058e50c1cacb01862b83ffedf00e"
+            "digest": "be06ccf2992df36afa882c35381bac44439d15e520c1c2da5373bbd09e931595"
           },
           {
             "path": ".pi/settings.json",
@@ -8067,19 +8067,19 @@
           },
           {
             "path": ".pi/managed/package.json",
-            "digest": "9aa0a44bd01def1b625675782996c83f1a40ce72a9ad6b232461ab1340234013"
+            "digest": "0441a26c51bb84b6d0dccf249fc5897e548e677e07974cae320f3c9095c12685"
           },
           {
             "path": ".pi/managed/package-lock.json",
-            "digest": "a5f73ba09546c469646b40ab321621a91ab93cdbeb128472a6e96386b4200642"
+            "digest": "0afe872081d1328782a55182a564fb029e5ba689247a5781f3259acb797c980e"
           },
           {
             "path": ".pi/npm/package.json",
-            "digest": "b119cada940ff7f09b59dfd78959d636542377d7570e2d3b6765dfd3863c0808"
+            "digest": "766adc50dd1c7c65cc2f6f23ebb5c7de8a370d847cfd52e212198271dc2f9bac"
           },
           {
             "path": ".pi/npm/package-lock.json",
-            "digest": "2d5bdbd20c9742a7597b1c51b923b0a91cb8058e50c1cacb01862b83ffedf00e"
+            "digest": "be06ccf2992df36afa882c35381bac44439d15e520c1c2da5373bbd09e931595"
           },
           {
             "path": ".pi/settings.json",
@@ -8159,19 +8159,19 @@
           },
           {
             "path": ".pi/managed/package.json",
-            "digest": "9aa0a44bd01def1b625675782996c83f1a40ce72a9ad6b232461ab1340234013"
+            "digest": "0441a26c51bb84b6d0dccf249fc5897e548e677e07974cae320f3c9095c12685"
           },
           {
             "path": ".pi/managed/package-lock.json",
-            "digest": "a5f73ba09546c469646b40ab321621a91ab93cdbeb128472a6e96386b4200642"
+            "digest": "0afe872081d1328782a55182a564fb029e5ba689247a5781f3259acb797c980e"
           },
           {
             "path": ".pi/npm/package.json",
-            "digest": "b119cada940ff7f09b59dfd78959d636542377d7570e2d3b6765dfd3863c0808"
+            "digest": "766adc50dd1c7c65cc2f6f23ebb5c7de8a370d847cfd52e212198271dc2f9bac"
           },
           {
             "path": ".pi/npm/package-lock.json",
-            "digest": "2d5bdbd20c9742a7597b1c51b923b0a91cb8058e50c1cacb01862b83ffedf00e"
+            "digest": "be06ccf2992df36afa882c35381bac44439d15e520c1c2da5373bbd09e931595"
           },
           {
             "path": ".pi/settings.json",
@@ -8255,19 +8255,19 @@
           },
           {
             "path": ".pi/managed/package.json",
-            "digest": "9aa0a44bd01def1b625675782996c83f1a40ce72a9ad6b232461ab1340234013"
+            "digest": "0441a26c51bb84b6d0dccf249fc5897e548e677e07974cae320f3c9095c12685"
           },
           {
             "path": ".pi/managed/package-lock.json",
-            "digest": "a5f73ba09546c469646b40ab321621a91ab93cdbeb128472a6e96386b4200642"
+            "digest": "0afe872081d1328782a55182a564fb029e5ba689247a5781f3259acb797c980e"
           },
           {
             "path": ".pi/npm/package.json",
-            "digest": "b119cada940ff7f09b59dfd78959d636542377d7570e2d3b6765dfd3863c0808"
+            "digest": "766adc50dd1c7c65cc2f6f23ebb5c7de8a370d847cfd52e212198271dc2f9bac"
           },
           {
             "path": ".pi/npm/package-lock.json",
-            "digest": "2d5bdbd20c9742a7597b1c51b923b0a91cb8058e50c1cacb01862b83ffedf00e"
+            "digest": "be06ccf2992df36afa882c35381bac44439d15e520c1c2da5373bbd09e931595"
           },
           {
             "path": ".pi/settings.json",
@@ -8323,19 +8323,19 @@
           },
           {
             "path": ".pi/managed/package.json",
-            "digest": "9aa0a44bd01def1b625675782996c83f1a40ce72a9ad6b232461ab1340234013"
+            "digest": "0441a26c51bb84b6d0dccf249fc5897e548e677e07974cae320f3c9095c12685"
           },
           {
             "path": ".pi/managed/package-lock.json",
-            "digest": "a5f73ba09546c469646b40ab321621a91ab93cdbeb128472a6e96386b4200642"
+            "digest": "0afe872081d1328782a55182a564fb029e5ba689247a5781f3259acb797c980e"
           },
           {
             "path": ".pi/npm/package.json",
-            "digest": "b119cada940ff7f09b59dfd78959d636542377d7570e2d3b6765dfd3863c0808"
+            "digest": "766adc50dd1c7c65cc2f6f23ebb5c7de8a370d847cfd52e212198271dc2f9bac"
           },
           {
             "path": ".pi/npm/package-lock.json",
-            "digest": "2d5bdbd20c9742a7597b1c51b923b0a91cb8058e50c1cacb01862b83ffedf00e"
+            "digest": "be06ccf2992df36afa882c35381bac44439d15e520c1c2da5373bbd09e931595"
           },
           {
             "path": ".pi/settings.json",
@@ -11452,9 +11452,9 @@
             "digest": "bbf739b2b0c80f77ff351849536058206a3be88440fb03e7946cb286f3c54e66"
           },
           {
-                      "path": "scripts/engineering-team/windows/tunnel/Test-PlotPickleTunnelCatalog.ps1",
-                      "digest": "bfba02b88cf74e89e072aaab13ac30be8b02af1e5ccc4b13349839bb5d4bbfdd"
-                    }
+            "path": "scripts/engineering-team/windows/tunnel/Test-PlotPickleTunnelCatalog.ps1",
+            "digest": "bfba02b88cf74e89e072aaab13ac30be8b02af1e5ccc4b13349839bb5d4bbfdd"
+          }
         ]
       },
       {

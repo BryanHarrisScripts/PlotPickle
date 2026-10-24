@@ -1,0 +1,9 @@
+# #2932 — Exact-head preflight must precede mutable test-truth admission
+
+A real verification regression surfaced while validating DRAFT #3296: `tests/issue-2932-approved-truth-claims.test.mjs` deliberately invokes `scripts/verification-core.mjs run-layer` with a supplied commit SHA of forty zeroes. The CLI previously assessed mutable test-truth input bindings before calling `resolveCommitSha`, so unrelated stale truth records could mask the required `checked-out HEAD` rejection. This caused Layer 7 to fail even though the desired source-mismatch safety boundary was still present.
+
+This isolated change moves `resolveCommitSha(options)` to the start of the run-layer execution path, before `assessRepositoryTestTruth` and before any test runner executes, then reuses the already-validated exact SHA when emitting evidence. It **does not** bypass truth admission: matching source still requires the complete existing admission and architecture checks. It changes no run-plan or explain behavior, accepted truth sources, permission scopes, merge policy, test oracles, dependencies, user assets, model routes, Windows workers or Task Scheduler controls.
+
+Regression already exists: `tests/issue-2932-approved-truth-claims.test.mjs` asserts both shadow and CLI refuse a supplied SHA different from the actual checkout. `tests/issue-2934-future-test-truth.test.mjs` remains bound to the modified CLI input with renewed SHA256-LF truth digest. Run all seven exact-head architecture layers and impact-selected native Windows lanes; failures, cancellations and timeouts remain blocking. This does not prove owner Windows product acceptance.
+
+Keep the dedicated PR draft until independent green evidence and owner review. This supports but does not complete #3142; locked #3274 and security #3279/#3291 remain authoritative.

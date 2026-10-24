@@ -4817,7 +4817,8 @@
           "tests/issue-3241-disk-space-preflight.test.mjs",
           "tests/issue-3241-storage-inventory.test.mjs",
           "tests/issue-3241-storage-per-root-budget.test.mjs",
-          "tests/issue-3241-storage-growth-profile.test.mjs"
+          "tests/issue-3241-storage-growth-profile.test.mjs",
+          "tests/issue-3241-recent-c-drive.test.mjs"
         ]
       },
       "cost": "fast",
@@ -11488,6 +11489,34 @@
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
             "digest": "f6314f474e1e5252e12e3f3c17d10c1135fdf8679f69a26efd06c80500dfc4b9"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3241-recent-c-drive.test.mjs",
+        "targetDigest": "616298922c5c38a618e69251933d5208ed472444001717aa0fed108136380bc5",
+        "catalogueIds": [
+          "agent.factory-storage-headroom-3241"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "native-windows-fixture"
+        ],
+        "limits": "Source verifies metadata-only owner-invoked fixed C: scanner, bounds, reparse nontraversal, path-free output and absence of cleanup/repair. Native Windows synthetic fixture executes only when Windows CI/test host runs this test; neither reports an actual Windows drive scan nor proves file integrity.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/Measure-PlotPickleRecentCDrive.ps1",
+            "digest": "77ae5102dd0bedd07c7d5d97ce7c1dc8a431fed0aca2d0d2294deb54a4fc1dab"
           }
         ]
       }

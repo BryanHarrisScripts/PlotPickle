@@ -2,7 +2,7 @@
 
 **Decision date:** October 24, 2026  
 **Issue:** [#3241](https://github.com/BryanHarrisScripts/PlotPickle/issues/3241)  
-**Status: DESIGN APPROVED FOR RECORDING — FULL IMPLEMENTATION ON HOLD.** No deployment, file cleanup, background disk maintenance, arbitrary-path scan, or new authority is authorized by this brief. Restart implementation only on a later explicit development decision, after source-bound acceptance planning.
+**Status: ACTIVE — Storage Resilience & Lifecycle, execution priority 2.** The owner-approved roadmap merged through #3285 supersedes the former implementation hold. Continue the phased implementation below after security #3279's required remediation; the roadmap and #3274 remain the continuous execution authority. This decision does not authorize file cleanup, background deletion, arbitrary-path scans, or destruction of user assets. Exact cleanup batches still require reference/process/receipt verification and owner approval.
 
 ## Executive product rule
 
@@ -99,7 +99,7 @@ On first installation, normal consumer mode must neither start developer staging
 - **File access errors and modified timestamps are not proof of disk corruption**; OS filesystem validation is a distinct, read-only owner-controlled workflow, never conflated with cleanup.
 - Any actual deletion remains a new, separately approved capability with independent tests and owner action; this document grants none.
 
-## Delivery sequence — implementation deferred
+## Delivery sequence — active phased implementation
 
 1. **P0 prevention:** finish the independently green opt-in Factory staging brake and disk floor if appropriate. Do not confuse it with global quota governance.
 2. **P1 measurement/ownership:** source-bound durable snapshots, per-root/class inventory, hardlink/physical allocation semantics, Git worktree registry and reference reconciliation, retained creative media inventory, stable continuation under large trees.
@@ -110,8 +110,8 @@ On first installation, normal consumer mode must neither start developer staging
 
 **Acceptance tests:** repeated 100+ source-only updates must not grow runtime fingerprints when dependency lock is unchanged; 100+ bounded stage attempts never create a fourth retained PR stage without explicit lifecycle disposition; no unsupported automatic deletion under low-space, crash or partial scans; protected media/PPF never mutated; measured before/after free bytes distinguish apparent from reclaimed; mixed-volume reservations cannot oversubscribe; safe local Windows paths/junctions; user-visible warning and stop; source-bound verified receipts, architecture CI, actual Windows fixture/product UAT and STOP/sentinel proof.
 
-## Implementation hold and go/no-go
+## Implementation authority and acceptance
 
-**HOLD:** Full quota engine, UI, registry, reservation system and retirement/delete routes. The brief is the handoff artifact. Do not open broad implementation PRs or delete the existing 65 stages under cover of this approval.
+**ACTIVE:** Implement the registry, reservations, user visibility and lifecycle progressively under #3241, using the locked roadmap and existing repository development loop. Begin with complete source-bound ownership measurements and non-destructive reference reconciliation. Keep PRs focused and independently verifiable. The existing 65 stages are Git worktrees and remain protected until an exact retirement batch is independently justified and owner-approved.
 
-**RESUME ONLY when requested:** Reconfirm policy thresholds with real Windows/user benchmarks, stage the smallest independently testable slice, run Build → Test → Fix → Independent verification → PR → Merge when green. Ensure #3241 stays open until all required product acceptance tests pass. Security [#3279](https://github.com/BryanHarrisScripts/PlotPickle/issues/3279) and collaborative workspace [#3263](https://github.com/BryanHarrisScripts/PlotPickle/issues/3263) remain distinct queued work.
+**Before each implementation slice:** Validate proposed policy thresholds against real Windows/user benchmarks, scope the smallest independently testable change, and run Build → Test → Fix → Independent verification → PR → Merge when green. Ensure #3241 stays open until all required product acceptance tests pass. Security [#3279](https://github.com/BryanHarrisScripts/PlotPickle/issues/3279) and collaborative workspace [#3263](https://github.com/BryanHarrisScripts/PlotPickle/issues/3263) remain distinct queued work.

@@ -57,11 +57,11 @@ test("#1228 keeps compatible dependency patches above reviewed advisory floors",
   const lock = JSON.parse(lockText);
   const packages = lock.packages || {};
 
-  assert.equal(pkg.overrides?.miniflare?.undici, "7.29.1");
-  assert.equal(pkg.overrides?.["@cloudflare/vite-plugin"]?.undici, "7.29.1");
+  assert.equal(pkg.overrides?.miniflare?.undici, "7.30.1");
+  assert.equal(pkg.overrides?.["@cloudflare/vite-plugin"]?.undici, "7.30.1");
   for (const [path, entry] of Object.entries(packages)) {
     if (path.endsWith("node_modules/undici") && entry.version.startsWith("7.")) {
-      assert.ok(versionAtLeast(entry.version, "7.29.1"), `${path} must include the #2706 Undici patches`);
+      assert.ok(versionAtLeast(entry.version, "7.30.1"), `${path} must include the #3279 Undici patches`);
     }
   }
 

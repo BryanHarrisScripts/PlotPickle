@@ -105,3 +105,18 @@ test("#3266 Library and Tunnel components retain their real safe integration bou
   assert.match(tunnel,/authenticatedProfileFetch\(ENDPOINT/u);
   assert.match(host,/LibraryWorkspace currentFilmDetails=\{<ContinueThisFilm/u);
 });
+
+test("#3269 a loaded movie locks Continue This Film to the active movie while leaving explicit Load available",async()=>{
+  const [library,css]=await Promise.all([
+    read("modules/library/ui/library-workspace.tsx"),
+    read("modules/library/ui/library-workspace.module.css"),
+  ]);
+  assert.match(library,/inspectDisabled=\{Boolean\(activeProjectSummary && activeProjectSummary\.id !== entry\.item\.id\)\}/u);
+  assert.match(library,/inspectDisabled=\{Boolean\(activeProjectSummary && !afterglowCurrentlyLoaded\)\}/u);
+  assert.match(library,/disabled=\{inspectDisabled\}/u);
+  assert.match(library,/Unload the current film to inspect another\./u);
+  assert.match(library,/onOpen=\{\(\) => setPending\(\{ kind: "story", item: entry\.item \}\)\}/u);
+  assert.match(library,/onInspectStory\?\.\(entry\.item\.id\)/u);
+  assert.match(library,/If a film is loaded, unload it before inspecting another/u);
+  assert.match(css,/\.continueStoryButton:disabled/u);
+});

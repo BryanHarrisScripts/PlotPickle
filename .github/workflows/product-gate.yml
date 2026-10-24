@@ -163,7 +163,32 @@ jobs:
       - name: Verify Pi Draft prompt transport through a Windows batch shim
         shell: pwsh
         run: node --test tests/issue-2359-pi-draft-stdin.test.mjs
-      - name: Prove real Pi CLI mock-model write-tool execution on Windows
+  pi-cli-mock-windows:
+    if: github.event_name == 'workflow_dispatch' || inputs.pi
+    name: Pi CLI mock-model Windows proof
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact head with history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Use Node.js 26.12
+        uses: actions/setup-node@v4
+        with:
+          node-version: '26.12.0'
+          cache: npm
+      - name: Admit reviewed truth before executing Pi mock-model proof
+        shell: pwsh
+        run: node scripts/verification-test-truth.mjs --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}"
+      - name: Install exact locked PlotPickle dependencies
+        shell: pwsh
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Verify unbundled Pi selection and no-bundle fallback
+        shell: pwsh
+        run: node --test tests/issue-3291-pi-unbundled-cli.test.mjs
+      - name: Prove real Pi CLI mock-model writes and negative control on Windows
         shell: pwsh
         env:
           PLOTPICKLE_PI_MOCK_E2E: '1'

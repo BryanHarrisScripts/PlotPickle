@@ -4816,7 +4816,8 @@
         "targets": [
           "tests/issue-3241-disk-space-preflight.test.mjs",
           "tests/issue-3241-storage-inventory.test.mjs",
-          "tests/issue-3241-storage-per-root-budget.test.mjs"
+          "tests/issue-3241-storage-per-root-budget.test.mjs",
+          "tests/issue-3241-storage-growth-profile.test.mjs"
         ]
       },
       "cost": "fast",
@@ -9965,7 +9966,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
+            "digest": "f6314f474e1e5252e12e3f3c17d10c1135fdf8679f69a26efd06c80500dfc4b9"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -10009,7 +10010,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
+            "digest": "f6314f474e1e5252e12e3f3c17d10c1135fdf8679f69a26efd06c80500dfc4b9"
           }
         ],
         "truthRefs": [
@@ -10045,7 +10046,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
+            "digest": "f6314f474e1e5252e12e3f3c17d10c1135fdf8679f69a26efd06c80500dfc4b9"
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
@@ -10284,7 +10285,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
+            "digest": "f6314f474e1e5252e12e3f3c17d10c1135fdf8679f69a26efd06c80500dfc4b9"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
@@ -10332,7 +10333,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
+            "digest": "f6314f474e1e5252e12e3f3c17d10c1135fdf8679f69a26efd06c80500dfc4b9"
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
@@ -10380,7 +10381,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
+            "digest": "f6314f474e1e5252e12e3f3c17d10c1135fdf8679f69a26efd06c80500dfc4b9"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
@@ -10604,7 +10605,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
+            "digest": "f6314f474e1e5252e12e3f3c17d10c1135fdf8679f69a26efd06c80500dfc4b9"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -11402,13 +11403,13 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
+            "digest": "f6314f474e1e5252e12e3f3c17d10c1135fdf8679f69a26efd06c80500dfc4b9"
           }
         ]
       },
       {
         "target": "tests/issue-3278-storage-mcp.test.mjs",
-        "targetDigest": "19458222bef3bcf493299dcb918dc68ecd949aaadc5ead0ae69e1aab7992ef1c",
+        "targetDigest": "16954f9128c34ecb1e97a751d2253893c5ea18cc6ce18dae5d492a0282c55b4a",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11430,11 +11431,11 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/storage/factory-storage-inventory.mjs",
-            "digest": "26d6583b74fa5172f57af0754b396bb4f125f631f27e7461fc8a6c4fbe9f5418"
+            "digest": "7549427b3d07b353c511a38e629d0832ddac2e67153bda3cc19aac8d15611262"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c34eacb6a920763cacb741205f3f7c3600fadeaf0774e8236b6bb69128c8ad94"
+            "digest": "f6314f474e1e5252e12e3f3c17d10c1135fdf8679f69a26efd06c80500dfc4b9"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/Upgrade-PlotPickleTunnelCatalog.ps1",
@@ -11452,6 +11453,42 @@
                       "path": "scripts/engineering-team/windows/tunnel/Test-PlotPickleTunnelCatalog.ps1",
                       "digest": "bfba02b88cf74e89e072aaab13ac30be8b02af1e5ccc4b13349839bb5d4bbfdd"
                     }
+        ]
+      },
+      {
+        "target": "tests/issue-3241-storage-growth-profile.test.mjs",
+        "targetDigest": "100dd5aeb14034efb59f0f1a9ecf0558e0a0b614b8297c1c9816119fa9f9c0a8",
+        "catalogueIds": [
+          "agent.factory-storage-headroom-3241"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic bounded selected operational-root scanning, sibling selection, symlink denial, redaction and source exact-head checks; does not establish actual owner disk growth, cleanup authority, physical reclaimable bytes or Windows filesystem acceptance.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/storage/factory-storage-profile.mjs",
+            "digest": "5f763fc964e333f878b069be8f0505f03b5dcfd887d71be435513bfaa7e2e2c3"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/storage/factory-storage-inventory.mjs",
+            "digest": "7549427b3d07b353c511a38e629d0832ddac2e67153bda3cc19aac8d15611262"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "f6314f474e1e5252e12e3f3c17d10c1135fdf8679f69a26efd06c80500dfc4b9"
+          }
         ]
       }
     ]

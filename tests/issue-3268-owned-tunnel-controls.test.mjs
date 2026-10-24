@@ -3,7 +3,8 @@ import test from "node:test";
 import { mkdtemp, mkdir, writeFile, rm, readFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { createOwnerTunnelController, resolveOwnerTunnelLauncher, TUNNEL_LAUNCHER_NAME } from "../scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs";
+import { EventEmitter } from "node:events";
+import { createOwnerTunnelController, resolveOwnerTunnelLauncher, observeLocalMcpPort, tunnelLocalStatus, TUNNEL_LAUNCHER_NAME } from "../scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs";
 import { dispatchTunnelRequest } from "../scripts/engineering-team/windows/tunnel/tunnel-http.mjs";
 
 function harness() {
@@ -81,6 +82,26 @@ test("#3268 launch serialization blocks concurrent starts while verification is 
   release();
   assert.equal((await first).state, "LAUNCH_REQUESTED");
   assert.equal(state.launches, 1);
+});
+
+test("#3268 refused, occupied and uncertain sockets are different observations; uncertainty blocks launch without claiming a listener", async () => {
+  const probe = async mode => observeLocalMcpPort({ connect: () => {
+    const socket = new EventEmitter();
+    socket.destroy = () => { socket.destroyed = true; };
+    socket.setTimeout = (_, timeout) => { if (mode === "timeout") queueMicrotask(timeout); };
+    if (mode !== "timeout") queueMicrotask(() => mode === "connect" ? socket.emit("connect") : socket.emit("error", { code: mode }));
+    return socket;
+  } });
+  assert.equal((await probe("ECONNREFUSED")).state, "FREE");
+  assert.equal((await probe("connect")).state, "LISTENING");
+  for (const mode of ["EACCES", "ECONNRESET", "timeout"]) {
+    const observation = await probe(mode);
+    assert.equal(observation.state, "UNVERIFIED");
+    const status = await tunnelLocalStatus({ platform: "win32", verify: async () => "launcher", probePort: async () => observation });
+    assert.equal(status.state, "LOCAL_MCP_PROBE_UNVERIFIED");
+    assert.equal(status.localMcpPortOccupied, true, "conservative launch interlock stays blocked");
+    assert.equal(status.remoteAuthorized, false);
+  }
 });
 
 test("#3268 Stop/Clear use exact authenticated same-origin mutations; unknown actions and caller PIDs remain rejected", async () => {

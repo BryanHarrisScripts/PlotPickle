@@ -12,21 +12,30 @@ const git = promisify(execFile);
 
 // Socket presence is not proof of MCP identity, remote authentication or a
 // connected ChatGPT plugin. Never promote this observation to TUNNEL_READY.
-export function localMcpPortOccupied({ port = TUNNEL_MCP_PORT, host = MCP_HOST, timeoutMs = 750 } = {}) {
+export function observeLocalMcpPort({ port = TUNNEL_MCP_PORT, host = MCP_HOST, timeoutMs = 750,
+  connect = options => net.createConnection(options) } = {}) {
   return new Promise((resolve) => {
-    const socket = net.createConnection({ host, port });
+    let socket;
     let settled = false;
-    const finish = (occupied) => {
+    const finish = (state, code) => {
       if (settled) return;
       settled = true;
-      socket.destroy();
-      resolve(occupied);
+      socket?.destroy();
+      resolve(Object.freeze({ state, code }));
     };
-    // Uncertain probes cannot authorize launching a competing listener.
-    socket.setTimeout(timeoutMs, () => finish(true));
-    socket.once("connect", () => finish(true));
-    socket.once("error", error => finish(error?.code !== "ECONNREFUSED"));
+    try {
+      socket = connect({ host, port });
+      socket.setTimeout(timeoutMs, () => finish("UNVERIFIED", "MCP_PROBE_TIMEOUT"));
+      socket.once("connect", () => finish("LISTENING", "MCP_LISTENER_OBSERVED"));
+      socket.once("error", error => error?.code === "ECONNREFUSED"
+        ? finish("FREE", "MCP_PORT_FREE") : finish("UNVERIFIED", "MCP_PROBE_UNVERIFIED"));
+    } catch { finish("UNVERIFIED", "MCP_PROBE_UNVERIFIED"); }
   });
+}
+
+// The compatibility boolean is a launch interlock, not a readiness claim.
+export async function localMcpPortOccupied(options) {
+  return (await observeLocalMcpPort(options)).state !== "FREE";
 }
 
 export async function verifiedTunnelLauncher({
@@ -81,19 +90,24 @@ export async function resolveOwnerTunnelLauncher({ repoRoot = process.cwd(), run
 
 export async function tunnelLocalStatus({
   platform = process.platform, verify = verifiedTunnelLauncher,
-  portOccupied = localMcpPortOccupied,
+  portOccupied = localMcpPortOccupied, probePort = null,
 } = {}) {
   if (platform !== "win32") return Object.freeze({
     version: 1, state: "WINDOWS_ONLY", launcherAvailable: false,
     localMcpPortOccupied: false, remoteAuthorized: false,
   });
-  const [launcher, occupied] = await Promise.all([verify(), portOccupied()]);
+  const observe = async () => typeof probePort === "function" ? probePort() :
+    portOccupied === localMcpPortOccupied ? observeLocalMcpPort() :
+      { state: await portOccupied() ? "LISTENING" : "FREE", code: "INJECTED_PORT_OBSERVATION" };
+  const [launcher, port] = await Promise.all([verify(), observe()]);
+  const occupied = port.state !== "FREE";
   return Object.freeze({
     version: 1,
-    state: occupied ? "LOCAL_MCP_PORT_OCCUPIED"
+    state: port.state === "UNVERIFIED" ? "LOCAL_MCP_PROBE_UNVERIFIED" : occupied ? "LOCAL_MCP_PORT_OCCUPIED"
       : launcher ? "READY_TO_LAUNCH" : "LAUNCHER_NOT_INSTALLED",
     launcherAvailable: Boolean(launcher),
     localMcpPortOccupied: Boolean(occupied),
+    localMcpProbeCode: port.code,
     remoteAuthorized: false,
   });
 }

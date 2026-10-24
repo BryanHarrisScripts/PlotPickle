@@ -10858,7 +10858,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs",
-            "digest": "3c0e8c4b1a0aed018d85c511398299f8f6d0b6fe2ee3e10b8c410f6d980034ea"
+            "digest": "0c1e96b13170172879a109b8b8ef615868e39d543f54bd312a267a757ce27a32"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/tunnel-http.mjs",
@@ -10874,7 +10874,7 @@
           },
           {
             "path": "app/skin-v1/tunnel-settings-panel.tsx",
-            "digest": "3813d9eca50d4a5753ce5f2efb34603ca344f2732ab715216f714897c7548a1d"
+            "digest": "2aa0c9c0289394bed6106b40d81ad6baf07357af84836dbe2bc498e9f0112486"
           },
           {
             "path": "app/skin-v1/dashboard-bbs-panel.tsx",
@@ -11166,7 +11166,7 @@
           },
           {
             "path": "app/skin-v1/tunnel-settings-panel.tsx",
-            "digest": "3813d9eca50d4a5753ce5f2efb34603ca344f2732ab715216f714897c7548a1d"
+            "digest": "2aa0c9c0289394bed6106b40d81ad6baf07357af84836dbe2bc498e9f0112486"
           },
           {
             "path": "app/skin-v1/continue-this-film.tsx",
@@ -11216,7 +11216,7 @@
       },
       {
         "target": "tests/issue-3268-owned-tunnel-controls.test.mjs",
-        "targetDigest": "b522bb8c53887e062231744086102062324257fc0dad84e3eda7ff593a05caeb",
+        "targetDigest": "43ecce37a5fbf969ba8e595296cd6ac872af99bf73f369fa84a57451d183fd0a",
         "catalogueIds": [
           "agent.settings-compute-tunnel-3254"
         ],
@@ -11237,7 +11237,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs",
-            "digest": "3c0e8c4b1a0aed018d85c511398299f8f6d0b6fe2ee3e10b8c410f6d980034ea"
+            "digest": "0c1e96b13170172879a109b8b8ef615868e39d543f54bd312a267a757ce27a32"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/tunnel-http.mjs",

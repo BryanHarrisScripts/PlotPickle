@@ -5,7 +5,7 @@ import { authenticatedProfileFetch } from "../../core/auth/profile-request-brows
 import styles from "./tunnel-settings-panel.module.css";
 
 type TunnelLocalState = "WINDOWS_ONLY" | "LAUNCHER_NOT_INSTALLED" |
-  "READY_TO_LAUNCH" | "LOCAL_MCP_PORT_OCCUPIED";
+  "READY_TO_LAUNCH" | "LOCAL_MCP_PORT_OCCUPIED" | "LOCAL_MCP_PROBE_UNVERIFIED";
 type TunnelStatus = {
   readonly version: 1;
   readonly state: TunnelLocalState;
@@ -22,6 +22,7 @@ const LABELS: Record<TunnelLocalState, string> = {
   LAUNCHER_NOT_INSTALLED: "Local tunnel launcher not installed",
   READY_TO_LAUNCH: "Launcher found · tunnel not locally observed",
   LOCAL_MCP_PORT_OCCUPIED: "Local MCP port occupied · remote authorization unverified",
+  LOCAL_MCP_PROBE_UNVERIFIED: "Local MCP probe unverified · recheck before starting",
 };
 
 export default function TunnelSettingsPanel() {
@@ -88,7 +89,7 @@ export default function TunnelSettingsPanel() {
       setNotice(action === "clear-stale-session"
         ? "Stale session cleared. No process, file or evidence was removed."
         : body.localMcpPortOccupied
-          ? "Owned launcher stopped. Port 43115 still has an unverified listener. Check its owning window."
+          ? "Owned launcher stopped. Port 43115 remains occupied or unverified. Recheck before starting again."
           : "Owned launcher stopped. ChatGPT connection is unverified until you start and test a tunnel again.");
     } catch (error) {
       await refresh();
@@ -110,7 +111,7 @@ export default function TunnelSettingsPanel() {
       </header>
       <div className={styles.status} role="status">
         <strong>{status ? LABELS[status.state] : "Local status unverified"}</strong>
-        <span>Local MCP: {status?.localMcpPortOccupied ? "PORT 43115 OCCUPIED (IDENTITY UNVERIFIED)" : "NOT OBSERVED"}</span>
+        <span>Local MCP: {status?.state === "LOCAL_MCP_PROBE_UNVERIFIED" ? "PROBE UNVERIFIED" : status?.localMcpPortOccupied ? "PORT 43115 OCCUPIED (IDENTITY UNVERIFIED)" : "NOT OBSERVED"}</span>
         <span>ChatGPT plugin authorization: NOT VERIFIED BY THIS PAGE</span>
         <span>Launcher session: {status?.launcherOwned ? "OWNED LAUNCHER OBSERVED" : status?.staleSession ? "STALE SESSION — launcher exited" : "NO OWNED SESSION"}</span>
         {status?.staleSession ? <p>The recorded launcher has exited. Clear Stale Session before starting again. An occupied port still requires separate verification.</p> : null}

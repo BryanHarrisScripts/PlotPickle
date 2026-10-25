@@ -258,6 +258,8 @@ test("#3142 independent Windows logon plan never starts or modifies the legacy P
   assert.match(repairMode, /Read-OwnedTask/);
   assert.match(repairMode, /Assert-ExactBoundWorker/);
   assert.match(repairMode, /SUPERVISOR_TASK_NOT_READY_OR_ALREADY_RUNNING/);
+  assert.match(repairMode, /\$settings = \$task\.Settings/);
+  assert.doesNotMatch(repairMode, /New-ScheduledTaskSettingsSet/);
   assert.match(repairMode, /Set-ScheduledTask -TaskName \$taskName -Settings \$settings/);
   assert.doesNotMatch(repairMode, /Start-ScheduledTask|Register-ScheduledTask|Unregister-ScheduledTask/);
   assert.doesNotMatch(script, /Start-ScheduledTask\s+-TaskName\s+\$legacyTask/);
@@ -463,14 +465,18 @@ test("#3142 disposable Windows Task Scheduler registration retains SID ownership
     "  $action = New-ScheduledTaskAction -Execute $env:ComSpec -Argument '/c exit 0'",
     "  $trigger = New-ScheduledTaskTrigger -AtLogOn -User $identity",
     "  $principal = New-ScheduledTaskPrincipal -UserId $identity -LogonType Interactive -RunLevel Limited",
-    "  $initialSettings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero)",
+    "  $initialSettings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero) -Hidden",
     "  Register-ScheduledTask -TaskName $name -Action $action -Trigger $trigger -Principal $principal -Settings $initialSettings | Out-Null",
     "  $created = $true",
     "  $task = Get-ScheduledTask -TaskName $name -ErrorAction Stop",
     "  if (-not (Test-TaskPrincipalIsCurrentUser ([string]$task.Principal.UserId))) { throw 'REGISTERED_OWNER_REJECTED' }",
     "  if ($task.State -ne 'Ready') { throw 'REGISTERED_TASK_NOT_READY' }",
     "  if ($task.Settings.RestartCount -ne 0) { throw 'FIXTURE_NOT_UNCONFIGURED' }",
-    "  $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 5) -StartWhenAvailable",
+    "  if (-not $task.Settings.Hidden) { throw 'FIXTURE_HIDDEN_SETTING_MISSING' }",
+    "  $settings = $task.Settings",
+    "  $settings.RestartCount = 3",
+    "  $settings.RestartInterval = 'PT5M'",
+    "  $settings.StartWhenAvailable = $true",
     "  Set-ScheduledTask -TaskName $name -Settings $settings -ErrorAction Stop | Out-Null",
     "  $task = Get-ScheduledTask -TaskName $name -ErrorAction Stop",
     "  if ($task.Actions.Count -ne 1 -or $task.Actions[0].Execute -ne $env:ComSpec) { throw 'TASK_ACTION_CHANGED' }",
@@ -478,6 +484,7 @@ test("#3142 disposable Windows Task Scheduler registration retains SID ownership
     "  if ($task.Settings.RestartCount -ne 3) { throw 'BOUNDED_RESTART_COUNT_MISSING' }",
     "  if ($task.Settings.RestartInterval -ne 'PT5M') { throw 'BOUNDED_RESTART_INTERVAL_MISSING' }",
     "  if (-not $task.Settings.StartWhenAvailable) { throw 'MISSED_LOGON_RECOVERY_MISSING' }",
+    "  if (-not $task.Settings.Hidden) { throw 'UNRELATED_HIDDEN_SETTING_LOST' }",
     "  if (Test-TaskPrincipalIsCurrentUser 'NT AUTHORITY\\SYSTEM') { throw 'FOREIGN_OWNER_ACCEPTED' }",
     "} finally {",
     "  if ($created) { Unregister-ScheduledTask -TaskName $name -Confirm:$false -ErrorAction Stop }",

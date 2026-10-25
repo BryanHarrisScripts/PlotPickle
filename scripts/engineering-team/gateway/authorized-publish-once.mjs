@@ -124,7 +124,7 @@ export async function publishPreparedCommit({ repoRoot, privateRoot, source, gra
         !ORIGIN.test(output(await runGit(repoRoot, ['remote', 'get-url', '--push', 'origin']))))
       return blocked('PUBLISH_ORIGIN_UNTRUSTED');
     if (output(await runGit(repoRoot, ['ls-remote', '--heads', 'origin', 'refs/heads/main'])) !==
-        grant.sourceHead + '\\trefs/heads/main')
+        grant.sourceHead + '\trefs/heads/main')
       return blocked('PUBLISH_REMOTE_MAIN_STALE_OR_UNVERIFIABLE');
     if (output(await runGit(stage, ['rev-parse', 'HEAD'])) !== grant.preparedCommit ||
         output(await runGit(stage, ['rev-parse', '--verify', grant.branch])) !== grant.preparedCommit ||

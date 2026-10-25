@@ -163,15 +163,11 @@ export async function stageFactoryCandidatePr({
   // #3241: historical worktrees are protected inventory, not concurrent
   // staging jobs. Acquire the one-stage admission lock BEFORE fresh space
   // measurement; fail closed on unknown capacity and never delete evidence.
-  return await stageBudget({root,base,checkCapacity:async()=>{
-    try {
-      return await diskPreflight({
-        locations:[repoRoot,base],
-        requiredBytes:FACTORY_DISK_MIN_FREE_BYTES.candidateStage+
-          FACTORY_STAGING_POLICY.admissionReserveBytes,
-      });
-    } catch { return null; }
-  },onStage:async()=>{
+  return await stageBudget({root,base,checkCapacity:()=>diskPreflight({
+    locations:[repoRoot,base],
+    requiredBytes:FACTORY_DISK_MIN_FREE_BYTES.candidateStage+
+      FACTORY_STAGING_POLICY.admissionReserveBytes,
+  }),onStage:async()=>{
   const read=async(args,cwd=repoRoot,timeout=GIT_OPTIONS.timeout)=>String((await run("git",args,{
     ...GIT_OPTIONS,cwd,timeout,
     env:{

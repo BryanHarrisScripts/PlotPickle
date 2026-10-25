@@ -56,8 +56,15 @@ function Test-TaskPrincipalIsCurrentUser([string]$taskUserId) {
     } catch {
         # A bare local username can fail NTAccount translation on some hosts.
     }
-    $parts = $current.Name.Split('\')
-    return ($parts.Count -gt 1 -and $taskUserId -ieq $parts[$parts.Count - 1])
+    # Resolve the unqualified name explicitly against this machine only.
+    if ($taskUserId -match '^[^\\]+$') {
+        try {
+            $local = (New-Object System.Security.Principal.NTAccount($env:COMPUTERNAME, $taskUserId)).Translate(
+                [System.Security.Principal.SecurityIdentifier])
+            return $local.Value -eq $current.User.Value
+        } catch { return $false }
+    }
+    return $false
 }
 function Read-OwnedTask {
     $matching = @(Get-TaskByName $taskName)

@@ -70,6 +70,22 @@
           "contains": "node --test tests/issue-3303-headless-gateway-acceptance.test.mjs"
         }
       ]
+    },
+    {
+      "id": "TRUTH-ADMISSION-BEFORE-CANDIDATE-EXECUTION",
+      "criterion": "Reject unapproved or changed candidate test sources before executing the fixed gateway regression.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+          "contains": "scripts/verification-test-truth.mjs"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3303-headless-gateway-acceptance.test.mjs",
+          "contains": "rejected truth admission prevents executing candidate test source"
+        }
+      ]
     }
   ],
   "constraints": [

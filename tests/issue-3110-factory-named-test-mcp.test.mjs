@@ -1,3 +1,4 @@
+import { requestIndependentSupervisorStart } from "../scripts/engineering-team/mcp/factory-supervisor-start.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises";
@@ -1078,3 +1079,123 @@ test("staging Git errors are fixed classifications without sensitive stderr",()=
     assert.equal(diagnostic.includes("private"),false);
   }
 });
+
+
+test("#3142 authenticated supervisor Start is only a bounded request to an existing owner task", async () => {
+  const calls=[];
+  const run=async (program,args,options) => {
+    calls.push({program,args,options});
+    assert.equal(program,"powershell.exe");
+    assert.deepEqual(args.slice(0,4),["-NoProfile","-NonInteractive","-File",
+      args[3]]);
+    assert.match(args[3],/Install-PlotPickleIndependentSupervisor\.ps1$/u);
+    assert.equal(options.shell,false);
+    assert.ok(options.timeout<=25_000);
+    if(args.includes("-Status")) return { stdout:JSON.stringify({
+      state:"OBSERVED_NOT_INDEPENDENTLY_VERIFIED",sourceHead:HEAD,
+      taskInstalled:true,taskState:"Ready",supervisorState:"OFFLINE",
+    }) };
+    assert.deepEqual(args.slice(4),["-Start","-Consent",
+      "ENABLE_INDEPENDENT_WINDOWS_SUPERVISOR"]);
+    return {stdout:JSON.stringify({state:"START_REQUESTED_UNCONFIRMED",
+      privatePath:"SECRET_NOT_FOR_MCP"})};
+  };
+  let headReads=0;
+  const result=await requestIndependentSupervisorStart({
+    platform:"win32",expectedHead:HEAD,verifyHead:async()=>{
+      headReads++;return HEAD;
+    },run,
+  });
+  assert.equal(result.state,"START_REQUESTED_UNCONFIRMED");
+  assert.equal(result.code,"SUPERVISOR_START_SUBMITTED_UNVERIFIED");
+  assert.equal(result.workerProcessVerified,false);
+  assert.equal(result.modelInvoked,false);
+  assert.equal(result.replayAuthorized,false);
+  assert.equal(headReads,2);
+  assert.equal(calls.length,2);
+  assert.doesNotMatch(JSON.stringify(result),/SECRET_NOT_FOR_MCP/u);
+});
+
+test("#3142 supervisor Start rejects missing consent, wrong state, uninstalled task and stale head", async () => {
+  const good={state:"OBSERVED_NOT_INDEPENDENTLY_VERIFIED",
+    sourceHead:HEAD,taskInstalled:true,taskState:"Ready",supervisorState:"OFFLINE"};
+  const cases=[
+    [{...good,taskInstalled:false},"SUPERVISOR_TASK_NOT_INSTALLED"],
+    [{...good,taskState:"Running"},"SUPERVISOR_TASK_NOT_READY"],
+    [{...good,supervisorState:"STOP_REQUESTED"},"SUPERVISOR_NOT_OFFLINE_ON_CURRENT_HEAD"],
+    [{...good,supervisorState:"PAUSED"},"SUPERVISOR_NOT_OFFLINE_ON_CURRENT_HEAD"],
+    [{...good,sourceHead:OTHER},"SUPERVISOR_NOT_OFFLINE_ON_CURRENT_HEAD"],
+    [{...good,state:"UNKNOWN"},"SUPERVISOR_NOT_OFFLINE_ON_CURRENT_HEAD"],
+  ];
+  for(const [status,code] of cases){
+    let invoked=0;
+    const result=await requestIndependentSupervisorStart({
+      platform:"win32",expectedHead:HEAD,verifyHead:async()=>HEAD,
+      run:async (_program,args)=>{invoked++;assert.ok(args.includes("-Status"));
+        return {stdout:JSON.stringify(status)};},
+    });
+    assert.equal(result.state,"BLOCKED");assert.equal(result.code,code);
+    assert.equal(invoked,1,"must never run -Start if owner status is unsafe");
+  }
+  let starts=0;
+  const changed=await requestIndependentSupervisorStart({
+    platform:"win32",expectedHead:HEAD,
+    verifyHead:async()=>++starts===1?HEAD:OTHER,
+    run:async (_program,args)=>{assert.ok(args.includes("-Status"));
+      return {stdout:JSON.stringify(good)};},
+  });
+  assert.equal(changed.code,"SUPERVISOR_SOURCE_UNVERIFIED");
+  assert.equal(starts,2);
+  assert.equal((await requestIndependentSupervisorStart({platform:"linux",expectedHead:HEAD,
+    run:async()=>{throw Error("must not execute");}})).code,"WINDOWS_ONLY");
+});
+
+test("#3142 ambiguous Task Scheduler start stays unconfirmed, never green or replayable", async () => {
+  let calls=0;
+  const outcome=await requestIndependentSupervisorStart({
+    platform:"win32",expectedHead:HEAD,verifyHead:async()=>HEAD,
+    run:async (_program,args)=>{
+      calls++;
+      if(args.includes("-Status"))return {stdout:JSON.stringify({
+        state:"OBSERVED_NOT_INDEPENDENTLY_VERIFIED",sourceHead:HEAD,
+        taskInstalled:true,taskState:"Ready",supervisorState:"OFFLINE"})};
+      throw Error("SECRET_PRIVATE_WINDOWS_START_FAILURE");
+    },
+  });
+  assert.equal(calls,2);
+  assert.equal(outcome.state,"START_REQUESTED_UNCONFIRMED");
+  assert.equal(outcome.code,"SUPERVISOR_START_OUTCOME_UNVERIFIED");
+  assert.doesNotMatch(JSON.stringify(outcome),/SECRET_PRIVATE_WINDOWS_START_FAILURE/u);
+});
+
+test("#3142 supervisor Start is authenticated, fixed argument, single-use and immutable over MCP",()=>privateRoot(async root=>{
+  let starts=0;
+  const args={requestId:"f".repeat(32),expectedHead:HEAD,
+    suite:"factory-supervisor-start"};
+  const ops={testHead:async()=>HEAD,
+    supervisorStart:async()=>{starts++;return {
+      state:"START_REQUESTED_UNCONFIRMED",
+      code:"SUPERVISOR_START_SUBMITTED_UNVERIFIED",sourceHead:HEAD,
+      privatePath:"SECRET_WINDOWS_PATH",modelInvoked:false};},
+  };
+  const send=(input,controlAuthenticated=true)=>handleRpc({
+    jsonrpc:"2.0",id:4142,method:"tools/call",
+    params:{name:"factory_run_named_test",arguments:input}},
+  {root,controlAuthenticated,controlOps:ops});
+  assert.equal((await send(args,false)).error.code,-32001);
+  assert.equal((await send({...args,command:"Start-Process pi"})).error.code,-32602);
+  assert.equal((await send({...args,consent:"ENABLE_INDEPENDENT_WINDOWS_SUPERVISOR"})).error.code,-32602);
+  assert.equal(starts,0);
+  const once=(await send(args,true)).result.structuredContent;
+  assert.equal(once.state,"START_REQUESTED_UNCONFIRMED");
+  assert.equal(once.code,"SUPERVISOR_START_SUBMITTED_UNVERIFIED");
+  assert.equal(once.independentVerification,false);
+  assert.equal(once.modelInvoked,false);
+  assert.equal(starts,1);
+  assert.doesNotMatch(JSON.stringify(once),/SECRET_WINDOWS_PATH/u);
+  assert.equal((await send(args,true)).result.structuredContent.state,
+    "DUPLICATE_OR_UNVERIFIABLE_REQUEST");
+  assert.equal(starts,1);
+  const readback=await factoryControlReceipt({root,requestId:args.requestId});
+  assert.deepEqual(readback,once);
+}));

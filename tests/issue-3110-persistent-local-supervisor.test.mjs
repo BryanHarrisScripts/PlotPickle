@@ -430,3 +430,39 @@ test("#3142 Windows scheduled-task principal ownership uses SID and rejects a di
     windowsHide: true, timeout: 12000, env: { ...process.env, PLOTPICKLE_INSTALLER: installer },
   });
 });
+
+test("#3142 disposable Windows Task Scheduler registration retains SID ownership", {
+  skip: process.platform !== "win32" || process.env.PLOTPICKLE_NATIVE_SUPERVISOR_INSTALL_FIXTURE !== "1",
+  timeout: 30_000,
+}, () => {
+  const installer = fileURLToPath(new URL("../scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1", import.meta.url));
+  // Register an inert, uniquely named CI task; never touch the owner's
+  // PlotPickleIndependentSupervisor task or start any registered action.
+  const script = [
+    "$ErrorActionPreference = 'Stop'",
+    "$source = [System.IO.File]::ReadAllText($env:PLOTPICKLE_INSTALLER)",
+    "$begin = $source.IndexOf('function Test-TaskPrincipalIsCurrentUser')",
+    "$end = $source.IndexOf('function Read-OwnedTask', $begin)",
+    "if ($begin -lt 0 -or $end -le $begin) { throw 'OWNER_FUNCTION_MISSING' }",
+    "Invoke-Expression $source.Substring($begin, $end - $begin)",
+    "$identity = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name",
+    "$name = 'PlotPickle-SID-CI-' + [guid]::NewGuid().ToString('N')",
+    "$created = $false",
+    "try {",
+    "  $action = New-ScheduledTaskAction -Execute $env:ComSpec -Argument '/c exit 0'",
+    "  $trigger = New-ScheduledTaskTrigger -AtLogOn -User $identity",
+    "  $principal = New-ScheduledTaskPrincipal -UserId $identity -LogonType Interactive -RunLevel Limited",
+    "  Register-ScheduledTask -TaskName $name -Action $action -Trigger $trigger -Principal $principal | Out-Null",
+    "  $created = $true",
+    "  $task = Get-ScheduledTask -TaskName $name -ErrorAction Stop",
+    "  if (-not (Test-TaskPrincipalIsCurrentUser ([string]$task.Principal.UserId))) { throw 'REGISTERED_OWNER_REJECTED' }",
+    "  if ($task.State -ne 'Ready') { throw 'REGISTERED_TASK_NOT_READY' }",
+    "  if (Test-TaskPrincipalIsCurrentUser 'NT AUTHORITY\\SYSTEM') { throw 'FOREIGN_OWNER_ACCEPTED' }",
+    "} finally {",
+    "  if ($created) { Unregister-ScheduledTask -TaskName $name -Confirm:$false -ErrorAction Stop }",
+    "}",
+  ].join("; ");
+  execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", script], {
+    windowsHide: true, timeout: 25000, env: { ...process.env, PLOTPICKLE_INSTALLER: installer },
+  });
+});

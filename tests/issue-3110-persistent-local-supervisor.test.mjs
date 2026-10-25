@@ -418,7 +418,7 @@ test("#3142 Windows scheduled-task principal ownership uses SID and rejects a di
     "if ($begin -lt 0 -or $end -le $begin) { throw 'OWNER_FUNCTION_MISSING' }",
     "Invoke-Expression $source.Substring($begin, $end - $begin)",
     "$current = [System.Security.Principal.WindowsIdentity]::GetCurrent()",
-    "$short = $current.Name.Split('\\')[-1]",
+    "$short = ($current.Name -split [regex]::Escape([string][char]92))[-1]",
     "if (-not (Test-TaskPrincipalIsCurrentUser $current.Name)) { throw 'QUALIFIED_OWNER_REJECTED' }",
     "if (-not (Test-TaskPrincipalIsCurrentUser $current.User.Value)) { throw 'SID_OWNER_REJECTED' }",
     "if (-not (Test-TaskPrincipalIsCurrentUser $short)) { throw 'NORMALIZED_OWNER_REJECTED' }",

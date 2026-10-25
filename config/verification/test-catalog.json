@@ -7200,7 +7200,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "4e92907c33b59ad9814c72c84a21f68f71b876a2ba7f57bd4784430f4640b91b"
+            "digest": "d0c1a401e513701dab4e43216c325649ca4132282b85d40add3d08221e7ce6e8"
           }
         ]
       },
@@ -8034,7 +8034,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "4e92907c33b59ad9814c72c84a21f68f71b876a2ba7f57bd4784430f4640b91b"
+            "digest": "d0c1a401e513701dab4e43216c325649ca4132282b85d40add3d08221e7ce6e8"
           }
         ]
       },
@@ -10354,7 +10354,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "4e92907c33b59ad9814c72c84a21f68f71b876a2ba7f57bd4784430f4640b91b"
+            "digest": "d0c1a401e513701dab4e43216c325649ca4132282b85d40add3d08221e7ce6e8"
           }
         ],
         "truthRefs": [
@@ -10394,7 +10394,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "4e92907c33b59ad9814c72c84a21f68f71b876a2ba7f57bd4784430f4640b91b"
+            "digest": "d0c1a401e513701dab4e43216c325649ca4132282b85d40add3d08221e7ce6e8"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -11644,7 +11644,7 @@
       },
       {
         "target": "tests/issue-3259-outbound-openai-once.test.mjs",
-        "targetDigest": "a3e3523da7f8c21c31931553013be3349dd9f9179505b0c0484c337c8fc38309",
+        "targetDigest": "a13d69ad651d90561f20d69792077bde3a2143378d3b87facb336f6cf633ef55",
         "catalogueIds": [
           "agent.conversation-mcp-3259"
         ],
@@ -11666,19 +11666,19 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/outbound-openai-once.mjs",
-            "digest": "e9c968782cec7bbbb2c2bd1725c9b161010cdc4595ddfca35ebf527ab2dd4856"
+            "digest": "423d50c384622044f26a0b893b5147ba2226487ea775be9c57de8d8136561d78"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-contract.mjs",
-            "digest": "e967980fb476743df129a62fabb992d198fe50b810ccca982d86932948000d0f"
+            "digest": "a9370aee52db068a185dc61e117e884c347f1ce334d3333cd647eae0a17d88c4"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
-            "digest": "8d9735c5750934d5c8ee6e2ec32068057721ed92201e9e7026b3445f3827cc32"
+            "digest": "17755df74f92130264bfe8f81f0496262accd57bf2218753f98031aeb652d7f8"
           },
           {
             "path": "scripts/engineering-team/gateway/conversation-service.mjs",
-            "digest": "a047fc4d82b7a5fef1389eba9a8653077c892990ce3b2c94568da56426289eb8"
+            "digest": "7291486d145d2645e5fae2b6c8f09c44f661a90b679602a02b028164642f8f57"
           }
         ]
       }

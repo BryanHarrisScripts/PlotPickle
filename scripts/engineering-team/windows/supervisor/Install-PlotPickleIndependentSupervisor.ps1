@@ -46,9 +46,9 @@ function Get-TaskByName([string]$name) {
 }
 function Test-TaskPrincipalIsCurrentUser([string]$taskUserId) {
     if ([string]::IsNullOrWhiteSpace($taskUserId)) { return $false }
-    # Task Scheduler may normalize DOMAIN\user to user. Compare SIDs when
-    # possible, then permit only the current identity's exact short name.
+    # Task Scheduler may normalize DOMAIN\user to user. Require SID equality.
     $current = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+    if ($taskUserId -eq $current.User.Value) { return $true }
     try {
         $resolved = (New-Object System.Security.Principal.NTAccount($taskUserId)).Translate(
             [System.Security.Principal.SecurityIdentifier])

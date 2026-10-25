@@ -78,6 +78,14 @@ test("missing durable reservation or uncertain spawn cannot be replayed", async 
   const noReservation = fixture({ reserveLaunch: async () => false });
   assert.equal((await noReservation.watchdog.tick()).state, "LAUNCH_RESERVATION_UNVERIFIED");
   assert.equal(noReservation.started.length, 0);
+  assert.equal((await noReservation.watchdog.tick()).state, "RESTART_BUDGET_EXHAUSTED");
+  let reservationCalls = 0;
+  const ambiguousReservation = fixture({ reserveLaunch: async () => {
+    reservationCalls++; throw Error("write acknowledged uncertain");
+  } });
+  assert.equal((await ambiguousReservation.watchdog.tick()).state, "LAUNCH_RESERVATION_UNVERIFIED");
+  assert.equal((await ambiguousReservation.watchdog.tick()).state, "RESTART_BUDGET_EXHAUSTED");
+  assert.equal(reservationCalls, 1);
   let called = 0;
   const uncertain = fixture({ startOwned: async () => { called++; throw Error("uncertain"); } });
   assert.equal((await uncertain.watchdog.tick()).state, "LAUNCH_OUTCOME_UNVERIFIED");

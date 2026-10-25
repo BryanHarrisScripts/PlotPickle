@@ -39,10 +39,11 @@ test("#3303 fixed headless gateway suite requires authentication and six exact i
   const tool = MCP_CONTROL_TOOLS.find(t => t.name === "factory_run_named_test");
   assert.ok(tool.inputSchema.properties.suite.enum.includes("factory-gateway-acceptance"));
   let calls = 0;
-  const opts = { root, controlAuthenticated: true, controlOps: {
+  const opts = { root, controlAuthenticated: true, engineeringEnabled: true, controlOps: {
     testHead: async () => MAIN, engineering: async () => { calls++; throw Error("must not run"); },
   } };
   assert.equal((await rpc(selection, { ...opts, controlAuthenticated: false })).error.code, -32001);
+  assert.equal((await rpc(selection, { ...opts, engineeringEnabled: false })).error.code, -32601);
   assert.equal((await rpc({ ...selection, command: "powershell" }, opts)).error.code, -32602);
   assert.equal((await rpc({ ...selection, sourceRequestId: REQUEST }, opts)).error.code, -32602);
   assert.equal((await rpc({ ...selection, candidateHead: "wrong" }, opts)).error.code, -32602);
@@ -53,7 +54,7 @@ test("#3303 fixed headless gateway suite requires authentication and six exact i
 test("#3303 owner Windows headless route uses existing isolated engineering runner and write-once receipt", () => sandbox(async root => {
   await stageReceipt(root);
   let calls = 0;
-  const opts = { root, controlAuthenticated: true, controlOps: {
+  const opts = { root, controlAuthenticated: true, engineeringEnabled: true, controlOps: {
     testHead: async () => MAIN,
     engineering: async ({ selection: task, stageReceipt: stage, root: receivedRoot }) => {
       calls++;
@@ -92,7 +93,7 @@ test("#3303 owner Windows headless route uses existing isolated engineering runn
 
 test("#3303 missing staged proof is refused, and wrong exact MAIN blocks before execution", () => sandbox(async root => {
   let calls = 0;
-  const opts = { root, controlAuthenticated: true, controlOps: {
+  const opts = { root, controlAuthenticated: true, engineeringEnabled: true, controlOps: {
     testHead: async () => MAIN,
     engineering: async ({ stageReceipt: stage }) => {
       calls++;

@@ -7204,7 +7204,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "75433ecfff1028967ad596e553370db6f635bd4766e172d3a2d435cd9c3a24df"
+            "digest": "30983fb79c8004f78677009c9a1614d3939a27abe1c627bbef78ae65ab4b1dc5"
           }
         ]
       },
@@ -8038,7 +8038,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "75433ecfff1028967ad596e553370db6f635bd4766e172d3a2d435cd9c3a24df"
+            "digest": "30983fb79c8004f78677009c9a1614d3939a27abe1c627bbef78ae65ab4b1dc5"
           }
         ]
       },
@@ -10358,7 +10358,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "75433ecfff1028967ad596e553370db6f635bd4766e172d3a2d435cd9c3a24df"
+            "digest": "30983fb79c8004f78677009c9a1614d3939a27abe1c627bbef78ae65ab4b1dc5"
           }
         ],
         "truthRefs": [
@@ -10398,7 +10398,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "75433ecfff1028967ad596e553370db6f635bd4766e172d3a2d435cd9c3a24df"
+            "digest": "30983fb79c8004f78677009c9a1614d3939a27abe1c627bbef78ae65ab4b1dc5"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -11742,7 +11742,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "de7d6f2a596e8759937547cbee04838779b2933471e41923ad7d23afaad72112"
+            "digest": "81f020fca1349acea990a307a72fb38e5795928e5609043441b683ffb21bead2"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -11752,7 +11752,7 @@
       },
       {
         "target": "tests/issue-3142-authorized-publish-once.test.mjs",
-        "targetDigest": "3a59ecd29ed74d50963d65dab70ff01e59b5957129a65ac0b50a8f70f32319eb",
+        "targetDigest": "e785f4896c3bcb3198eb390ebbcf53b14699ee49a97a6ac9acb839a20ec35bcc",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11773,8 +11773,8 @@
         "limits": "Mocked local Git object inspection and GitHub Git-data REST responses only; verifies second one-use owner grant, exact prepared source parent/tree/blob, fixed draft PR metadata, durable reservation, duplicate non-replay, remote MAIN drift and uncertain external outcomes. Does not prove live GitHub credentials, actual remote branch/PR creation, native owner Windows publication, independent CI execution of generated code, product acceptance, background dispatch or merge.",
         "inputs": [
           {
-            "path": "scripts/engineering-team/gateway/authorized-pr-publish-once.mjs",
-            "digest": "640783e320b7a7f9666eaa3490f4ffa89fe07eddb4e68a1590adec1376b0525a"
+            "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
+            "digest": "717cb1e33d42fc47cfcf7991399589be225e735dfabd9888f3bb29751d97d2d4"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -11784,7 +11784,7 @@
       },
       {
         "target": "tests/issue-3142-authorized-pr-publish-once.test.mjs",
-        "targetDigest": "d58534ef1b388fdb3ea44698007cd6391dbd3b3c8d5532cd0556199d5685154f",
+        "targetDigest": "c10d1bdcd5ac422c561677e037bf5ca85287854c32c2177bac4dbc05ed51e707",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11805,12 +11805,12 @@
         "limits": "Native disposable Git worktree/commit and deterministic fake GitHub HTTPS; verifies one-use second owner grant, exact local/remote tree+blob identity, draft-only PR, stale MAIN, dirty stage, uncertain-response non-replay and one-call coding-to-publish handoff. No real owner credentials, real GitHub PR creation, paid model invocation, unattended startup, owner Windows acceptance, independent Product Gate, or merge proof.",
         "inputs": [
           {
-            "path": "scripts/engineering-team/gateway/authorized-pr-publish-once.mjs",
-            "digest": "640783e320b7a7f9666eaa3490f4ffa89fe07eddb4e68a1590adec1376b0525a"
+            "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
+            "digest": "717cb1e33d42fc47cfcf7991399589be225e735dfabd9888f3bb29751d97d2d4"
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "de7d6f2a596e8759937547cbee04838779b2933471e41923ad7d23afaad72112"
+            "digest": "81f020fca1349acea990a307a72fb38e5795928e5609043441b683ffb21bead2"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",

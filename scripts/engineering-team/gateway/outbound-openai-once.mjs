@@ -86,14 +86,41 @@ async function completionOnce(folder, grant, questionId, answerId, now) {
   } catch { return false; }
   finally { await file?.close().catch(() => {}); }
 }
+async function boundedProviderJson(response) {
+  // Reject an oversized provider body before buffering it.
+  if (!response?.body || typeof response.body.getReader !== "function") return null;
+  const reader = response.body.getReader(), chunks = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!(value instanceof Uint8Array)) return null;
+      size += value.byteLength;
+      if (size > 65_536) {
+        await reader.cancel().catch(() => {});
+        return null;
+      }
+      chunks.push(Buffer.from(value));
+    }
+    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  } finally { reader.releaseLock(); }
+}
 function outputText(response) {
-  if (!response || !Array.isArray(response.output)) return null;
-  const parts = response.output.flatMap(item => item?.type === "message" &&
-    Array.isArray(item.content) ? item.content : [])
-    .filter(part => part?.type === "output_text" && typeof part.text === "string")
-    .map(part => part.text);
-  if (parts.length !== 1) return null;
-  const value = parts[0].trim();
+  // Partial, failed, refused and tool-bearing output is never a completed answer.
+  if (!response || response.status !== "completed" ||
+      response.error != null || response.incomplete_details != null ||
+      !Array.isArray(response.output) ||
+      response.output.some(item => !["message", "reasoning"].includes(item?.type)))
+    return null;
+  const messages = response.output.filter(item => item.type === "message");
+  if (messages.length !== 1) return null;
+  const message = messages[0];
+  if (message.status !== "completed" ||
+      !Array.isArray(message.content) || message.content.length !== 1 ||
+      message.content[0]?.type !== "output_text" ||
+      typeof message.content[0].text !== "string") return null;
+  const value = message.content[0].text.trim();
   return value.length >= 12 && value.length <= 2048 ? value : null;
 }
 
@@ -135,10 +162,7 @@ export async function dispatchOutboundObserveOnce({
       signal: AbortSignal.timeout(25_000),
     });
     if (!response?.ok) return uncertain("OUTBOUND_PROVIDER_REJECTED_UNCONFIRMED");
-    const raw = await response.text();
-    if (Buffer.byteLength(raw, "utf8") > 65_536)
-      return uncertain("OUTBOUND_RESPONSE_UNVERIFIABLE");
-    answerText = outputText(JSON.parse(raw));
+    answerText = outputText(await boundedProviderJson(response));
     if (!answerText || answerText === question.payload.text)
       return uncertain("OUTBOUND_RESPONSE_UNVERIFIABLE");
   } catch { return uncertain("OUTBOUND_REQUEST_OUTCOME_UNKNOWN"); }

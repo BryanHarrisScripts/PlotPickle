@@ -17,11 +17,12 @@ const source = { head: "a".repeat(40), channel: "main" };
 const Q = "b".repeat(32), GRANT = "c".repeat(32);
 const TOKEN = "sk-test-placeholder-not-a-real-secret-000000";
 const reply = "The build checks compilation, while an observed external answer and durable correlation receipt establish a real conversation.";
-const fakeResponse = () => ({
-  ok: true, text: async () => JSON.stringify({ output: [
-    { type: "message", content: [{ type: "output_text", text: reply }] },
-  ] }),
-});
+const fakeResponse = () => new Response(JSON.stringify({
+  status: "completed", output: [
+    { type: "message", status: "completed",
+      content: [{ type: "output_text", text: reply }] },
+  ],
+}), { status: 200 });
 const grant = (head = source.head, questionDigest = null) => ({
   schemaVersion: 1, kind: "outbound-observe-once", grantId: GRANT,
   questionId: Q, sourceHead: head, questionDigest, model: "gpt-5-mini",
@@ -137,10 +138,10 @@ test("#3259 malformed model reply is uncertain, never a fabricated completed ans
   const result = await dispatchOutboundObserveOnce({
     root, source, question, grant: grant(source.head, gatewayDigest(question.payload)), credential: TOKEN,
     persistAnswer: writer(journal),
-    fetchImpl: async () => ({
-      ok: true, text: async () => JSON.stringify({ output: [{ type: "message",
-        content: [{ type: "output_text", text: "sk-secretvalue01234567890123456789" }] }] }),
-    }),
+    fetchImpl: async () => new Response(JSON.stringify({
+      status: "completed", output: [{ type: "message", status: "completed",
+        content: [{ type: "output_text", text: "sk-secretvalue01234567890123456789" }] }],
+    }), { status: 200 }),
   });
   assert.equal(result.state, "STARTED_UNCONFIRMED");
   assert.equal(result.code, "OUTBOUND_REPLY_UNVERIFIABLE");
@@ -186,3 +187,37 @@ test("#3259 local host adapter requires a private one-shot grant and real clean 
   assert.equal(requests, 1);
   assert.equal((await readFile(path.join(journal, "answers", Q + ".json"), "utf8")).includes(TOKEN), false);
 }));
+
+test("#3259 incomplete, tool-bearing and oversized provider replies remain uncertain", async () => {
+  const message = { type: "message", status: "completed",
+    content: [{ type: "output_text", text: reply }] };
+  const cases = [
+    { status: "incomplete", output: [message] },
+    { status: "completed", incomplete_details: { reason: "max_output_tokens" }, output: [message] },
+    { status: "completed", output: [message, { type: "function_call", name: "unsafe" }] },
+    { status: "completed", output: [{ ...message, status: "in_progress" }] },
+    { status: "completed", output: [{ ...message, content: [
+      { type: "output_text", text: reply }, { type: "refusal", refusal: "blocked" },
+    ] }] },
+    { status: "completed", output: [message], padding: "x".repeat(70_000) },
+  ];
+  for (const response of cases) {
+    await sandbox(async root => {
+      const question = await pending(root);
+      let calls = 0;
+      const result = await dispatchOutboundObserveOnce({
+        root, source, question, grant: grant(source.head, gatewayDigest(question.payload)),
+        credential: TOKEN, persistAnswer: writer(path.join(root, "main", source.head)),
+        fetchImpl: async () => {
+          calls++;
+          return new Response(JSON.stringify(response), { status: 200 });
+        },
+      });
+      assert.equal(result.state, "STARTED_UNCONFIRMED");
+      assert.equal(result.code, "OUTBOUND_RESPONSE_UNVERIFIABLE");
+      assert.equal(calls, 1);
+      assert.equal((await conversationStatus({ root, source })).code, "PENDING");
+      assert.equal((await readdir(path.join(root, "outbound"))).length, 1);
+    });
+  }
+});

@@ -9,6 +9,7 @@ import { controlPlotpickleOwnerApp, observePlotpickleOwnerApp } from "./plotpick
 import { gatewayAppSource, privateGatewayRoot } from "../gateway/gateway-host.mjs";
 import { conversationMcpAction, validConversationArgs } from "../gateway/conversation-service.mjs";
 import { timingSafeEqual } from "node:crypto";
+import { requestIndependentSupervisorStart } from "./engineering/factory-supervisor-start.mjs";
 import { existsSync } from "node:fs";
 import { lstat, mkdir, readFile, writeFile, unlink } from "node:fs/promises";
 import os from "node:os";
@@ -329,6 +330,10 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "ISSUES_ADMITTED","DEPENDENCY_PREFLIGHT_REQUIRED",
   "CONTROL_OPERATION_BLOCKED","EXACT_HEAD_MISMATCH",
   "WINDOWS_ONLY","TEST_SELECTION_INVALID","TEST_LOCKED",
+  "SUPERVISOR_SOURCE_UNVERIFIED","SUPERVISOR_STATUS_UNVERIFIED",
+  "SUPERVISOR_NOT_OFFLINE_ON_CURRENT_HEAD","SUPERVISOR_TASK_NOT_INSTALLED",
+  "SUPERVISOR_TASK_NOT_READY","SUPERVISOR_START_SUBMITTED_UNVERIFIED",
+  "SUPERVISOR_START_OUTCOME_UNVERIFIED",
   "NODE_TEST_PASS","NODE_TEST_FAILED","NODE_TEST_TIMEOUT",
   "CANDIDATE_HEAD_VERIFIED","CANDIDATE_SELECTION_INVALID",
   "CANDIDATE_NOT_OPEN","CANDIDATE_HEAD_MISMATCH",
@@ -379,7 +384,8 @@ export function controlTokenMatches(presented,configured) {
 const APP_CONTROL_SUITES=Object.freeze(["plotpickle-app-start","plotpickle-app-stop","plotpickle-app-restart","plotpickle-app-candidate-start","plotpickle-app-factory-start","plotpickle-app-factory-stop"]);
 const allowedFactoryControlSuites=()=>[...allowedFactoryTestNames(),...APP_CONTROL_SUITES,
   "factory-pr-head","factory-pr-stage","factory-sync-main",
-  "factory-story-uat","factory-story-verify"];
+  "factory-story-uat","factory-story-verify","factory-supervisor-start",
+  "factory-gateway-acceptance"];
 export const MCP_CONTROL_TOOLS=Object.freeze([
   {name:"factory_run_dependency_preflight",title:"Run Windows Factory dependency preflight",
     description:"On the paired, stopped Windows host, run the non-reserving npm dependency preflight for an exact main SHA. May take several minutes. Never invokes a model or retries an issue.",
@@ -395,7 +401,7 @@ export const MCP_CONTROL_TOOLS=Object.freeze([
       issues:{type:"array",items:{type:"integer",minimum:1,maximum:9999999},minItems:1,maxItems:5,uniqueItems:true}},
       required:["requestId","expectedHead","issues"],additionalProperties:false}},
   {name:"factory_run_named_test",title:"Run allowlisted Factory test or candidate identity check",
-    description:"Authenticated owner-Windows MAIN or isolated unmerged PR TEST startup and owned STOP. Exact source identity at fixed 127.0.0.1:4173; no shell, passphrase, images or merge.",
+    description:"Authenticated allowlisted Windows tests, staged headless gateway acceptance, app control, or owner-authorized supervisor Start. No legacy Pi dispatcher, shell, arbitrary program, or merge.",
     inputSchema:{type:"object",properties:{
       requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
       expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
@@ -442,7 +448,8 @@ function validControlArgs(name,args) {
     if(["factory-pr-head","factory-pr-stage"].includes(args.suite))return keys.length===5 &&
       Number.isSafeInteger(args.candidatePrNumber)&&validIssue(args.candidatePrNumber)&&
       CONTROL_HEAD.test(args.candidateHead||"");
-    if(["plotpickle-app-candidate-start","plotpickle-app-factory-start"].includes(args.suite))return keys.length===6 &&
+    if(["plotpickle-app-candidate-start","plotpickle-app-factory-start",
+      "factory-gateway-acceptance"].includes(args.suite))return keys.length===6 &&
       Number.isSafeInteger(args.candidatePrNumber)&&validIssue(args.candidatePrNumber)&&
       CONTROL_HEAD.test(args.candidateHead||"")&&REQUEST_ID.test(args.sourceRequestId||"")&&
       args.sourceRequestId!==args.requestId;
@@ -450,7 +457,8 @@ function validControlArgs(name,args) {
       REQUEST_ID.test(args.sourceRequestId||"") && args.sourceRequestId!==args.requestId;
     return keys.length===3 && (APP_CONTROL_SUITES.includes(args.suite) ||
       allowedFactoryTestNames().includes(args.suite) ||
-      args.suite==="factory-sync-main"||args.suite==="factory-story-uat");
+      args.suite==="factory-sync-main"||args.suite==="factory-story-uat"||
+      args.suite==="factory-supervisor-start");
   }
   return name==="factory_admit_issues"&&keys.length===3&&
     Array.isArray(args.issues)&&args.issues.length>=1&&args.issues.length<=5&&
@@ -459,7 +467,7 @@ function validControlArgs(name,args) {
 }
 function safeControlReceipt(raw,requestId) {
   if(raw?.requestId!==requestId)return null;
-  const state=["BLOCKED","INSTALL_PREFLIGHT_READY","ISSUES_ADMITTED",
+  const state=["BLOCKED","START_REQUESTED_UNCONFIRMED","INSTALL_PREFLIGHT_READY","ISSUES_ADMITTED",
     "TEST_PASSED","TEST_FAILED"].includes(raw.state)
     ?raw.state:null;
   const code=safeText(raw.code,CONTROL_CODES);
@@ -519,6 +527,7 @@ export async function factoryControlAction(name,args,{
     inspectSyncSource:inspectFactorySyncSource,syncMain:syncFactoryMain,
     storyUat:runFactoryStoryUat,storyVerify:runFactoryStoryEvidenceVerify,
     appControl:controlPlotpickleOwnerApp,
+    supervisorStart:requestIndependentSupervisorStart,
     engineering:runStagedEngineeringTask,
   },
 }={}) {
@@ -556,9 +565,9 @@ export async function factoryControlAction(name,args,{
     await writeFile(path.join(dir,args.requestId+".json"),JSON.stringify({
       schemaVersion:1,requestId:args.requestId,operation:name,
       expectedHead:args.expectedHead,
-      candidatePrNumber:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start","plotpickle-app-factory-start"].includes(args.suite)?args.candidatePrNumber:null,
-      candidateHead:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start","plotpickle-app-factory-start"].includes(args.suite)?args.candidateHead:null,
-      sourceRequestId:["factory-story-verify","plotpickle-app-candidate-start","plotpickle-app-factory-start"].includes(args.suite)?args.sourceRequestId:null,
+      candidatePrNumber:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start","plotpickle-app-factory-start","factory-gateway-acceptance"].includes(args.suite)?args.candidatePrNumber:null,
+      candidateHead:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start","plotpickle-app-factory-start","factory-gateway-acceptance"].includes(args.suite)?args.candidateHead:null,
+      sourceRequestId:["factory-story-verify","plotpickle-app-candidate-start","plotpickle-app-factory-start","factory-gateway-acceptance"].includes(args.suite)?args.sourceRequestId:null,
       stageRequestId:name==="factory_engineering_run"?args.stageRequestId:null,
       mode:name==="factory_engineering_run"?args.mode:null,
       at:now(),replayAuthorized:false,
@@ -585,6 +594,30 @@ export async function factoryControlAction(name,args,{
             ?await ops.engineering({selection:args,root,repoRoot:ENGINEERING_REPO_ROOT,
               stageReceipt:await factoryControlReceipt({root,requestId:args.stageRequestId}),
               verifyHead:ops.testHead})
+            :args.suite==="factory-gateway-acceptance"
+            ?await (async()=>{
+              // Candidate test source is untrusted until its approved-truth
+              // bindings are admitted against the already trusted MAIN base.
+              // Both steps use the existing isolated no-shell engineering runner.
+              const stageReceipt=await factoryControlReceipt({
+                root,requestId:args.sourceRequestId,
+              });
+              const base={requestId:args.requestId,expectedHead:args.expectedHead,
+                stageRequestId:args.sourceRequestId,
+                candidatePrNumber:args.candidatePrNumber,candidateHead:args.candidateHead};
+              const options={root,repoRoot:ENGINEERING_REPO_ROOT,
+                stageReceipt,verifyHead:ops.testHead};
+              const admission=await ops.engineering({...options,selection:{
+                ...base,mode:"node-script",target:"scripts/verification-test-truth.mjs",
+                scriptArgs:["--base-ref",args.expectedHead],
+              }});
+              if(admission?.state!=="TEST_PASSED"||
+                  admission?.code!=="ENGINEERING_TASK_PASSED")return admission;
+              return await ops.engineering({...options,selection:{
+                ...base,mode:"node-test",
+                target:"tests/issue-3259-outbound-openai-once.test.mjs",scriptArgs:[],
+              }});
+            })()
             :args.suite==="factory-pr-head"
             ?await ops.inspectPr({prNumber:args.candidatePrNumber,
               candidateHead:args.candidateHead,expectedHead:args.expectedHead,
@@ -604,6 +637,8 @@ export async function factoryControlAction(name,args,{
                       root,requestId:args.sourceRequestId,
                     }),
                   }:{})})
+              :args.suite==="factory-supervisor-start"
+                ?await ops.supervisorStart({expectedHead:args.expectedHead,verifyHead:ops.testHead})
               :args.suite==="factory-sync-main"
                 ?await ops.syncMain({expectedHead:args.expectedHead,root,
                   inspect:ops.inspectSyncSource})
@@ -615,22 +650,21 @@ export async function factoryControlAction(name,args,{
                       sourceRequestId:args.sourceRequestId,root,verifyHead:ops.testHead})
                     :await ops.runTest({suite:args.suite,
                     expectedHead:args.expectedHead,verifyHead:ops.testHead});
-          outcome={state:["TEST_PASSED","TEST_FAILED"].includes(result.state)
+          outcome={state:["TEST_PASSED","TEST_FAILED","START_REQUESTED_UNCONFIRMED"].includes(result.state)
             ?result.state:"BLOCKED",
             code:safeText(result.code,CONTROL_CODES)||"CONTROL_OPERATION_BLOCKED",
             sourceHead:result.sourceHead,suite:args.suite,
-            mode:name==="factory_engineering_run"?result.mode:null,
-            stageId:name==="factory_engineering_run"?result.stageId:null,
-            target:name==="factory_engineering_run"?result.target:null,
-            exitCode:name==="factory_engineering_run"?result.exitCode:null,
-            durationMs:name==="factory_engineering_run"?result.durationMs:null,
-            diagnostic:name==="factory_engineering_run"?result.diagnostic:null,
-            outputDigest:name==="factory_engineering_run"?result.outputDigest:null,
-            candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED"].includes(result.code)
+            mode:name==="factory_engineering_run"||args.suite==="factory-gateway-acceptance"?result.mode:null,
+            target:name==="factory_engineering_run"||args.suite==="factory-gateway-acceptance"?result.target:null,
+            exitCode:name==="factory_engineering_run"||args.suite==="factory-gateway-acceptance"?result.exitCode:null,
+            durationMs:name==="factory_engineering_run"||args.suite==="factory-gateway-acceptance"?result.durationMs:null,
+            diagnostic:name==="factory_engineering_run"||args.suite==="factory-gateway-acceptance"?result.diagnostic:null,
+            outputDigest:name==="factory_engineering_run"||args.suite==="factory-gateway-acceptance"?result.outputDigest:null,
+            candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(result.code)
               ?(result.candidatePrNumber??args.candidatePrNumber):null,
-            candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED"].includes(result.code)
+            candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(result.code)
               ?(result.candidateHead??args.candidateHead):null,
-            stageId:result.code==="CANDIDATE_STATIC_STAGED"?result.stageId:null,
+            stageId:["CANDIDATE_STATIC_STAGED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(result.code)?result.stageId:null,
             stageReason:result.code==="PRODUCT_UAT_STAGE_UNVERIFIED"&&
               FACTORY_STORY_STAGE_REASONS.includes(result.stageReason)
               ?result.stageReason:null,
@@ -753,7 +787,12 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
         instructions:controlAuthenticated?"Authenticated app lifecycle plus bounded Factory tests; optional host-enabled staged engineering tasks execute selected repository scripts without inline shell or merge permissions. No autonomous merge is implied.":
           "Read-only PlotPickle Factory status, receipts and GitHub queue preview. A heartbeat is never independent proof."}};
     case "ping": return {result:{}};
-    case "tools/list": return {result:{tools:controlAuthenticated?[...MCP_TOOLS,...MCP_CONTROL_TOOLS,...MCP_CONVERSATION_TOOLS,...MCP_STORAGE_TOOLS,
+    case "tools/list": return {result:{tools:controlAuthenticated?[...MCP_TOOLS,...MCP_CONTROL_TOOLS.map(tool =>
+      tool.name==="factory_run_named_test" && !engineeringEnabled
+        ? {...tool,inputSchema:{...tool.inputSchema,properties:{...tool.inputSchema.properties,
+          suite:{...tool.inputSchema.properties.suite,enum:tool.inputSchema.properties.suite.enum.filter(
+            suite=>suite!=="factory-gateway-acceptance")}}}}
+        : tool),...MCP_CONVERSATION_TOOLS,...MCP_STORAGE_TOOLS,
       ...(engineeringEnabled?MCP_ENGINEERING_TOOLS:[])]:MCP_TOOLS}};
     case "tools/call": {
       const name=request.params?.name,args=request.params?.arguments??{};
@@ -763,8 +802,13 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
       const isConversation=name==="factory_conversation";
       const isStorage=name==="factory_storage_inventory";
       const isEngineering=name==="factory_engineering_run";
+      // Executing candidate PR code requires the existing explicit owner opt-in,
+      // even when exposed as a fixed named suite rather than a generic runner.
+      const isGatewayAcceptance=name==="factory_run_named_test"&&
+        args.suite==="factory-gateway-acceptance";
       const isControl=MCP_CONTROL_TOOLS.some(x=>x.name===name) || isEngineering;
-      if(isEngineering&&!engineeringEnabled)return {error:{code:-32601,message:"Unknown tool"}};
+      if((isEngineering||isGatewayAcceptance)&&!engineeringEnabled)
+        return {error:{code:-32601,message:"Unknown tool"}};
       if(isControl&&!controlAuthenticated)return {error:{code:-32001,message:"Factory control authorization required"}};
       if(isControl&&!validControlArgs(name,args))return {error:invalidParams()};
       if(isConversation&&!controlAuthenticated)return {error:{code:-32001,message:"Conversation authorization required"}};

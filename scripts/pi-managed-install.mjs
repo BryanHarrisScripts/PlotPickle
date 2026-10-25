@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { versionAtLeast } from "./pi-version.mjs";
+import { resolveManagedPiCliEntry } from "../Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs";
 import {
   PI_CODING_AGENT_PACKAGE,
   PI_MINIMUM_NODE_VERSION,
@@ -49,7 +50,11 @@ export async function probeManagedPi(options = {}) {
     return { ready: false, root, command, version: "", expectedVersion, state: "not-installed" };
   }
   try {
-    const result = await run(command, ["--version"], { timeout: 15_000 });
+    // The published pi.cmd / pi shim points into dist/bundle/cli.js, which
+    // embeds an older Undici implementation outside the npm lock graph.
+    // Even a version probe must never execute that bundled entry.
+    const cliEntry = await (options.resolveCliEntry || resolveManagedPiCliEntry)({ root });
+    const result = await run(options.nodeExecutable || process.execPath, [cliEntry, "--version"], { timeout: 15_000 });
     const rawVersion = String(result.stdout || result.stderr || "").trim();
     const version = normalizedPiVersion(rawVersion);
     if (!version) {
@@ -125,6 +130,8 @@ export async function ensureManagedPiInstalled(options = {}) {
     existsSync: fileExists,
     runPortableCommand: run,
     readFile: options.readFile,
+    resolveCliEntry: options.resolveCliEntry,
+    nodeExecutable: options.nodeExecutable,
   });
   if (existing.ready) return { ...existing, installed: false };
   if (options.allowInstall === false || env.PLOTPICKLE_PI_AUTO_INSTALL === "0") {
@@ -177,6 +184,8 @@ export async function ensureManagedPiInstalled(options = {}) {
     existsSync: fileExists,
     runPortableCommand: run,
     readFile: options.readFile,
+    resolveCliEntry: options.resolveCliEntry,
+    nodeExecutable: options.nodeExecutable,
   });
   if (!installed.ready) {
     throw new Error(`PlotPickle-managed Pi ${expectedVersion} installation completed but the private executable failed validation. ${installed.detail || installed.state}`);

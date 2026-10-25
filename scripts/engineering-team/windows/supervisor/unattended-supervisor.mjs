@@ -53,6 +53,21 @@ function appRootDefault() {
 export function validateSupervisorConsent(value, platform = process.platform) {
   return platform === "win32" && value === CONSENT;
 }
+// A malformed or over-privileged local grant must never produce a RUNNING
+// status, accept lifecycle controls or reach the paired GitHub poller.
+function validEnabledAuthority(record) {
+  return record?.schemaVersion === 1 &&
+    record.kind === "independent-windows-supervisor" &&
+    SHA.test(record.sourceHead || "") &&
+    /^host-[a-f0-9]{32}$/.test(record.hostId || "") &&
+    typeof record.authorizedActor === "string" &&
+    record.authorizedActor.length > 0 && record.authorizedActor.length <= 80 &&
+    Number.isSafeInteger(record.enabledAt) && record.enabledAt > 0 &&
+    record.remoteControlScope === "paired-start-status-stop-only" &&
+    record.modelDispatchAllowed === false &&
+    record.sourceMutationAllowed === false &&
+    record.autonomousMergeAllowed === false;
+}
 export async function enableSupervisor({ appRoot = appRootDefault(), consent, platform = process.platform,
   head = exactHead, paired = readWindowsGitHubPairing, now = Date.now } = {}) {
   if (!validateSupervisorConsent(consent, platform)) throw Error("LOCAL_WINDOWS_CONSENT_REQUIRED");
@@ -184,8 +199,10 @@ export async function reenableSupervisor({ appRoot = appRootDefault(), consent, 
   if (!validateSupervisorConsent(consent, platform)) throw Error("LOCAL_WINDOWS_CONSENT_REQUIRED");
   const p = dirs(appRoot);
   const enabled = await safeRead(p.enabled);
-  if (!enabled || !SHA.test(enabled.sourceHead)) throw Error("SUPERVISOR_NOT_ENABLED");
-  if (await safeRead(p.lock)) throw Error("SUPERVISOR_LOCKED_OR_STALE");
+  if (!validEnabledAuthority(enabled)) throw Error("SUPERVISOR_AUTHORITY_UNVERIFIABLE");
+  // A malformed or symlinked running.lock is still a lock. Never clear STOP
+  // while service ownership is uncertain merely because JSON parsing failed.
+  if (await existsOrdinaryFile(p.lock)) throw Error("SUPERVISOR_LOCKED_OR_STALE");
   if ((await head()) !== enabled.sourceHead) throw Error("STALE_SOURCE_HEAD");
   const info = await paired({ appRoot });
   if (!info.enabled || info.hostId !== enabled.hostId
@@ -216,8 +233,8 @@ export async function pauseSupervisor({ appRoot = appRootDefault(), consent,
   if (!validateSupervisorConsent(consent, platform)) throw Error("LOCAL_WINDOWS_CONSENT_REQUIRED");
   const p = dirs(appRoot);
   const enabled = await safeRead(p.enabled);
-  if (!enabled || !SHA.test(enabled.sourceHead)) throw Error("SUPERVISOR_NOT_ENABLED");
-  if (await safeRead(p.stop)) throw Error("LOCAL_STOP_REQUIRES_OPERATOR_REENABLE");
+  if (!validEnabledAuthority(enabled)) throw Error("SUPERVISOR_AUTHORITY_UNVERIFIABLE");
+  if (await existsOrdinaryFile(p.stop)) throw Error("LOCAL_STOP_REQUIRES_OPERATOR_REENABLE");
   if ((await head()) !== enabled.sourceHead) throw Error("STALE_SOURCE_HEAD");
   const info = await paired({ appRoot });
   if (!info.enabled || info.hostId !== enabled.hostId ||
@@ -243,8 +260,8 @@ export async function resumeSupervisor({ appRoot = appRootDefault(), consent,
   if (!validateSupervisorConsent(consent, platform)) throw Error("LOCAL_WINDOWS_CONSENT_REQUIRED");
   const p = dirs(appRoot);
   const enabled = await safeRead(p.enabled);
-  if (!enabled || !SHA.test(enabled.sourceHead)) throw Error("SUPERVISOR_NOT_ENABLED");
-  if (await safeRead(p.stop)) throw Error("LOCAL_STOP_REQUIRES_OPERATOR_REENABLE");
+  if (!validEnabledAuthority(enabled)) throw Error("SUPERVISOR_AUTHORITY_UNVERIFIABLE");
+  if (await existsOrdinaryFile(p.stop)) throw Error("LOCAL_STOP_REQUIRES_OPERATOR_REENABLE");
   if ((await head()) !== enabled.sourceHead) throw Error("STALE_SOURCE_HEAD");
   const info = await paired({ appRoot });
   if (!info.enabled || info.hostId !== enabled.hostId ||
@@ -270,8 +287,12 @@ async function existsOrdinaryFile(file) {
 export async function supervisorStatus({ appRoot = appRootDefault(), now = Date.now } = {}) {
   const p = dirs(appRoot);
   const enabled = await safeRead(p.enabled);
-  if (!enabled) return Object.freeze({ state: "OFF", reason: "NOT_ENABLED" });
-  if (await safeRead(p.stop)) return Object.freeze({ state: "STOP_REQUESTED", reason: "LOCAL_KILL_SWITCH" });
+  if (!enabled && !await existsOrdinaryFile(p.enabled))
+    return Object.freeze({ state: "OFF", reason: "NOT_ENABLED" });
+  // A durable local STOP wins even when the grant itself is unreadable.
+  if (await existsOrdinaryFile(p.stop)) return Object.freeze({ state: "STOP_REQUESTED", reason: "LOCAL_KILL_SWITCH" });
+  if (!validEnabledAuthority(enabled))
+    return Object.freeze({ state: "BLOCKED", reason: "SUPERVISOR_AUTHORITY_UNVERIFIABLE" });
   const pause = await safeRead(p.pause);
   if (!pause && await existsOrdinaryFile(p.pause))
     return Object.freeze({ state: "BLOCKED", exactSha: enabled.sourceHead, reason: "PAUSE_REQUEST_UNVERIFIABLE" });
@@ -304,9 +325,11 @@ export async function supervisorCycle({
   if (platform !== "win32") return Object.freeze({ state: "BLOCKED", reason: "WINDOWS_REQUIRED" });
   const p = dirs(appRoot);
   const enabled = await safeRead(p.enabled);
-  if (!enabled || enabled.kind !== "independent-windows-supervisor" || !SHA.test(enabled.sourceHead))
+  if (!enabled && !await existsOrdinaryFile(p.enabled))
     return Object.freeze({ state: "OFF", reason: "NOT_ENABLED" });
-  if (await safeRead(p.stop)) return Object.freeze({ state: "STOPPED", reason: "LOCAL_KILL_SWITCH" });
+  if (await existsOrdinaryFile(p.stop)) return Object.freeze({ state: "STOPPED", reason: "LOCAL_KILL_SWITCH" });
+  if (!validEnabledAuthority(enabled))
+    return Object.freeze({ state: "BLOCKED", reason: "SUPERVISOR_AUTHORITY_UNVERIFIABLE" });
   if ((await head()) !== enabled.sourceHead)
     return Object.freeze({ state: "BLOCKED", reason: "STALE_SOURCE_HEAD" });
   const info = await paired({ appRoot });
@@ -332,6 +355,11 @@ export async function supervisorCycle({
     return Object.freeze({ state: "PAUSE_REQUESTED", reason: "NEXT_CYCLE_ACK_PENDING",
       remoteProcessed: 0, agentExecutionProven: false, autonomousPrLifecycleProven: false });
   }
+  // STOP may arrive while the queue is inspected. Never start another poll.
+  if (await existsOrdinaryFile(p.stop)) {
+    return Object.freeze({ state: "STOPPED", reason: "LOCAL_KILL_SWITCH",
+      remoteProcessed: 0, agentExecutionProven: false, autonomousPrLifecycleProven: false });
+  }
   let remoteProcessed = 0, reason = null;
   try {
     const result = await poll({ appRoot });
@@ -341,9 +369,14 @@ export async function supervisorCycle({
   } catch {
     reason = "GITHUB_TRANSPORT_OFFLINE";
   }
+  // An in-flight poll cannot be undone; retain its observed count, but do
+  // not publish a RUNNING heartbeat after a local STOP was requested.
+  const stoppedAfterPoll = await existsOrdinaryFile(p.stop);
   const snapshot = Object.freeze({ schemaVersion: 1, sourceHead: enabled.sourceHead,
-    hostId: enabled.hostId, at: now(), state: reason ? "BLOCKED" : "RUNNING",
-    reason, queueEligible: q.eligible || 0, remoteProcessed,
+    hostId: enabled.hostId, at: now(),
+    state: stoppedAfterPoll ? "STOP_REQUESTED" : reason ? "BLOCKED" : "RUNNING",
+    reason: stoppedAfterPoll ? "LOCAL_KILL_SWITCH" : reason,
+    queueEligible: q.eligible || 0, remoteProcessed,
     agentExecutionProven: false, autonomousPrLifecycleProven: false });
   // Private heartbeat is status, not independent verification.
   await writeFile(p.heartbeat, JSON.stringify(snapshot) + "\n", { mode: 0o600 });
@@ -354,8 +387,9 @@ export async function serveSupervisor({ appRoot = appRootDefault(), consent, pla
   maxCycles = Infinity } = {}) {
   if (!validateSupervisorConsent(consent, platform)) throw Error("LOCAL_WINDOWS_CONSENT_REQUIRED");
   const p = dirs(appRoot);
-  if (!await safeRead(p.enabled)) throw Error("SUPERVISOR_NOT_ENABLED");
-  if (await safeRead(p.stop)) throw Error("LOCAL_STOP_REQUIRES_OPERATOR_REENABLE");
+  if (!validEnabledAuthority(await safeRead(p.enabled)))
+    throw Error("SUPERVISOR_AUTHORITY_UNVERIFIABLE");
+  if (await existsOrdinaryFile(p.stop)) throw Error("LOCAL_STOP_REQUIRES_OPERATOR_REENABLE");
   const handle = await open(p.lock, "wx", 0o600).catch(error => {
     if (error?.code === "EEXIST") throw Error("SUPERVISOR_LOCKED_OR_STALE");
     throw error;
@@ -366,18 +400,19 @@ export async function serveSupervisor({ appRoot = appRootDefault(), consent, pla
     await handle.close();
     let count = 0;
     for (; count < maxCycles; count++) {
-      if (await safeRead(p.stop)) break;
+      if (await existsOrdinaryFile(p.stop)) break;
       const result = await cycle({ appRoot });
-      if (result.state === "OFF" || result.state === "STOPPED"
+      if (await existsOrdinaryFile(p.stop) || result.state === "OFF" || result.state === "STOPPED"
         || result.reason === "PAIRING_CHANGED_OR_DISABLED" || result.reason === "STALE_SOURCE_HEAD"
-        || result.reason === "PAUSE_REQUEST_UNVERIFIABLE")
+        || result.reason === "PAUSE_REQUEST_UNVERIFIABLE"
+        || result.reason === "SUPERVISOR_AUTHORITY_UNVERIFIABLE")
         break;
       if (count + 1 < maxCycles) await delay(INTERVAL_MS);
     }
     return Object.freeze({ state: "STOPPED", completedCycles: count });
   } finally {
     const enabled = await safeRead(p.enabled);
-    if (enabled?.sourceHead) {
+    if (validEnabledAuthority(enabled)) {
       await writeFile(p.heartbeat, JSON.stringify({ schemaVersion: 1,
         sourceHead: enabled.sourceHead, hostId: enabled.hostId, at: now(),
         state: "STOPPED", reason: "SUPERVISOR_EXITED", queueEligible: 0,

@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "issue": 3259,
+  "phase": "owner-granted-one-shot-observe-only-outbound-api-foundation",
+  "brief": "docs/developer-briefs/3259-one-shot-outbound-ai-observe-transport.md",
+  "allowedChanges": [
+    "scripts/engineering-team/gateway/outbound-openai-once.mjs",
+    "tests/issue-3259-outbound-openai-once.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3259-one-shot-outbound-ai-observe-transport.md",
+    "config/development-convergence/3259-outbound-openai-once.json",
+    ".github/workflows/architecture-shadow.yml"
+  ],
+  "acceptance": [
+    {
+      "id": "OWNER-GRANT-AND-EXACT-SOURCE",
+      "criterion": "Only exact clean MAIN and a private source/question-digest-bound one-shot grant can attempt a model request.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/gateway/outbound-openai-once.mjs",
+          "contains": "OUTBOUND_EXACT_CLEAN_MAIN_REQUIRED"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3259-outbound-openai-once.test.mjs",
+          "contains": "missing consent, wrong SHA, invalid scope and credentials"
+        }
+      ]
+    },
+    {
+      "id": "DURABLE-NONREPLAY",
+      "criterion": "Reserve before a possible charge, no retry after uncertain outcome and no false green.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/gateway/outbound-openai-once.mjs",
+          "contains": "EXTERNAL_REQUEST_OUTCOME_UNCERTAIN"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3259-outbound-openai-once.test.mjs",
+          "contains": "uncertain network or malformed provider output is write-once"
+        }
+      ]
+    },
+    {
+      "id": "CANONICAL-ANSWER-NO-TOOLS",
+      "criterion": "One fixed no-tools OBSERVE Responses request records an answer through the existing canonical journal, never engineering authority.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/gateway/outbound-openai-once.mjs",
+          "contains": "persistGatewayAnswer"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3259-outbound-openai-once.test.mjs",
+          "contains": "records one real gateway answer without source/merge authority"
+        }
+      ]
+    },
+    {
+      "id": "NATIVE-WINDOWS-EXACT-HEAD",
+      "criterion": "Existing native Windows conversation lane runs the new fixture with its canonical P1/P2 tests on checked-out PR head.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "tests/issue-3259-outbound-openai-once.test.mjs"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No real model invocation, credential provisioning, task installation, Pi replay, source editing, coding dispatcher, automatic merge or paid service execution in this PR.",
+    "Fixture success does not prove owner Windows product UAT, native Task Scheduler liveness, model/provider identity or actual external reachability.",
+    "Keep #3142 and #3259 open until independent owner-Windows end-to-end coding dispatcher and lifecycle acceptance."
+  ]
+}

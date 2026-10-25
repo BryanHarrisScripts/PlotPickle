@@ -4910,7 +4910,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-3259-conversation-mcp.test.mjs"
+          "tests/issue-3259-conversation-mcp.test.mjs",
+          "tests/issue-3259-outbound-openai-once.test.mjs"
         ]
       },
       "cost": "fast",
@@ -7200,7 +7201,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "bdffbf2be42374214c895984cbb5b3b87c36b3117db449cb3b0669ff03d081e0"
+            "digest": "97b3f8747958b699332cd66a96099c5aa44de7bdc410570f069fb7a4f8d1c7cc"
           }
         ]
       },
@@ -8034,7 +8035,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "bdffbf2be42374214c895984cbb5b3b87c36b3117db449cb3b0669ff03d081e0"
+            "digest": "97b3f8747958b699332cd66a96099c5aa44de7bdc410570f069fb7a4f8d1c7cc"
           }
         ]
       },
@@ -10354,7 +10355,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "bdffbf2be42374214c895984cbb5b3b87c36b3117db449cb3b0669ff03d081e0"
+            "digest": "97b3f8747958b699332cd66a96099c5aa44de7bdc410570f069fb7a4f8d1c7cc"
           }
         ],
         "truthRefs": [
@@ -10394,7 +10395,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "bdffbf2be42374214c895984cbb5b3b87c36b3117db449cb3b0669ff03d081e0"
+            "digest": "97b3f8747958b699332cd66a96099c5aa44de7bdc410570f069fb7a4f8d1c7cc"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -11673,6 +11674,46 @@
           "static-source"
         ],
         "limits": "Synthetic authenticated MCP request, exact stage receipt, pinned fixed node-test target, write-once result, replay and invalid-selection refusal. Does not prove live owner-Windows execution, API provider invocation, independent product verification, worker dispatcher, source mutation, or merge."
+      },
+      {
+        "target": "tests/issue-3259-outbound-openai-once.test.mjs",
+        "targetDigest": "0832a3ffcd67710b7f5e1b603d8b1a89e34404baafc4ce992cd5f38c7ef24aed",
+        "catalogueIds": [
+          "agent.conversation-mcp-3259"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Synthetic one-shot OpenAI Responses fetch only; temporary private owner grant, durable reservation, canonical question/answer journal and fixture Git source. Verifies fail-closed local authorization, no retry after ambiguous external outcomes and source-bound persistence. Does NOT prove live provider credentials/inference, real paid invocation, owner Windows Task Scheduler, autonomous code editing, independent product UAT, or merge authority.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/outbound-openai-once.mjs",
+            "digest": "8c35f0ad0d07ef09aa465daf3bc4e067bbd1c00fea3ef320e39b81b2e1384df8"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/gateway-contract.mjs",
+            "digest": "a9370aee52db068a185dc61e117e884c347f1ce334d3333cd647eae0a17d88c4"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/gateway-host.mjs",
+            "digest": "17755df74f92130264bfe8f81f0496262accd57bf2218753f98031aeb652d7f8"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/conversation-service.mjs",
+            "digest": "7291486d145d2645e5fae2b6c8f09c44f661a90b679602a02b028164642f8f57"
+          }
+        ]
       }
     ]
   }

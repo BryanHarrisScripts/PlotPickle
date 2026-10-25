@@ -245,6 +245,8 @@ test("#3142 independent Windows logon plan never starts or modifies the legacy P
   assert.match(script, /ENABLE_INDEPENDENT_WINDOWS_SUPERVISOR/);
   assert.match(script, /-AtLogOn -User \$identity/);
   assert.match(script, /-MultipleInstances IgnoreNew/);
+  assert.match(script, /-RestartCount 3 -RestartInterval \(New-TimeSpan -Minutes 5\) -StartWhenAvailable/);
+  assert.match(script, /AtLogOn\/Interactive cannot guarantee startup before a user signs in/);
   assert.match(script, /-LogonType Interactive -RunLevel Limited/);
   assert.match(script, /SUPERVISOR_TASK_OWNERSHIP_UNVERIFIED/);
   assert.match(script, /TRACKED_SOURCE_NOT_CLEAN/);
@@ -252,6 +254,14 @@ test("#3142 independent Windows logon plan never starts or modifies the legacy P
   assert.match(script, /SUPERVISOR_TASK_MAY_STILL_BE_RUNNING_REQUEST_STOP_FIRST/);
   assert.match(script, /START_REQUESTED_UNCONFIRMED/);
   assert.match(script, /STOP_REQUESTED_UNCONFIRMED/);
+  const repairMode = script.slice(script.indexOf("if ($RepairSettings) {"), script.indexOf("if ($Start) {"));
+  assert.match(repairMode, /Read-OwnedTask/);
+  assert.match(repairMode, /Assert-ExactBoundWorker/);
+  assert.match(repairMode, /SUPERVISOR_TASK_NOT_READY_OR_ALREADY_RUNNING/);
+  assert.match(repairMode, /\$settings = \$task\.Settings/);
+  assert.doesNotMatch(repairMode, /New-ScheduledTaskSettingsSet/);
+  assert.match(repairMode, /Set-ScheduledTask -TaskName \$taskName -Settings \$settings/);
+  assert.doesNotMatch(repairMode, /Start-ScheduledTask|Register-ScheduledTask|Unregister-ScheduledTask/);
   assert.doesNotMatch(script, /Start-ScheduledTask\s+-TaskName\s+\$legacyTask/);
   // Only executable PowerShell lines count; explanatory comments that name
   // forbidden operations are not an execution path.
@@ -271,10 +281,11 @@ test("#3142 native Windows PowerShell logon installer denies unauthorized instal
   });
   // All denial probes exit before Get-ScheduledTask/Register/Start/Unregister.
   for (const arguments_ of [
-    [], ["-Install"], ["-Start"], ["-Uninstall"],
+    [], ["-Install"], ["-Start"], ["-Uninstall"], ["-RepairSettings"],
     ["-Install", "-Consent", "WRONG_CONSENT"],
     ["-Start", "-Consent", "WRONG_CONSENT"],
     ["-Uninstall", "-Consent", "WRONG_CONSENT"],
+    ["-RepairSettings", "-Consent", "WRONG_CONSENT"],
   ]) {
     assert.throws(() => run(arguments_), /Command failed/, String(arguments_));
   }
@@ -283,6 +294,8 @@ test("#3142 native Windows PowerShell logon installer denies unauthorized instal
   assert.equal(result.workerProcessVerified, false);
   assert.equal(result.autonomousCodingVerified, false);
   assert.equal(result.automaticMergeEnabled, false);
+  assert.equal(result.recoveryPolicyVerified, false);
+  assert.equal(result.startupScope, "AT_LOGON_AFTER_SIGN_IN");
   assert.equal(result.taskInstalled, false, "disposable Windows CI must not have installed a supervisor task");
 });
 
@@ -405,3 +418,79 @@ test("#3142 malformed running lock never clears local STOP during explicit reena
   await rm(lock);
   assert.equal((await reenableSupervisor(opts)).state, "ENABLED_NOT_RUNNING");
 }));
+
+test("#3142 Windows scheduled-task principal ownership uses SID and rejects a different account", {
+  skip: process.platform !== "win32",
+}, () => {
+  const installer = fileURLToPath(new URL("../scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1", import.meta.url));
+  const powershell = [
+    "$ErrorActionPreference = 'Stop'",
+    "$source = [System.IO.File]::ReadAllText($env:PLOTPICKLE_INSTALLER)",
+    "$begin = $source.IndexOf('function Test-TaskPrincipalIsCurrentUser')",
+    "$end = $source.IndexOf('function Read-OwnedTask', $begin)",
+    "if ($begin -lt 0 -or $end -le $begin) { throw 'OWNER_FUNCTION_MISSING' }",
+    "Invoke-Expression $source.Substring($begin, $end - $begin)",
+    "$current = [System.Security.Principal.WindowsIdentity]::GetCurrent()",
+    "$short = ($current.Name -split [regex]::Escape([string][char]92))[-1]",
+    "if (-not (Test-TaskPrincipalIsCurrentUser $current.Name)) { throw 'QUALIFIED_OWNER_REJECTED' }",
+    "if (-not (Test-TaskPrincipalIsCurrentUser $current.User.Value)) { throw 'SID_OWNER_REJECTED' }",
+    "if (-not (Test-TaskPrincipalIsCurrentUser $short)) { throw 'NORMALIZED_OWNER_REJECTED' }",
+    "if (Test-TaskPrincipalIsCurrentUser 'NT AUTHORITY\\SYSTEM') { throw 'SYSTEM_ACCOUNT_ACCEPTED' }",
+    "if (Test-TaskPrincipalIsCurrentUser 'nonexistent-plotpickle-user-3142') { throw 'UNKNOWN_ACCOUNT_ACCEPTED' }",
+    "if (Test-TaskPrincipalIsCurrentUser '') { throw 'EMPTY_ACCOUNT_ACCEPTED' }",
+  ].join("; ");
+  execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", powershell], {
+    windowsHide: true, timeout: 12000, env: { ...process.env, PLOTPICKLE_INSTALLER: installer },
+  });
+});
+
+test("#3142 disposable Windows Task Scheduler registration retains SID ownership", {
+  skip: process.platform !== "win32" || process.env.PLOTPICKLE_NATIVE_SUPERVISOR_INSTALL_FIXTURE !== "1",
+  timeout: 30_000,
+}, () => {
+  const installer = fileURLToPath(new URL("../scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1", import.meta.url));
+  // Register an inert, uniquely named CI task; never touch the owner's
+  // PlotPickleIndependentSupervisor task or start any registered action.
+  const script = [
+    "$ErrorActionPreference = 'Stop'",
+    "$source = [System.IO.File]::ReadAllText($env:PLOTPICKLE_INSTALLER)",
+    "$begin = $source.IndexOf('function Test-TaskPrincipalIsCurrentUser')",
+    "$end = $source.IndexOf('function Read-OwnedTask', $begin)",
+    "if ($begin -lt 0 -or $end -le $begin) { throw 'OWNER_FUNCTION_MISSING' }",
+    "Invoke-Expression $source.Substring($begin, $end - $begin)",
+    "$identity = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name",
+    "$name = 'PlotPickle-SID-CI-' + [guid]::NewGuid().ToString('N')",
+    "$created = $false",
+    "try {",
+    "  $action = New-ScheduledTaskAction -Execute $env:ComSpec -Argument '/c exit 0'",
+    "  $trigger = New-ScheduledTaskTrigger -AtLogOn -User $identity",
+    "  $principal = New-ScheduledTaskPrincipal -UserId $identity -LogonType Interactive -RunLevel Limited",
+    "  $initialSettings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero) -Hidden",
+    "  Register-ScheduledTask -TaskName $name -Action $action -Trigger $trigger -Principal $principal -Settings $initialSettings | Out-Null",
+    "  $created = $true",
+    "  $task = Get-ScheduledTask -TaskName $name -ErrorAction Stop",
+    "  if (-not (Test-TaskPrincipalIsCurrentUser ([string]$task.Principal.UserId))) { throw 'REGISTERED_OWNER_REJECTED' }",
+    "  if ($task.State -ne 'Ready') { throw 'REGISTERED_TASK_NOT_READY' }",
+    "  if ($task.Settings.RestartCount -ne 0) { throw 'FIXTURE_NOT_UNCONFIGURED' }",
+    "  if (-not $task.Settings.Hidden) { throw 'FIXTURE_HIDDEN_SETTING_MISSING' }",
+    "  $settings = $task.Settings",
+    "  $settings.RestartCount = 3",
+    "  $settings.RestartInterval = 'PT5M'",
+    "  $settings.StartWhenAvailable = $true",
+    "  Set-ScheduledTask -TaskName $name -Settings $settings -ErrorAction Stop | Out-Null",
+    "  $task = Get-ScheduledTask -TaskName $name -ErrorAction Stop",
+    "  if ($task.Actions.Count -ne 1 -or $task.Actions[0].Execute -ne $env:ComSpec) { throw 'TASK_ACTION_CHANGED' }",
+    "  if ($task.Triggers.Count -ne 1) { throw 'TASK_TRIGGER_CHANGED' }",
+    "  if ($task.Settings.RestartCount -ne 3) { throw 'BOUNDED_RESTART_COUNT_MISSING' }",
+    "  if ($task.Settings.RestartInterval -ne 'PT5M') { throw 'BOUNDED_RESTART_INTERVAL_MISSING' }",
+    "  if (-not $task.Settings.StartWhenAvailable) { throw 'MISSED_LOGON_RECOVERY_MISSING' }",
+    "  if (-not $task.Settings.Hidden) { throw 'UNRELATED_HIDDEN_SETTING_LOST' }",
+    "  if (Test-TaskPrincipalIsCurrentUser 'NT AUTHORITY\\SYSTEM') { throw 'FOREIGN_OWNER_ACCEPTED' }",
+    "} finally {",
+    "  if ($created) { Unregister-ScheduledTask -TaskName $name -Confirm:$false -ErrorAction Stop }",
+    "}",
+  ].join("\n");
+  execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", script], {
+    windowsHide: true, timeout: 25000, env: { ...process.env, PLOTPICKLE_INSTALLER: installer },
+  });
+});

@@ -1,0 +1,23 @@
+# #3142 — One-shot owner-authorized coding worker: bounded source edit
+
+October 25, 2026. This is the first executable source-mutation slice toward the independent engineering dispatcher. It is deliberately separate from the existing read-only supervisor and the one-shot OBSERVE gateway.
+
+## Delegation and authority
+
+The local Windows operator must provision a private, single-use `engineering-edit-once` grant in `%LOCALAPPDATA%/PlotPickle/engineering-team/conversation-gateway/owner-coding-grants/<grantId>.json`. Its exact fields are validated by `validateCodingGrant`: a 32-character random grant ID; issue number; exact clean MAIN commit; one `scripts/engineering-team/**/*.mjs` file and its SHA-256 content digest; one `tests/issue-*.test.mjs` focused-test identity; a bounded owner-specified objective; model identifier; output-token cap; expiration within one hour; `maxRequests: 1`; and exact consent `AUTHORIZE_ONE_ENGINEERING_SOURCE_EDIT`. This narrow local grant is **not** created by a remote issue, browser, ChatGPT tool, AI response, or this worker. Credentials come only from the local `OPENAI_API_KEY` environment and never enter GitHub.
+
+The only native entry point is `node scripts/engineering-team/gateway/authorized-coding-once.mjs --once <grantId>`, run from the owner Windows checkout. Clean MAIN and trusted Git origin are established through the existing `gatewayAppSource`. This CLI is **not** mounted as a remotely invocable MCP tool or attached to the observer supervisor. Importing the module has no side effects.
+
+## Bounded edit and durable result
+
+The worker checks one target file, its digest, and a named existing focused test before reserving the grant in a private write-once receipt. It then creates an isolated detached Git worktree at the exact source commit and a grant-specific local branch, makes **one** Responses API request with `store:false` and no tools, accepts at most one unique exact text replacement in the granted file, performs only non-executing syntax/diff checks, and commits the edit locally with Git hooks disabled. Model-authored text cannot choose a command, path, test, branch, merge, network destination, or credential.
+
+Generated code is **not run on the owner's Windows host**. The focused-test identity travels with the receipt but execution belongs to a subsequent independent, isolated CI verifier. A successful worker returns `LOCAL_COMMIT_PREPARED`, not “issue fixed”: the result contains the branch, exact commit, focused-test path, and explicit `focusedTestExecuted:false`, `pullRequestCreated:false`, `independentVerification:false` and `automaticMergeAuthorized:false`.
+
+A reservation is fsynced before external requests or source mutation; duplicate delivery cannot replay it. If a model request, edit, Git command, receipt or local operation becomes uncertain, the stage stays for inspection and the worker fails closed. No worktree is automatically deleted, no blocked Factory reservation is replayed, no Pi dispatcher is started and no existing task or app is restarted.
+
+## Evidence and remaining work
+
+Focused tests include denied/stale/widened grants, duplicate delivery, wrong edit, missing credential, successful fixture edit, and a **real Git worktree/commit integration** proving original MAIN remains clean. These are local fixture proofs only. CI architecture tests and the selected native Windows job must pass the exact PR head. The native worker has not been run with a real owner-issued grant or a paid model; no production claim is made.
+
+The next increments required for genuine autonomous engineering are: private grant provisioning through an authenticated owner policy; a constrained queue-to-worker lease and STOP/Pause bridge; a protected branch/PR publisher using scoped GitHub credentials; independent exact-head CI and owner-Windows verifier receipts; durable restart/reconnect reconciliation; and unattended scheduling. No code in this slice activates these permissions, and #3142 remains open until a genuine issue edit → tests → PR → independent verification cycle is evidenced.

@@ -11769,7 +11769,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Mocked Git and PR transport only; verifies exact one-use publication grant, private prepared-commit and edit-grant binding, fixed draft PR, push/POST reservation, duplicate no-replay, uncertain external results and denial of unauthorized paths/parent/remote. Does not prove live GitHub credentials, actual remote branch/PR creation, native owner Windows publication, CI execution of model-generated code, independent product acceptance, background dispatch or merge.",
+        "limits": "Mocked local Git object inspection and GitHub Git-data REST responses only; verifies second one-use owner grant, exact prepared source parent/tree/blob, fixed draft PR metadata, durable reservation, duplicate non-replay, remote MAIN drift and uncertain external outcomes. Does not prove live GitHub credentials, actual remote branch/PR creation, native owner Windows publication, independent CI execution of generated code, product acceptance, background dispatch or merge.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-pr-publish-once.mjs",

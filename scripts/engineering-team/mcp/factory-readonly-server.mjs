@@ -184,18 +184,27 @@ export function sanitizeSupervisorObservation(raw,now=Date.now()) {
 // Private stage capacity is advisory only. It does not certify disk space,
 // source checkout, the stage lock or permission to delete retained worktrees.
 export function sanitizeStageCapacityObservation(raw) {
-  const ready=raw?.state==="READY" && raw?.code==="STAGE_BUDGET_AVAILABLE" &&
-    raw?.maximumStages===3 && Number.isSafeInteger(raw?.observedStages) &&
-    raw.observedStages>=0 && raw.observedStages<3;
-  const full=raw?.state==="BLOCKED" && raw?.code==="STAGE_BUDGET_EXCEEDED" &&
-    raw?.maximumStages===3 && Number.isSafeInteger(raw?.observedStagesAtLeast) &&
-    raw.observedStagesAtLeast>=3;
+  const ready=raw?.state==="READY" && raw?.code==="RETAINED_STAGES_PRESERVED" &&
+    Number.isSafeInteger(raw?.observedRetainedStages) &&
+    raw.observedRetainedStages>=0 && raw.observedRetainedStages<=4096 &&
+    raw?.maxConcurrentStaging===1 &&
+    raw?.retentionReferenceState==="UNVERIFIED" &&
+    raw?.cleanupAuthorized===false;
+  const overflow=raw?.state==="BLOCKED" &&
+    raw?.code==="STAGE_INVENTORY_BUDGET_EXCEEDED" &&
+    Number.isSafeInteger(raw?.observedStagesAtLeast) &&
+    raw.observedStagesAtLeast>=4097;
+  // Inventory READY means only that retained names were inspected; it is
+  // NEVER an admission, process-ownership, disk-space or cleanup receipt.
   return Object.freeze({
-    state:ready?"READY":full?"BLOCKED":"UNVERIFIED",
-    code:ready?"STAGE_BUDGET_AVAILABLE":full?"STAGE_BUDGET_EXCEEDED":"STAGE_BUDGET_UNVERIFIED",
-    observedStages:ready?raw.observedStages:null,
-    observedStagesAtLeast:full?3:null,
-    maximumStages:3,stagingAuthorized:false,cleanupAuthorized:false,
+    state:ready?"READY":overflow?"BLOCKED":"UNVERIFIED",
+    code:ready?"RETAINED_STAGES_PRESERVED":overflow?
+      "STAGE_INVENTORY_BUDGET_EXCEEDED":"STAGE_INVENTORY_UNVERIFIED",
+    observedRetainedStages:ready?raw.observedRetainedStages:null,
+    observedStagesAtLeast:overflow?4097:null,
+    maxConcurrentStaging:1,retentionReferenceState:"UNVERIFIED",
+    stagingAuthorized:false,cleanupAuthorized:false,
+    diskCapacityVerified:false,processOwnershipVerified:false,
   });
 }
 

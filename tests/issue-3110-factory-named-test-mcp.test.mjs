@@ -1,4 +1,4 @@
-import { requestIndependentSupervisorStart } from "../scripts/engineering-team/mcp/factory-supervisor-start.mjs";
+import { requestIndependentSupervisorStart } from "../scripts/engineering-team/mcp/engineering/factory-supervisor-start.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises";

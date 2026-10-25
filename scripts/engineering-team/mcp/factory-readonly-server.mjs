@@ -750,7 +750,12 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
         instructions:controlAuthenticated?"Authenticated app lifecycle plus bounded Factory tests; optional host-enabled staged engineering tasks execute selected repository scripts without inline shell or merge permissions. No autonomous merge is implied.":
           "Read-only PlotPickle Factory status, receipts and GitHub queue preview. A heartbeat is never independent proof."}};
     case "ping": return {result:{}};
-    case "tools/list": return {result:{tools:controlAuthenticated?[...MCP_TOOLS,...MCP_CONTROL_TOOLS,...MCP_CONVERSATION_TOOLS,...MCP_STORAGE_TOOLS,
+    case "tools/list": return {result:{tools:controlAuthenticated?[...MCP_TOOLS,...MCP_CONTROL_TOOLS.map(tool =>
+      tool.name==="factory_run_named_test" && !engineeringEnabled
+        ? {...tool,inputSchema:{...tool.inputSchema,properties:{...tool.inputSchema.properties,
+          suite:{...tool.inputSchema.properties.suite,enum:tool.inputSchema.properties.suite.enum.filter(
+            suite=>suite!=="factory-gateway-acceptance")}}}}
+        : tool),...MCP_CONVERSATION_TOOLS,...MCP_STORAGE_TOOLS,
       ...(engineeringEnabled?MCP_ENGINEERING_TOOLS:[])]:MCP_TOOLS}};
     case "tools/call": {
       const name=request.params?.name,args=request.params?.arguments??{};

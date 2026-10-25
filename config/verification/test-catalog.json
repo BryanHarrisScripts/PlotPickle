@@ -4244,7 +4244,8 @@
           "tests/issue-3303-headless-gateway-acceptance.test.mjs",
           "tests/issue-3142-authorized-coding-once.test.mjs",
           "tests/issue-3142-authorized-publish-once.test.mjs",
-          "tests/issue-3142-authorized-pr-publish-once.test.mjs"
+          "tests/issue-3142-authorized-pr-publish-once.test.mjs",
+          "tests/issue-3302-two-receipt-verifier.test.mjs"
         ]
       },
       "cost": "fast",
@@ -11815,6 +11816,34 @@
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
             "digest": "17755df74f92130264bfe8f81f0496262accd57bf2218753f98031aeb652d7f8"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3302-two-receipt-verifier.test.mjs",
+        "targetDigest": "acb6a3c1b6b0434bbaa26cafeda386c32b4fa7e364fcf91ed978a2b14dd1ae48",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Fixture-only correlated owner-private coding/publication receipts, real Ed25519 signing/verification, fixed read-only mocked GitHub API, seven architecture layers and hosted Windows step, negative cancelled/skipped/timed-out/stale/forged cases, write-once verifier reservation and no automatic merge. No real owner-host signer, real GitHub token, actual PR publication, native Product Gate, unattended dispatch or automatic merge proof.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/verification/two-receipt-verifier.mjs",
+            "digest": "127c64d07e5115b5edf2651e101cc4b0568de51a0c2e0b42aa440c1d630e809a"
           }
         ]
       }

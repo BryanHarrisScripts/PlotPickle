@@ -10048,7 +10048,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "3d603e3cc97cac74236d71ae39e87226abf5cbbe465e7ac13e38f8fd5c60b9af"
+            "digest": "707c78acb18d0ff2c67095ab2e9b7d3337489c81475c01ec030687df343e0345"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-story-evidence-verifier.mjs",
@@ -10303,7 +10303,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "3d603e3cc97cac74236d71ae39e87226abf5cbbe465e7ac13e38f8fd5c60b9af"
+            "digest": "707c78acb18d0ff2c67095ab2e9b7d3337489c81475c01ec030687df343e0345"
           },
           {
             "path": "scripts/full-verification-process.mjs",
@@ -10343,7 +10343,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "3d603e3cc97cac74236d71ae39e87226abf5cbbe465e7ac13e38f8fd5c60b9af"
+            "digest": "707c78acb18d0ff2c67095ab2e9b7d3337489c81475c01ec030687df343e0345"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
@@ -11200,7 +11200,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "3d603e3cc97cac74236d71ae39e87226abf5cbbe465e7ac13e38f8fd5c60b9af"
+            "digest": "707c78acb18d0ff2c67095ab2e9b7d3337489c81475c01ec030687df343e0345"
           }
         ]
       },
@@ -11535,7 +11535,7 @@
       },
       {
         "target": "tests/issue-3241-stage-growth-budget.test.mjs",
-        "targetDigest": "e2952483b1bce47662723b14e0350b9e236e4b5c60b0bfe9bde300b43cca2462",
+        "targetDigest": "1e20474a565983e525122761b06a01f0cf3356c2668decce7d87c360d0976a36",
         "catalogueIds": [
           "agent.factory-storage-headroom-3241"
         ],
@@ -11553,15 +11553,15 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic staging lock and count ceiling, no deletion, pathless typed result, 8GiB preflight and fail-closed races. This is NOT independently verified user Windows reclaim, physical allocation, runtime retention or product UI acceptance.",
+        "limits": "Synthetic resource-aware stage admission preserving 70 retained worktrees, one active stage via atomic lock, real free-space preflight plus conservative 1GiB growth margin, bounded inventory and preservation of unknown refs. No deletion, owner-Windows installed Product Gate, real reclaimable-byte measurement or live running process proof.",
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/storage/factory-stage-budget.mjs",
-            "digest": "992c4080e3325115edfe1533d4b343accbde53e6ef5bb85625b6cb130596e13b"
+            "digest": "accb3c96c6f1970324fc0fcd94470b9ff340470abdc4ecbce096954bf0f40c36"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "3d603e3cc97cac74236d71ae39e87226abf5cbbe465e7ac13e38f8fd5c60b9af"
+            "digest": "707c78acb18d0ff2c67095ab2e9b7d3337489c81475c01ec030687df343e0345"
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",

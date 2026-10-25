@@ -4682,7 +4682,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs",
-          "tests/issue-3268-owned-tunnel-controls.test.mjs"
+          "tests/issue-3268-owned-tunnel-controls.test.mjs",
+          "tests/issue-3142-tunnel-watchdog-policy.test.mjs"
         ]
       },
       "cost": "fast",
@@ -11714,6 +11715,28 @@
             "digest": "7291486d145d2645e5fae2b6c8f09c44f661a90b679602a02b028164642f8f57"
           }
         ]
+      },
+      {
+        "target": "tests/issue-3142-tunnel-watchdog-policy.test.mjs",
+        "targetDigest": "c8b747f5bf77b450c16c092879ebb93012234038bd6dd489235b5c025b132e5d",
+        "catalogueIds": [
+          "agent.settings-compute-tunnel-3254"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Deterministic injected owner STOP, local port, owned child, retry and no-replay policy only. No real Windows Scheduled Task, durable on-disk reservation, native tunnel process restart, authenticated MCP transport, plugin reconnection or unattended engineering dispatch."
       }
     ]
   }

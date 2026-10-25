@@ -72,9 +72,14 @@ export function createTunnelWatchdogPolicy({
       return report("OWNER_LAUNCHER_UNVERIFIED", observe());
     // A failed reservation must prevent launch; no uncertain request replay.
     try {
-      if (await reserveLaunch({ attempt: failures + 1, at: time }) !== true)
+      if (await reserveLaunch({ attempt: failures + 1, at: time }) !== true) {
+        exhausted = true;
         return report("LAUNCH_RESERVATION_UNVERIFIED", observe());
-    } catch { return report("LAUNCH_RESERVATION_UNVERIFIED", observe()); }
+      }
+    } catch {
+      exhausted = true;
+      return report("LAUNCH_RESERVATION_UNVERIFIED", observe());
+    }
     try {
       const child = await startOwned(launcher);
       if (!child || !Number.isSafeInteger(child.pid) || child.pid <= 0 ||

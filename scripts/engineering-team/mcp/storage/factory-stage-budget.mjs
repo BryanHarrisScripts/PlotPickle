@@ -106,15 +106,16 @@ export async function withCandidateStageBudget({
       );
     } else {
       const capacity = await checkCapacity();
-      if (capacity?.state !== "READY" ||
+      if (capacity?.code === "DISK_SPACE_INSUFFICIENT") {
+        outcome = blocked("BLOCK_RESOURCE_PRESSURE");
+      } else if (capacity?.state !== "READY" ||
           capacity.code !== "DISK_SPACE_SUFFICIENT" ||
-          !Number.isSafeInteger(capacity.freeBytes) ||
-          capacity.freeBytes < FACTORY_STAGING_POLICY.minFreeBytes +
-            FACTORY_STAGING_POLICY.admissionReserveBytes) {
-        outcome = blocked(capacity?.code === "DISK_SPACE_INSUFFICIENT" ||
-          capacity?.freeBytes < FACTORY_STAGING_POLICY.minFreeBytes +
-            FACTORY_STAGING_POLICY.admissionReserveBytes
-          ? "BLOCK_RESOURCE_PRESSURE" : "STAGE_ADMISSION_UNVERIFIED");
+          !Number.isSafeInteger(capacity.freeBytes)) {
+        outcome = blocked("STAGE_ADMISSION_UNVERIFIED");
+      } else if (capacity.freeBytes <
+          FACTORY_STAGING_POLICY.minFreeBytes +
+          FACTORY_STAGING_POLICY.admissionReserveBytes) {
+        outcome = blocked("BLOCK_RESOURCE_PRESSURE");
       } else {
         outcome = await onStage();
       }

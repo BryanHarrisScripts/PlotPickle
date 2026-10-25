@@ -461,7 +461,7 @@ test("#3142 disposable Windows Task Scheduler registration retains SID ownership
     "} finally {",
     "  if ($created) { Unregister-ScheduledTask -TaskName $name -Confirm:$false -ErrorAction Stop }",
     "}",
-  ].join("; ");
+  ].join("\n");
   execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", script], {
     windowsHide: true, timeout: 25000, env: { ...process.env, PLOTPICKLE_INSTALLER: installer },
   });

@@ -9,6 +9,7 @@ import { controlPlotpickleOwnerApp, observePlotpickleOwnerApp } from "./plotpick
 import { gatewayAppSource, privateGatewayRoot } from "../gateway/gateway-host.mjs";
 import { conversationMcpAction, validConversationArgs } from "../gateway/conversation-service.mjs";
 import { timingSafeEqual } from "node:crypto";
+import { requestIndependentSupervisorStart } from "./engineering/factory-supervisor-start.mjs";
 import { existsSync } from "node:fs";
 import { lstat, mkdir, readFile, writeFile, unlink } from "node:fs/promises";
 import os from "node:os";
@@ -293,6 +294,10 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "ISSUES_ADMITTED","DEPENDENCY_PREFLIGHT_REQUIRED",
   "CONTROL_OPERATION_BLOCKED","EXACT_HEAD_MISMATCH",
   "WINDOWS_ONLY","TEST_SELECTION_INVALID","TEST_LOCKED",
+  "SUPERVISOR_SOURCE_UNVERIFIED","SUPERVISOR_STATUS_UNVERIFIED",
+  "SUPERVISOR_NOT_OFFLINE_ON_CURRENT_HEAD","SUPERVISOR_TASK_NOT_INSTALLED",
+  "SUPERVISOR_TASK_NOT_READY","SUPERVISOR_START_SUBMITTED_UNVERIFIED",
+  "SUPERVISOR_START_OUTCOME_UNVERIFIED",
   "NODE_TEST_PASS","NODE_TEST_FAILED","NODE_TEST_TIMEOUT",
   "CANDIDATE_HEAD_VERIFIED","CANDIDATE_SELECTION_INVALID",
   "CANDIDATE_NOT_OPEN","CANDIDATE_HEAD_MISMATCH",
@@ -342,7 +347,7 @@ export function controlTokenMatches(presented,configured) {
 const APP_CONTROL_SUITES=Object.freeze(["plotpickle-app-start","plotpickle-app-stop","plotpickle-app-restart","plotpickle-app-candidate-start","plotpickle-app-factory-start","plotpickle-app-factory-stop"]);
 const allowedFactoryControlSuites=()=>[...allowedFactoryTestNames(),...APP_CONTROL_SUITES,
   "factory-pr-head","factory-pr-stage","factory-sync-main",
-  "factory-story-uat","factory-story-verify"];
+  "factory-story-uat","factory-story-verify","factory-supervisor-start"];
 export const MCP_CONTROL_TOOLS=Object.freeze([
   {name:"factory_run_dependency_preflight",title:"Run Windows Factory dependency preflight",
     description:"On the paired, stopped Windows host, run the non-reserving npm dependency preflight for an exact main SHA. May take several minutes. Never invokes a model or retries an issue.",
@@ -358,7 +363,7 @@ export const MCP_CONTROL_TOOLS=Object.freeze([
       issues:{type:"array",items:{type:"integer",minimum:1,maximum:9999999},minItems:1,maxItems:5,uniqueItems:true}},
       required:["requestId","expectedHead","issues"],additionalProperties:false}},
   {name:"factory_run_named_test",title:"Run allowlisted Factory test or candidate identity check",
-    description:"Authenticated owner-Windows MAIN or isolated unmerged PR TEST startup and owned STOP. Exact source identity at fixed 127.0.0.1:4173; no shell, passphrase, images or merge.",
+    description:"Authenticated allowlisted Windows tests, app control, or request Start of an already owner-authorized independent supervisor. No legacy Pi dispatcher, shell, arbitrary program, or merge.",
     inputSchema:{type:"object",properties:{
       requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
       expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
@@ -413,7 +418,8 @@ function validControlArgs(name,args) {
       REQUEST_ID.test(args.sourceRequestId||"") && args.sourceRequestId!==args.requestId;
     return keys.length===3 && (APP_CONTROL_SUITES.includes(args.suite) ||
       allowedFactoryTestNames().includes(args.suite) ||
-      args.suite==="factory-sync-main"||args.suite==="factory-story-uat");
+      args.suite==="factory-sync-main"||args.suite==="factory-story-uat"||
+      args.suite==="factory-supervisor-start");
   }
   return name==="factory_admit_issues"&&keys.length===3&&
     Array.isArray(args.issues)&&args.issues.length>=1&&args.issues.length<=5&&
@@ -422,7 +428,7 @@ function validControlArgs(name,args) {
 }
 function safeControlReceipt(raw,requestId) {
   if(raw?.requestId!==requestId)return null;
-  const state=["BLOCKED","INSTALL_PREFLIGHT_READY","ISSUES_ADMITTED",
+  const state=["BLOCKED","START_REQUESTED_UNCONFIRMED","INSTALL_PREFLIGHT_READY","ISSUES_ADMITTED",
     "TEST_PASSED","TEST_FAILED"].includes(raw.state)
     ?raw.state:null;
   const code=safeText(raw.code,CONTROL_CODES);
@@ -482,6 +488,7 @@ export async function factoryControlAction(name,args,{
     inspectSyncSource:inspectFactorySyncSource,syncMain:syncFactoryMain,
     storyUat:runFactoryStoryUat,storyVerify:runFactoryStoryEvidenceVerify,
     appControl:controlPlotpickleOwnerApp,
+    supervisorStart:requestIndependentSupervisorStart,
     engineering:runStagedEngineeringTask,
   },
 }={}) {
@@ -567,6 +574,8 @@ export async function factoryControlAction(name,args,{
                       root,requestId:args.sourceRequestId,
                     }),
                   }:{})})
+              :args.suite==="factory-supervisor-start"
+                ?await ops.supervisorStart({expectedHead:args.expectedHead,verifyHead:ops.testHead})
               :args.suite==="factory-sync-main"
                 ?await ops.syncMain({expectedHead:args.expectedHead,root,
                   inspect:ops.inspectSyncSource})
@@ -578,7 +587,7 @@ export async function factoryControlAction(name,args,{
                       sourceRequestId:args.sourceRequestId,root,verifyHead:ops.testHead})
                     :await ops.runTest({suite:args.suite,
                     expectedHead:args.expectedHead,verifyHead:ops.testHead});
-          outcome={state:["TEST_PASSED","TEST_FAILED"].includes(result.state)
+          outcome={state:["TEST_PASSED","TEST_FAILED","START_REQUESTED_UNCONFIRMED"].includes(result.state)
             ?result.state:"BLOCKED",
             code:safeText(result.code,CONTROL_CODES)||"CONTROL_OPERATION_BLOCKED",
             sourceHead:result.sourceHead,suite:args.suite,

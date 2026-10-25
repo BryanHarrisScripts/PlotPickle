@@ -7,10 +7,11 @@
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { lstat, mkdir, open, readFile } from 'node:fs/promises';
+import { lstat, mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gatewayAppSource, privateGatewayRoot } from '../gateway-host.mjs';
+import { appendPrivateJsonOnce as writeOnce } from '../receipts/write-once-json.mjs';
 
 const exec = promisify(execFile);
 const ID = /^[a-f0-9]{32}$/;
@@ -71,17 +72,6 @@ async function safeDirectory(dir) {
   if (!stat.isDirectory() || stat.isSymbolicLink())
     throw Error('PRIVATE_DIRECTORY_UNVERIFIABLE');
 }
-async function writeOnce(filename, data) {
-  let file;
-  try {
-    file = await open(filename, 'wx', 0o600);
-    await file.writeFile(JSON.stringify(data) + '\n');
-    await file.sync();
-    return true;
-  } catch { return false; }
-  finally { await file?.close().catch(() => {}); }
-}
-
 async function boundedJson(response) {
   if (!response?.body || typeof response.body.getReader !== 'function') return null;
   const reader = response.body.getReader(), chunks = [];

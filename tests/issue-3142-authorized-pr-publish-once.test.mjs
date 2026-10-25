@@ -7,6 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { publishAuthorizedDraftOnce, validatePublicationGrant } from
   '../scripts/engineering-team/gateway/authorized-pr-publish-once.mjs';
+import { runOwnerCodingAndPublishOnce } from '../scripts/engineering-team/gateway/authorized-coding-once.mjs';
 
 const exec = promisify(execFile);
 const ISSUE = 3142;
@@ -216,3 +217,32 @@ test('modified, detached or unexpectedly dirty coding stage cannot publish', () 
     assert.equal(r.code, 'PUBLISH_STAGED_COMMIT_UNVERIFIABLE');
     assert.equal(gh.calls.length, 0);
   }));
+
+test('one invocation can hand off an authorized prepared commit to separate publication without manual steps', async () => {
+  let coding = 0, publishing = 0;
+  const options = {
+    grantId: ID, publicationId: PUB,
+    code: async ({ grantId }) => {
+      assert.equal(grantId, ID);
+      coding++;
+      return { state: 'LOCAL_COMMIT_PREPARED' };
+    },
+    publish: async ({ publicationId }) => {
+      assert.equal(publicationId, PUB);
+      publishing++;
+      return { state: 'DRAFT_PR_CREATED', automaticMergeAuthorized: false };
+    },
+  };
+  assert.equal((await runOwnerCodingAndPublishOnce(options)).state, 'DRAFT_PR_CREATED');
+  assert.equal(coding, 1);
+  assert.equal(publishing, 1);
+  const blocked = await runOwnerCodingAndPublishOnce({
+    ...options, code: async () => ({ state: 'BLOCKED', code: 'OWNER_GRANT_REQUIRED' }),
+  });
+  assert.equal(blocked.state, 'BLOCKED');
+  assert.equal(publishing, 1);
+  assert.equal((await runOwnerCodingAndPublishOnce({
+    ...options, publicationId: 'bad',
+  })).code, 'CODING_AND_PUBLISH_GRANT_IDS_REQUIRED');
+  assert.equal(coding, 1);
+});

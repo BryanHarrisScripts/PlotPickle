@@ -9929,7 +9929,7 @@
       },
       {
         "target": "tests/issue-3110-persistent-local-supervisor.test.mjs",
-        "targetDigest": "a2673301d71fd05163184e9ee19f19b83aa6f021d5a846c7a686b90b62fb2997",
+        "targetDigest": "f09182ff378551f6afdc7f35c46b7ecb2c1e9c2e687aacbf3532796749c7ee49",
         "catalogueIds": [
           "agent.persistent-windows-supervisor-3110"
         ],
@@ -9944,7 +9944,7 @@
           },
           {
             "path": "scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1",
-            "digest": "c3d29f0218b6ef16b1abc6ec7047ba7b72ae2ff13ba17f16ec1b8b20fa77233f"
+            "digest": "53db9026cff30f1c52228430ace671eef2e130154415a157b449bcb59552c184"
           }
         ],
         "truthRefs": [
@@ -10278,7 +10278,7 @@
           },
           {
             "path": "scripts/engineering-team/windows/supervisor/Install-PlotPickleIndependentSupervisor.ps1",
-            "digest": "c3d29f0218b6ef16b1abc6ec7047ba7b72ae2ff13ba17f16ec1b8b20fa77233f"
+            "digest": "53db9026cff30f1c52228430ace671eef2e130154415a157b449bcb59552c184"
           }
         ]
       },

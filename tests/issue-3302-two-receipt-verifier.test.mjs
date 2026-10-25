@@ -74,13 +74,19 @@ function fakeGithub({ bad = null } = {}) {
     if (url.endsWith('/git/commits/' + REMOTE)) return reply({
       tree: { sha: TREE }, parents: [{ sha: SOURCE }],
     });
-    if (url.includes('/actions/runs?')) return reply({
-      total_count: 1, workflow_runs: [{
-        name: 'Architecture Verification', event: 'pull_request',
-        head_sha: REMOTE, run_attempt: 1, id: 1001,
-        status: 'completed', conclusion: 'success',
-      }],
-    });
+    if (url.includes('/actions/runs?')) {
+      const old = { name: 'Architecture Verification', event: 'pull_request',
+        head_sha: REMOTE, run_attempt: bad === 'newer-failed' ||
+          bad === 'newer-pending' ? 4 : 1, id: 1001,
+        status: 'completed', conclusion: 'success' };
+      const newer = bad === 'newer-failed' || bad === 'newer-pending'
+        ? [{ ...old, id: 1002, run_attempt: 1,
+          status: bad === 'newer-pending' ? 'in_progress' : 'completed',
+          conclusion: bad === 'newer-pending' ? null : 'failure' }]
+        : [];
+      return reply({ total_count: 1 + newer.length,
+        workflow_runs: [old, ...newer] });
+    }
     if (url.endsWith('/actions/runs/1001/jobs?per_page=100')) {
       const jobs = jobList();
       if (bad === 'skip') jobs.jobs[0].conclusion = 'skipped';
@@ -196,6 +202,22 @@ test('skipped, cancelled, timed-out, mismatched and missing Windows jobs cannot 
     token: '', fetchImpl: gh.fetchImpl,
   })).code, 'VERIFIER_TOKEN_REQUIRED');
   assert.equal(gh.calls.length, 0);
+});
+
+test('newer failed or pending CI run supersedes older green higher-attempt rerun', async () => {
+  for (const [bad, expectedState, expectedCode] of [
+    ['newer-failed', 'BLOCKED', 'CI_NOT_SUCCESS'],
+    ['newer-pending', 'WAITING', 'CI_IN_PROGRESS'],
+  ]) {
+    const gh = fakeGithub({ bad });
+    const result = await collectGitHubChecks(receipt(), {
+      token: 'fixture-token-1234567890', fetchImpl: gh.fetchImpl,
+    });
+    assert.equal(result.state, expectedState);
+    assert.equal(result.code, expectedCode);
+    assert.equal(result.runId, 1002);
+    assert.equal(gh.calls.length, 3, 'must not read older green CI job results');
+  }
 });
 
 test('two distinct immutable receipts: missing witness blocks; signed independent witness passes without merge', () =>

@@ -270,7 +270,7 @@ export async function runOwnerCodingAndPublishOnce({ grantId, publicationId,
     return block('CODING_AND_PUBLISH_GRANT_IDS_REQUIRED');
   const prepared = await code({ grantId });
   if (prepared?.state !== 'LOCAL_COMMIT_PREPARED') return prepared;
-  const publisher = publish || (await import('./authorized-pr-publish-once.mjs')).runOwnerPublishOnce;
+  const publisher = publish || (await import('./publication/authorized-pr-publish-once.mjs')).runOwnerPublishOnce;
   return publisher({ publicationId });
 }
 

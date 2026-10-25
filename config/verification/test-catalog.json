@@ -7203,7 +7203,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "6a3411a7ffbba8248d4c120fa69bd16d4a05c2b59d823bd79e7c1ff917a27533"
+            "digest": "cdf805e8a48dc5e377ecea14ce712985233064fd3814f509f6b22585c403d20c"
           }
         ]
       },
@@ -8037,7 +8037,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "6a3411a7ffbba8248d4c120fa69bd16d4a05c2b59d823bd79e7c1ff917a27533"
+            "digest": "cdf805e8a48dc5e377ecea14ce712985233064fd3814f509f6b22585c403d20c"
           }
         ]
       },
@@ -10357,7 +10357,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "6a3411a7ffbba8248d4c120fa69bd16d4a05c2b59d823bd79e7c1ff917a27533"
+            "digest": "cdf805e8a48dc5e377ecea14ce712985233064fd3814f509f6b22585c403d20c"
           }
         ],
         "truthRefs": [
@@ -10397,7 +10397,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "6a3411a7ffbba8248d4c120fa69bd16d4a05c2b59d823bd79e7c1ff917a27533"
+            "digest": "cdf805e8a48dc5e377ecea14ce712985233064fd3814f509f6b22585c403d20c"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -11751,7 +11751,7 @@
       },
       {
         "target": "tests/issue-3142-authorized-publish-once.test.mjs",
-        "targetDigest": "c61089832fd7725fe30edbc8362825be2029407345b8d6910e5a888a00ac920e",
+        "targetDigest": "3a59ecd29ed74d50963d65dab70ff01e59b5957129a65ac0b50a8f70f32319eb",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11772,8 +11772,8 @@
         "limits": "Mocked Git and PR transport only; verifies exact one-use publication grant, private prepared-commit and edit-grant binding, fixed draft PR, push/POST reservation, duplicate no-replay, uncertain external results and denial of unauthorized paths/parent/remote. Does not prove live GitHub credentials, actual remote branch/PR creation, native owner Windows publication, CI execution of model-generated code, independent product acceptance, background dispatch or merge.",
         "inputs": [
           {
-            "path": "scripts/engineering-team/gateway/authorized-publish-once.mjs",
-            "digest": "59c179bf977fd033359ae7ca2903db85e58579442bbd40beb3575358587f5c96"
+            "path": "scripts/engineering-team/gateway/authorized-pr-publish-once.mjs",
+            "digest": "640783e320b7a7f9666eaa3490f4ffa89fe07eddb4e68a1590adec1376b0525a"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",

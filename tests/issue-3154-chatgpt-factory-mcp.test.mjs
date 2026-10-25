@@ -500,12 +500,14 @@ test("MCP control denies stale head and held worker without consuming a request 
  assert.equal(retry.state,"DUPLICATE_OR_UNVERIFIABLE_REQUEST");
 }));
 
-test("PR stage disk-space denial is preserved in immutable authenticated receipt",()=>sandbox(async root=>{
+test("PR stage disk-space and stage-budget denials are preserved in immutable authenticated receipts",()=>sandbox(async root=>{
  await seed(root);
  const source=await import("../scripts/engineering-team/mcp/factory-readonly-server.mjs");
  const github={exactHead:async()=>OLD};
- for(const [index,code] of ["DISK_SPACE_INSUFFICIENT","DISK_SPACE_UNVERIFIED"].entries()){
-   const requestId=(index===0?"a":"b").repeat(32);
+ for(const [index,code] of ["DISK_SPACE_INSUFFICIENT","DISK_SPACE_UNVERIFIED",
+   "STAGE_BUDGET_UNVERIFIED","STAGE_BUDGET_EXCEEDED",
+   "STAGE_BUDGET_BUSY","STAGE_BUDGET_LOCK_RELEASE_FAILED"].entries()){
+   const requestId=String.fromCharCode(97+index).repeat(32);
    const args={requestId,expectedHead:OLD,suite:"factory-pr-stage",
      candidatePrNumber:3310,candidateHead:NEW};
    const ops={testHead:async()=>OLD,

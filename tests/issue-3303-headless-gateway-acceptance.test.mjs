@@ -65,7 +65,7 @@ test("#3303 owner Windows headless route uses existing isolated engineering runn
         stageRequestId: STAGE, candidatePrNumber: 3301, candidateHead: CANDIDATE,
         ...(calls === 1
           ? { mode: "node-script", target: "scripts/verification-test-truth.mjs",
-              scriptArgs: ["--base-ref", "origin/main"] }
+              scriptArgs: ["--base-ref", MAIN] }
           : { mode: "node-test", target: "tests/issue-3259-outbound-openai-once.test.mjs",
               scriptArgs: [] }) });
       assert.ok(calls <= 2, "admission must precede one test, never replay");

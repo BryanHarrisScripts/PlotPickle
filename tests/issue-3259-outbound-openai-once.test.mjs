@@ -52,7 +52,7 @@ const writer = (root, s = source) => (envelope, now) => persistGatewayAnswer({
 
 test("#3259 outbound OBSERVE transport records one real gateway answer without source/merge authority", () => sandbox(async root => {
   const journal = path.join(root, "main", source.head);
-  const question = await pending(journal);
+  const question = await pending(root);
   let requests = 0;
   const result = await dispatchOutboundObserveOnce({
     root, source, question, grant: grant(), credential: TOKEN,
@@ -75,7 +75,7 @@ test("#3259 outbound OBSERVE transport records one real gateway answer without s
   assert.equal(result.sourceMutationAuthorized, false);
   assert.equal(result.independentVerification, false);
   assert.equal(requests, 1);
-  const observed = await conversationStatus({ root: journal, source });
+  const observed = await conversationStatus({ root, source });
   assert.equal(observed.code, "ANSWERED");
   assert.equal(observed.answer, reply);
   const completed = JSON.parse(await readFile(path.join(root, "outbound", GRANT + ".completed.json"), "utf8"));
@@ -92,7 +92,7 @@ test("#3259 outbound OBSERVE transport records one real gateway answer without s
 
 test("#3259 missing consent, wrong SHA, invalid scope and credentials refuse before model/network/reservation", () => sandbox(async root => {
   const journal = path.join(root, "main", source.head);
-  const question = await pending(journal);
+  const question = await pending(root);
   let requests = 0;
   const invoke = patch => dispatchOutboundObserveOnce({
     root, source, question, grant: grant(), credential: TOKEN,
@@ -111,7 +111,7 @@ test("#3259 missing consent, wrong SHA, invalid scope and credentials refuse bef
 
 test("#3259 uncertain network or malformed provider output is write-once, never retried or falsely green", () => sandbox(async root => {
   const journal = path.join(root, "main", source.head);
-  const question = await pending(journal);
+  const question = await pending(root);
   let requests = 0;
   const invoke = fetchImpl => dispatchOutboundObserveOnce({
     root, source, question, grant: grant(), credential: TOKEN,
@@ -123,7 +123,7 @@ test("#3259 uncertain network or malformed provider output is write-once, never 
   const retry = await invoke(async () => { requests++; return fakeResponse(); });
   assert.equal(retry.code, "ALREADY_RESERVED_NO_REPLAY");
   assert.equal(requests, 1);
-  assert.equal((await conversationStatus({ root: journal, source })).code, "PENDING");
+  assert.equal((await conversationStatus({ root, source })).code, "PENDING");
   const receipt = await readFile(path.join(root, "outbound", GRANT + ".json"), "utf8");
   assert.equal(receipt.includes(TOKEN), false);
   assert.equal(receipt.includes("sensitive provider failure"), false);
@@ -131,7 +131,7 @@ test("#3259 uncertain network or malformed provider output is write-once, never 
 
 test("#3259 malformed model reply is uncertain, never a fabricated completed answer", () => sandbox(async root => {
   const journal = path.join(root, "main", source.head);
-  const question = await pending(journal);
+  const question = await pending(root);
   const result = await dispatchOutboundObserveOnce({
     root, source, question, grant: grant(), credential: TOKEN,
     persistAnswer: writer(journal),
@@ -142,7 +142,7 @@ test("#3259 malformed model reply is uncertain, never a fabricated completed ans
   });
   assert.equal(result.state, "STARTED_UNCONFIRMED");
   assert.equal(result.code, "OUTBOUND_REPLY_UNVERIFIABLE");
-  assert.equal((await conversationStatus({ root: journal, source })).code, "PENDING");
+  assert.equal((await conversationStatus({ root, source })).code, "PENDING");
 }));
 
 test("#3259 local host adapter requires a private one-shot grant and real clean MAIN Git identity", () => sandbox(async root => {

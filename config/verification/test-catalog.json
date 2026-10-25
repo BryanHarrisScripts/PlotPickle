@@ -11718,7 +11718,7 @@
       },
       {
         "target": "tests/issue-3142-authorized-coding-once.test.mjs",
-        "targetDigest": "c1b8f00eeef6a4b7e862ecf1f142032c545a57035a82f85d967adb13e2233376",
+        "targetDigest": "bf7e82325aa92e9671cbcf80a52380d0fb3fe9b8dc58922b690d87250ee57c97",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11740,7 +11740,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "020306d13d953f67fe12480dfa13a3164b48503462c2eeb682d5ec5ca623f0fd"
+            "digest": "f47eda866e745425cbccb619de001b8a7f70b9059c704a84d028e616f31e9b35"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",

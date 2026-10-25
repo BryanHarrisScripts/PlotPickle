@@ -62,8 +62,10 @@ async function writeOnce(filename, value) {
   finally { await handle?.close().catch(() => {}); }
 }
 async function defaultGit(cwd, args) {
+  // The Git child never receives the REST token, even through inherited env.
+  const { PLOTPICKLE_GITHUB_TOKEN: _secret, GITHUB_TOKEN: _other, ...safeEnv } = process.env;
   return exec('git', args, { cwd, windowsHide: true, timeout: 45_000, maxBuffer: 4096,
-    env: { ...process.env, GIT_TERMINAL_PROMPT: '0', GCM_INTERACTIVE: 'never' } });
+    env: { ...safeEnv, GIT_TERMINAL_PROMPT: '0', GCM_INTERACTIVE: 'never' } });
 }
 const output = result => String(result?.stdout || '').trim();
 
@@ -118,8 +120,12 @@ export async function publishPreparedCommit({ repoRoot, privateRoot, source, gra
 
   const branchRef = 'refs/heads/' + grant.branch;
   try {
-    if (!ORIGIN.test(output(await runGit(repoRoot, ['remote', 'get-url', 'origin']))))
+    if (!ORIGIN.test(output(await runGit(repoRoot, ['remote', 'get-url', 'origin']))) ||
+        !ORIGIN.test(output(await runGit(repoRoot, ['remote', 'get-url', '--push', 'origin']))))
       return blocked('PUBLISH_ORIGIN_UNTRUSTED');
+    if (output(await runGit(repoRoot, ['ls-remote', '--heads', 'origin', 'refs/heads/main'])) !==
+        grant.sourceHead + '\\trefs/heads/main')
+      return blocked('PUBLISH_REMOTE_MAIN_STALE_OR_UNVERIFIABLE');
     if (output(await runGit(stage, ['rev-parse', 'HEAD'])) !== grant.preparedCommit ||
         output(await runGit(stage, ['rev-parse', '--verify', grant.branch])) !== grant.preparedCommit ||
         output(await runGit(stage, ['show', '-s', '--format=%P', 'HEAD'])) !== grant.sourceHead ||
@@ -140,8 +146,9 @@ export async function publishPreparedCommit({ repoRoot, privateRoot, source, gra
   try {
     const hooks = path.join(privateRoot, 'disabled-hooks');
     await mkdir(hooks, { recursive: true, mode: 0o700 });
+    // Empty lease expectation forbids updating a branch created after preflight.
     await runGit(stage, ['-c', 'core.hooksPath=' + hooks, 'push', '--porcelain',
-      'origin', grant.preparedCommit + ':' + branchRef]);
+      '--force-with-lease=' + branchRef + ':', 'origin', grant.preparedCommit + ':' + branchRef]);
     const observed = output(await runGit(repoRoot, ['ls-remote', '--heads', 'origin', branchRef]));
     if (observed !== grant.preparedCommit + '\t' + branchRef)
       return blocked('PUBLISH_PUSH_OUTCOME_UNCERTAIN');

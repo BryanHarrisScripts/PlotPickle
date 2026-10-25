@@ -74,6 +74,8 @@ test("#3259 outbound OBSERVE transport records one real gateway answer without s
   assert.equal(result.autonomousCodingVerified, false);
   assert.equal(result.sourceMutationAuthorized, false);
   assert.equal(result.independentVerification, false);
+  assert.equal(result.modelInvokedVerified, false);
+  assert.equal(result.providerResponseValidated, true);
   assert.equal(requests, 1);
   const observed = await conversationStatus({ root, source });
   assert.equal(observed.code, "ANSWERED");

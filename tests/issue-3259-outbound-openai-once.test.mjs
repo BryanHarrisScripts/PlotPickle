@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import { gatewayAppSource, privateGatewayRoot } from "../scripts/engineering-team/gateway/gateway-host.mjs";
-import { persistGatewayAnswer } from "../scripts/engineering-team/gateway/gateway-contract.mjs";
+import { gatewayDigest, persistGatewayAnswer } from "../scripts/engineering-team/gateway/gateway-contract.mjs";
 import { conversationMcpAction, conversationStatus,
   startConversationTest } from "../scripts/engineering-team/gateway/conversation-service.mjs";
 import { dispatchOutboundObserveOnce,
@@ -22,9 +22,9 @@ const fakeResponse = () => ({
     { type: "message", content: [{ type: "output_text", text: reply }] },
   ] }),
 });
-const grant = (head = source.head) => ({
+const grant = (head = source.head, questionDigest = null) => ({
   schemaVersion: 1, kind: "outbound-observe-once", grantId: GRANT,
-  questionId: Q, sourceHead: head, model: "gpt-5-mini",
+  questionId: Q, sourceHead: head, questionDigest, model: "gpt-5-mini",
   expiresAt: Date.now() + 300_000, maxOutputTokens: 128, maxRequests: 1,
   consent: "AUTHORIZE_ONE_OUTBOUND_AI_OBSERVE_REQUEST",
 });
@@ -55,7 +55,7 @@ test("#3259 outbound OBSERVE transport records one real gateway answer without s
   const question = await pending(root);
   let requests = 0;
   const result = await dispatchOutboundObserveOnce({
-    root, source, question, grant: grant(), credential: TOKEN,
+    root, source, question, grant: grant(source.head, gatewayDigest(question.payload)), credential: TOKEN,
     persistAnswer: writer(journal), fetchImpl: async (url, options) => {
       requests++;
       assert.equal(url, "https://api.openai.com/v1/responses");
@@ -83,7 +83,7 @@ test("#3259 outbound OBSERVE transport records one real gateway answer without s
   assert.equal(completed.sourceHead, source.head);
   assert.equal(JSON.stringify(completed).includes(TOKEN), false);
   const replay = await dispatchOutboundObserveOnce({
-    root, source, question, grant: grant(), credential: TOKEN,
+    root, source, question, grant: grant(source.head, gatewayDigest(question.payload)), credential: TOKEN,
     persistAnswer: writer(journal), fetchImpl: async () => { requests++; return fakeResponse(); },
   });
   assert.equal(replay.code, "ALREADY_RESERVED_NO_REPLAY");
@@ -95,16 +95,16 @@ test("#3259 missing consent, wrong SHA, invalid scope and credentials refuse bef
   const question = await pending(root);
   let requests = 0;
   const invoke = patch => dispatchOutboundObserveOnce({
-    root, source, question, grant: grant(), credential: TOKEN,
+    root, source, question, grant: grant(source.head, gatewayDigest(question.payload)), credential: TOKEN,
     persistAnswer: writer(journal),
     fetchImpl: async () => { requests++; return fakeResponse(); }, ...patch,
   });
-  assert.equal((await invoke({ grant: { ...grant(), consent: "NOT_CONSENT" } })).code, "OUTBOUND_OWNER_GRANT_REQUIRED");
-  assert.equal((await invoke({ grant: grant("f".repeat(40)) })).code, "OUTBOUND_OWNER_GRANT_REQUIRED");
+  assert.equal((await invoke({ grant: { ...grant(source.head, gatewayDigest(question.payload)), consent: "NOT_CONSENT" } })).code, "OUTBOUND_OWNER_GRANT_REQUIRED");
+  assert.equal((await invoke({ grant: grant("f".repeat(40), gatewayDigest(question.payload)) })).code, "OUTBOUND_OWNER_GRANT_REQUIRED");
   assert.equal((await invoke({ credential: "" })).code, "OUTBOUND_CREDENTIAL_OR_WRITER_UNAVAILABLE");
   assert.equal((await invoke({ source: { ...source, channel: "candidate" } })).code, "OUTBOUND_QUESTION_UNVERIFIED");
   assert.equal((await invoke({ question: { ...question, taskId: "write-source" } })).code, "OUTBOUND_QUESTION_UNVERIFIED");
-  assert.equal((await invoke({ grant: { ...grant(), maxRequests: 5 } })).code, "OUTBOUND_OWNER_GRANT_REQUIRED");
+  assert.equal((await invoke({ grant: { ...grant(source.head, gatewayDigest(question.payload)), maxRequests: 5 } })).code, "OUTBOUND_OWNER_GRANT_REQUIRED");
   assert.equal(requests, 0);
   assert.deepEqual(await readdir(root), ["main"]);
 }));
@@ -114,7 +114,7 @@ test("#3259 uncertain network or malformed provider output is write-once, never 
   const question = await pending(root);
   let requests = 0;
   const invoke = fetchImpl => dispatchOutboundObserveOnce({
-    root, source, question, grant: grant(), credential: TOKEN,
+    root, source, question, grant: grant(source.head, gatewayDigest(question.payload)), credential: TOKEN,
     persistAnswer: writer(journal), fetchImpl,
   });
   const first = await invoke(async () => { requests++; throw Error("sensitive provider failure"); });
@@ -133,7 +133,7 @@ test("#3259 malformed model reply is uncertain, never a fabricated completed ans
   const journal = path.join(root, "main", source.head);
   const question = await pending(root);
   const result = await dispatchOutboundObserveOnce({
-    root, source, question, grant: grant(), credential: TOKEN,
+    root, source, question, grant: grant(source.head, gatewayDigest(question.payload)), credential: TOKEN,
     persistAnswer: writer(journal),
     fetchImpl: async () => ({
       ok: true, text: async () => JSON.stringify({ output: [{ type: "message",
@@ -173,7 +173,7 @@ test("#3259 local host adapter requires a private one-shot grant and real clean 
   assert.equal((await invoke()).code, "OUTBOUND_EXACT_CLEAN_MAIN_REQUIRED");
   await writeFile(path.join(repo, "source.txt"), "source\n");
   await writeFile(path.join(privateRoot, "owner-outbound-grant.json"),
-    JSON.stringify(grant(s.head)) + "\n");
+    JSON.stringify(grant(s.head, gatewayDigest({ text: "PlotPickle is testing its connected ChatGPT conversation on MAIN commit " + s.head + ". Explain in one sentence why a green build alone cannot prove that this two-way conversation works. Answer the question; do not repeat or merely acknowledge it." }))) + "\n");
   const completed = await invoke();
   assert.equal(completed.state, "MODEL_REPLY_PERSISTED");
   assert.equal(requests, 1);

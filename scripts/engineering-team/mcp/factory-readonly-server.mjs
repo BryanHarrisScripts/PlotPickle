@@ -9,7 +9,7 @@ import { controlPlotpickleOwnerApp, observePlotpickleOwnerApp } from "./plotpick
 import { gatewayAppSource, privateGatewayRoot } from "../gateway/gateway-host.mjs";
 import { conversationMcpAction, validConversationArgs } from "../gateway/conversation-service.mjs";
 import { timingSafeEqual } from "node:crypto";
-import { requestIndependentSupervisorStart } from "./factory-supervisor-start.mjs";
+import { requestIndependentSupervisorStart } from "./engineering/factory-supervisor-start.mjs";
 import { existsSync } from "node:fs";
 import { lstat, mkdir, readFile, writeFile, unlink } from "node:fs/promises";
 import os from "node:os";

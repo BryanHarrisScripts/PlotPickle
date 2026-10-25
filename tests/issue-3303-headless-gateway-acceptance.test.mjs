@@ -79,7 +79,8 @@ test("#3303 owner Windows headless route uses existing isolated engineering runn
   assert.equal(answer.exitCode, 0);
   assert.equal(answer.outputDigest, DIGEST);
   assert.equal(answer.independentVerification, false);
-  assert.equal(answer.modelInvoked, false);
+  // A subprocess test receipt cannot independently attest a live provider outcome.
+  assert.equal(answer.modelInvoked, null);
   assert.equal(calls, 1);
   const receipt = await factoryControlReceipt({ root, requestId: REQUEST });
   assert.equal(receipt.outputDigest, DIGEST);

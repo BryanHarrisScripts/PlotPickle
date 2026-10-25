@@ -245,6 +245,8 @@ test("#3142 independent Windows logon plan never starts or modifies the legacy P
   assert.match(script, /ENABLE_INDEPENDENT_WINDOWS_SUPERVISOR/);
   assert.match(script, /-AtLogOn -User \$identity/);
   assert.match(script, /-MultipleInstances IgnoreNew/);
+  assert.match(script, /-RestartCount 3 -RestartInterval \(New-TimeSpan -Minutes 5\) -StartWhenAvailable/);
+  assert.match(script, /AtLogOn\/Interactive cannot guarantee startup before a user signs in/);
   assert.match(script, /-LogonType Interactive -RunLevel Limited/);
   assert.match(script, /SUPERVISOR_TASK_OWNERSHIP_UNVERIFIED/);
   assert.match(script, /TRACKED_SOURCE_NOT_CLEAN/);
@@ -452,11 +454,15 @@ test("#3142 disposable Windows Task Scheduler registration retains SID ownership
     "  $action = New-ScheduledTaskAction -Execute $env:ComSpec -Argument '/c exit 0'",
     "  $trigger = New-ScheduledTaskTrigger -AtLogOn -User $identity",
     "  $principal = New-ScheduledTaskPrincipal -UserId $identity -LogonType Interactive -RunLevel Limited",
-    "  Register-ScheduledTask -TaskName $name -Action $action -Trigger $trigger -Principal $principal | Out-Null",
+    "  $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 5) -StartWhenAvailable",
+    "  Register-ScheduledTask -TaskName $name -Action $action -Trigger $trigger -Principal $principal -Settings $settings | Out-Null",
     "  $created = $true",
     "  $task = Get-ScheduledTask -TaskName $name -ErrorAction Stop",
     "  if (-not (Test-TaskPrincipalIsCurrentUser ([string]$task.Principal.UserId))) { throw 'REGISTERED_OWNER_REJECTED' }",
     "  if ($task.State -ne 'Ready') { throw 'REGISTERED_TASK_NOT_READY' }",
+    "  if ($task.Settings.RestartCount -ne 3) { throw 'BOUNDED_RESTART_COUNT_MISSING' }",
+    "  if ($task.Settings.RestartInterval -ne 'PT5M') { throw 'BOUNDED_RESTART_INTERVAL_MISSING' }",
+    "  if (-not $task.Settings.StartWhenAvailable) { throw 'MISSED_LOGON_RECOVERY_MISSING' }",
     "  if (Test-TaskPrincipalIsCurrentUser 'NT AUTHORITY\\SYSTEM') { throw 'FOREIGN_OWNER_ACCEPTED' }",
     "} finally {",
     "  if ($created) { Unregister-ScheduledTask -TaskName $name -Confirm:$false -ErrorAction Stop }",

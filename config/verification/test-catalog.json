@@ -11644,7 +11644,7 @@
       },
       {
         "target": "tests/issue-3303-headless-gateway-acceptance.test.mjs",
-        "targetDigest": "7a05208ad5ff0d2007aaeb459e600f5402101b581b8e8bba311f56484d692632",
+        "targetDigest": "cfaf46233d40e90f5e512b616bc2ff672c245167acbfaa08b3e25398cffc54aa",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],

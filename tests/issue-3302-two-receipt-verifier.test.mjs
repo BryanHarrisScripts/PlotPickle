@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { generateKeyPairSync, sign } from 'node:crypto';
+import { createHash, generateKeyPairSync, sign } from 'node:crypto';
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -12,7 +12,11 @@ import {
 
 const REQUEST = 'a'.repeat(32), PUBLICATION = 'b'.repeat(32), ATTEMPT = 'c'.repeat(32);
 const SOURCE = '1'.repeat(40), LOCAL = '2'.repeat(40), REMOTE = '3'.repeat(40);
-const TREE = '4'.repeat(40), CONTENT = '5'.repeat(64), NOW = 1800000000000;
+const TREE = '4'.repeat(40), NOW = 1800000000000;
+const BLOB_TEXT = 'export const value = 42;\\n';
+const CONTENT = createHash('sha256').update(BLOB_TEXT).digest('hex');
+const BLOB_SHA = createHash('sha1').update('blob ' + Buffer.byteLength(BLOB_TEXT) + '\\0')
+  .update(BLOB_TEXT).digest('hex');
 const BRANCH = 'engineering/3142-' + REQUEST;
 const TARGET = 'scripts/engineering-team/gateway/example.mjs';
 const TEST = 'tests/issue-3142-authorized-coding-once.test.mjs';
@@ -73,6 +77,20 @@ function fakeGithub({ bad = null } = {}) {
     });
     if (url.endsWith('/git/commits/' + REMOTE)) return reply({
       tree: { sha: TREE }, parents: [{ sha: SOURCE }],
+    });
+    if (url.endsWith('/pulls/4242/files?per_page=100')) {
+      const files = [{ filename: bad === 'changed-path' ? 'scripts/other.mjs' : TARGET,
+        status: 'modified', sha: BLOB_SHA }];
+      if (bad === 'multiple-files') files.push({ filename: 'tests/other.test.mjs',
+        status: 'added', sha: BLOB_SHA });
+      return reply(files);
+    }
+    if (url.endsWith('/git/blobs/' + BLOB_SHA)) return reply({
+      sha: bad === 'blob-sha' ? SOURCE : BLOB_SHA,
+      encoding: bad === 'blob-encoding' ? 'utf-8' : 'base64',
+      size: Buffer.byteLength(BLOB_TEXT) + (bad === 'blob-size' ? 1 : 0),
+      content: Buffer.from(bad === 'blob-digest' ? 'export const value = 43;\\n' : BLOB_TEXT)
+        .toString('base64'),
     });
     if (url.includes('/actions/runs?')) {
       const old = { name: 'Architecture Verification', event: 'pull_request',
@@ -183,7 +201,7 @@ test('hosted CI reads fixed GitHub endpoints, requires all seven layers and nati
   assert.equal(result.state, 'PASS');
   assert.equal(result.code, 'EXACT_HEAD_HOSTED_CI_VERIFIED');
   assert.equal(result.candidateHead, REMOTE);
-  assert.equal(gh.calls.length, 4);
+  assert.equal(gh.calls.length, 6);
   assert.equal(gh.calls.every(x => x.startsWith(
     'https://api.github.com/repos/BryanHarrisScripts/PlotPickle/')), true);
 });
@@ -204,6 +222,25 @@ test('skipped, cancelled, timed-out, mismatched and missing Windows jobs cannot 
   assert.equal(gh.calls.length, 0);
 });
 
+test('independent verifier rejects unauthorized path, extra files and changed blob bytes', async () => {
+  for (const bad of ['changed-path', 'multiple-files', 'blob-digest',
+    'blob-size', 'blob-sha', 'blob-encoding']) {
+    const gh = fakeGithub({ bad });
+    const result = await collectGitHubChecks(receipt(), {
+      token: 'fixture-token-1234567890', fetchImpl: gh.fetchImpl,
+    });
+    assert.equal(result.state, 'BLOCKED', bad);
+    assert.match(result.code, /^PR_CHANGED_PATH_UNVERIFIABLE$|^PR_SOURCE_BLOB_UNVERIFIABLE$|^PR_SOURCE_DIGEST_MISMATCH$/, bad);
+    assert.equal(gh.calls.some(url => url.includes('/actions/runs?')), false,
+      'no CI may substitute for a failed source identity check');
+  }
+  const gh = fakeGithub();
+  assert.equal((await collectGitHubChecks({ ...receipt(), sourceContentDigest: 'bad' }, {
+    token: 'fixture-token-1234567890', fetchImpl: gh.fetchImpl,
+  })).code, 'VERIFIER_SOURCE_BINDING_UNVERIFIABLE');
+  assert.equal(gh.calls.length, 0);
+});
+
 test('newer failed or pending CI run supersedes older green higher-attempt rerun', async () => {
   for (const [bad, expectedState, expectedCode] of [
     ['newer-failed', 'BLOCKED', 'CI_NOT_SUCCESS'],
@@ -216,7 +253,7 @@ test('newer failed or pending CI run supersedes older green higher-attempt rerun
     assert.equal(result.state, expectedState);
     assert.equal(result.code, expectedCode);
     assert.equal(result.runId, 1002);
-    assert.equal(gh.calls.length, 3, 'must not read older green CI job results');
+    assert.equal(gh.calls.length, 5, 'must not read older green CI job results');
   }
 });
 

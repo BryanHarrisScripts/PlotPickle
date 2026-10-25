@@ -12,10 +12,11 @@ param(
     [switch]$Status,
     [switch]$Stop,
     [switch]$Uninstall,
+    [switch]$RepairSettings,
     [string]$Consent = ''
 )
 $ErrorActionPreference = 'Stop'
-$selected = @(@($Install, $Start, $Status, $Stop, $Uninstall) | Where-Object { $_ })
+$selected = @(@($Install, $Start, $Status, $Stop, $Uninstall, $RepairSettings) | Where-Object { $_ })
 if ($selected.Count -ne 1) {
     throw 'EXACTLY_ONE_SUPERVISOR_OPERATION_REQUIRED'
 }
@@ -24,7 +25,7 @@ if ($env:OS -ne 'Windows_NT') {
 }
 
 $requiredConsent = 'ENABLE_INDEPENDENT_WINDOWS_SUPERVISOR'
-if (($Install -or $Start -or $Uninstall) -and $Consent -cne $requiredConsent) {
+if (($Install -or $Start -or $Uninstall -or $RepairSettings) -and $Consent -cne $requiredConsent) {
     throw 'LOCAL_WINDOWS_CONSENT_REQUIRED'
 }
 if (($Status -or $Stop) -and $Consent -ne '') {
@@ -119,6 +120,8 @@ if ($Status) {
         workerProcessVerified = $false
         autonomousCodingVerified = $false
         automaticMergeEnabled = $false
+        recoveryPolicyVerified = ($null -ne $task -and $task.Settings.RestartCount -eq 3 -and $task.Settings.RestartInterval -eq 'PT5M' -and $task.Settings.StartWhenAvailable -eq $true)
+        startupScope = 'AT_LOGON_AFTER_SIGN_IN'
     } | ConvertTo-Json -Compress
     return
 }
@@ -157,6 +160,39 @@ if ($Install) {
         automaticCodingEnabled = $false
         operatorStartRequiredNow = $true
         processOwnershipVerified = $false
+    } | ConvertTo-Json -Compress
+    return
+}
+if ($RepairSettings) {
+    # Repair only the retry settings of the existing, exactly owned, stopped
+    # supervisor task. No task replacement, credential access, source migration
+    # or process start. The owner must explicitly authorize this operation.
+    if (@(Get-TaskByName $legacyTask).Count -ne 0) {
+        throw 'LEGACY_PI_FACTORY_TASK_PRESENT_DISABLE_SEPARATELY'
+    }
+    $task = Read-OwnedTask
+    if ($null -eq $task) { throw 'SUPERVISOR_TASK_NOT_INSTALLED' }
+    if ([string]$task.State -ne 'Ready') {
+        throw 'SUPERVISOR_TASK_NOT_READY_OR_ALREADY_RUNNING'
+    }
+    $null = Assert-ExactBoundWorker
+    $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 5) -StartWhenAvailable
+    Set-ScheduledTask -TaskName $taskName -Settings $settings -ErrorAction Stop | Out-Null
+    $verified = Read-OwnedTask
+    if ($null -eq $verified -or
+        $verified.Settings.RestartCount -ne 3 -or
+        $verified.Settings.RestartInterval -ne 'PT5M' -or
+        -not $verified.Settings.StartWhenAvailable) {
+        throw 'SUPERVISOR_RECOVERY_SETTINGS_UNVERIFIED'
+    }
+    [pscustomobject]@{
+        state = 'RECOVERY_SETTINGS_UPDATED_NOT_RUNNING'
+        restartCount = 3
+        restartIntervalMinutes = 5
+        startWhenAvailable = $true
+        startupScope = 'AT_LOGON_AFTER_SIGN_IN'
+        workerProcessVerified = $false
+        automaticMergeEnabled = $false
     } | ConvertTo-Json -Compress
     return
 }

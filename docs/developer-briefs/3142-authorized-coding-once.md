@@ -14,7 +14,7 @@ The worker checks one target file, its digest, and a named existing focused test
 
 Generated code is **not run on the owner's Windows host**. The focused-test identity travels with the receipt but execution belongs to a subsequent independent, isolated CI verifier. A successful worker returns `LOCAL_COMMIT_PREPARED`, not “issue fixed”: the result contains the branch, exact commit, focused-test path, and explicit `focusedTestExecuted:false`, `pullRequestCreated:false`, `independentVerification:false` and `automaticMergeAuthorized:false`.
 
-A reservation is fsynced before external requests or source mutation; duplicate delivery cannot replay it. If a model request, edit, Git command, receipt or local operation becomes uncertain, the stage stays for inspection and the worker fails closed. No worktree is automatically deleted, no blocked Factory reservation is replayed, no Pi dispatcher is started and no existing task or app is restarted.
+A write-once stage sentinel and a serialized private stage-budget lock admit at most three retained coding stages before a grant is consumed. Existing stages, including uncertain or crashed attempts, count toward that budget; unknown entries or an orphaned lock fail closed and require owner inspection rather than age-based deletion. A reservation is fsynced before external requests or source mutation; duplicate delivery cannot replay it. If a model request, edit, Git command, receipt or local operation becomes uncertain, the stage stays for inspection and the worker fails closed. No worktree is automatically deleted, no blocked Factory reservation is replayed, no Pi dispatcher is started and no existing task or app is restarted.
 
 ## Evidence and remaining work
 

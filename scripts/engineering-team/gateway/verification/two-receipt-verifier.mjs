@@ -211,8 +211,11 @@ export async function collectGitHubChecks(engineering, {
     const runs = inventory.workflow_runs.filter(x => x.name === 'Architecture Verification' &&
       x.event === 'pull_request' && x.head_sha === engineering.candidateHead);
     if (!runs.length) return { state: 'WAITING', code: 'CI_RUN_NOT_FOUND' };
+    // A newer workflow run ID supersedes an older run even when that older
+    // run has a higher retry attempt. Within the same run, latest attempt wins.
+    // Reversed ordering can silently allow stale green CI to mask new failure.
     const run = runs.sort((a, b) =>
-      (b.run_attempt || 0) - (a.run_attempt || 0) || (b.id || 0) - (a.id || 0))[0];
+      (b.id || 0) - (a.id || 0) || (b.run_attempt || 0) - (a.run_attempt || 0))[0];
     if (!Number.isSafeInteger(run.id) || run.id <= 0)
       return { state: 'BLOCKED', code: 'CI_RUN_ID_UNVERIFIABLE' };
     if (run.status !== 'completed')

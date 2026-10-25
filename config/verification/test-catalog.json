@@ -11736,7 +11736,13 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Deterministic injected owner STOP, local port, owned child, retry and no-replay policy only. No real Windows Scheduled Task, durable on-disk reservation, native tunnel process restart, authenticated MCP transport, plugin reconnection or unattended engineering dispatch."
+        "limits": "Deterministic injected owner STOP, local port, owned child, retry and no-replay policy only. No real Windows Scheduled Task, durable on-disk reservation, native tunnel process restart, authenticated MCP transport, plugin reconnection or unattended engineering dispatch.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/tunnel/tunnel-watchdog-policy.mjs",
+            "digest": "238b92d7b7e918a6b0016e7656d38dcfe7fdd009f807db8c774e00c20fb7f9f0"
+          }
+        ]
       }
     ]
   }

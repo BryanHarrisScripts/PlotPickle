@@ -219,11 +219,11 @@ export async function collectGitHubChecks(engineering, {
         typeof blob.content !== 'string' ||
         !Number.isSafeInteger(blob.size) || blob.size < 1 || blob.size > 16_384)
       return { state: 'BLOCKED', code: 'PR_SOURCE_BLOB_UNVERIFIABLE' };
-    const encoded = blob.content.replace(/\\s/gu, '');
+    const encoded = blob.content.replace(/\s/gu, '');
     if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u.test(encoded))
       return { state: 'BLOCKED', code: 'PR_SOURCE_BLOB_UNVERIFIABLE' };
     const bytes = Buffer.from(encoded, 'base64');
-    const gitBlobSha = createHash('sha1').update('blob ' + bytes.length + '\\0')
+    const gitBlobSha = createHash('sha1').update('blob ' + bytes.length + '\0')
       .update(bytes).digest('hex');
     if (bytes.length !== blob.size || !Buffer.from(bytes.toString('utf8')).equals(bytes) ||
         gitBlobSha !== blob.sha ||

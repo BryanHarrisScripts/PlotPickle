@@ -11833,7 +11833,7 @@
       },
       {
         "target": "tests/issue-3302-two-receipt-verifier.test.mjs",
-        "targetDigest": "c5b45829bd5d21ea65afe284692ff8161a1290e64ad95c08ecdfa195a4abbe83",
+        "targetDigest": "6d8499f19dd19cc26a39f2dda21046fcdd685bc93a703425483dafcc8e2ae80d",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11851,7 +11851,7 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Fixture-only correlated owner-private coding/publication receipts, real Ed25519 signing/verification, fixed read-only mocked GitHub API, seven architecture layers and hosted Windows step, negative cancelled/skipped/timed-out/stale/forged cases, write-once verifier reservation and no automatic merge. No real owner-host signer, real GitHub token, actual PR publication, native Product Gate, unattended dispatch or automatic merge proof.",
+        "limits": "Fixture-only correlated owner-private coding/publication receipts, real Ed25519 signing/verification, fixed read-only mocked GitHub API, seven architecture layers and hosted Windows step. Independent changed-file identity, Git blob SHA-1 and content SHA-256 reject extra files, unauthorized paths and changed bytes before CI; negative cancelled/skipped/timed-out/stale/forged cases and write-once no-replay verifier reservation. No real owner-host signer, real GitHub token, actual PR publication, native Product Gate, unattended dispatch or automatic merge proof.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/verification/two-receipt-verifier.mjs",

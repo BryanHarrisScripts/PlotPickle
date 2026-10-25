@@ -172,8 +172,10 @@ test("#3259 local host adapter requires a private one-shot grant and real clean 
   await writeFile(path.join(repo, "source.txt"), "dirty\n");
   assert.equal((await invoke()).code, "OUTBOUND_EXACT_CLEAN_MAIN_REQUIRED");
   await writeFile(path.join(repo, "source.txt"), "source\n");
+  const pendingQuestion = await conversationStatus({ root: privateRoot, source: s });
+  assert.equal(pendingQuestion.code, "PENDING");
   await writeFile(path.join(privateRoot, "owner-outbound-grant.json"),
-    JSON.stringify(grant(s.head, gatewayDigest({ text: "PlotPickle is testing its connected ChatGPT conversation on MAIN commit " + s.head + ". Explain in one sentence why a green build alone cannot prove that this two-way conversation works. Answer the question; do not repeat or merely acknowledge it." }))) + "\n");
+    JSON.stringify(grant(s.head, gatewayDigest({ text: pendingQuestion.question }))) + "\n");
   const completed = await invoke();
   assert.equal(completed.state, "MODEL_REPLY_PERSISTED");
   assert.equal(requests, 1);

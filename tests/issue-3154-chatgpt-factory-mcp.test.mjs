@@ -6,7 +6,7 @@ import { mkdtemp, mkdir, readFile, writeFile, symlink, rm } from "node:fs/promis
 import os from "node:os";
 import path from "node:path";
 import {
-  privateFactoryRoot, sanitizeReceipt, sanitizeDependencyPreflight, sanitizeSupervisorObservation, factoryStatus, sanitizeStageCapacityObservation, factoryEvidence,
+  privateFactoryRoot, sanitizeReceipt, sanitizeDependencyPreflight, sanitizeSupervisorObservation, factoryStatus, sanitizeStageCapacityObservation, observeCandidateStageLock, sanitizeStageLockObservation, factoryEvidence,
   factoryIssuePreview, factoryObserver, factoryHostHead, executeMcpRequest, handleRpc, MCP_TOOLS,
   createLocalMcpHttpServer, runStdio, controlTokenMatches,
   MCP_CONTROL_TOOLS, factoryControlReceipt,
@@ -260,6 +260,38 @@ test("#3142 authenticated Factory status reports stage count bounds without clea
     stageBudgetRead:async()=>{throw Error("SECRET_STAGE_PATH");}});
   assert.equal(thrown.result.structuredContent.stageCapacity.code,"STAGE_BUDGET_UNVERIFIED");
   assert.doesNotMatch(JSON.stringify(thrown),/SECRET_STAGE_PATH/);
+}));
+
+test("#3142 staging lock observation is authenticated, read-only and fails closed",()=>sandbox(async root=>{
+  await seed(root);
+  const request={jsonrpc:"2.0",id:44,method:"tools/call",
+    params:{name:"factory_status",arguments:{}}};
+  let reads=0;
+  const stageLockRead=async()=>{reads++;return {state:"HELD",privatePath:"NONPUBLIC_LOCK_PATH"};};
+  const guest=await handleRpc(request,{root,controlAuthenticated:false,stageLockRead});
+  assert.equal(reads,0);
+  assert.equal(Object.hasOwn(guest.result.structuredContent,"stageLock"),false);
+  const owner=await handleRpc(request,{root,controlAuthenticated:true,stageLockRead});
+  assert.equal(reads,1);
+  assert.deepEqual(owner.result.structuredContent.stageLock,{
+    state:"HELD",stagingAuthorized:false,cleanupAuthorized:false,
+    processOwnershipVerified:false,
+  });
+  assert.doesNotMatch(JSON.stringify(owner),/NONPUBLIC_LOCK_PATH/);
+  assert.equal((await observeCandidateStageLock({root})).state,"ABSENT");
+  const lock=path.join(root,".candidate-stage-budget.lock");
+  await mkdir(lock);
+  assert.equal((await observeCandidateStageLock({root})).state,"HELD");
+  await rm(lock,{recursive:true});
+  await writeFile(lock,"not-a-directory");
+  assert.equal((await observeCandidateStageLock({root})).state,"UNVERIFIED");
+  const malformed=sanitizeStageLockObservation({state:"HELD;remove"});
+  assert.equal(malformed.state,"UNVERIFIED");
+  assert.equal(malformed.cleanupAuthorized,false);
+  const thrown=await handleRpc(request,{root,controlAuthenticated:true,
+    stageLockRead:async()=>{throw Error("NONPUBLIC_LOCK_PATH");}});
+  assert.equal(thrown.result.structuredContent.stageLock.state,"UNVERIFIED");
+  assert.doesNotMatch(JSON.stringify(thrown),/NONPUBLIC_LOCK_PATH/);
 }));
 
 test("protocol initialization, tool schemas, denylist and malformed args fail closed",()=>sandbox(async root=>{

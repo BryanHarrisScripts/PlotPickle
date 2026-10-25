@@ -9965,14 +9965,14 @@
       },
       {
         "target": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
-        "targetDigest": "09c31fc8170e1e45ee4cf6d2c87ef162f35a1b57d5017e1b2b6e224d6afdd569",
+        "targetDigest": "8b48e5e1cb879341d626a254942018f67b96261d214870a32e8cde6949cf5b2e",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "b852934db9d304a1aa6d5a865600cce6d84f14ee4ecbc4916704de8d3e321033"
+            "digest": "99e55f49bdbe35446da142719e7882ed1311a5bf2ce7794fa35c842d7f6365be"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -10020,7 +10020,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "b852934db9d304a1aa6d5a865600cce6d84f14ee4ecbc4916704de8d3e321033"
+            "digest": "99e55f49bdbe35446da142719e7882ed1311a5bf2ce7794fa35c842d7f6365be"
           }
         ],
         "truthRefs": [
@@ -10056,7 +10056,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "b852934db9d304a1aa6d5a865600cce6d84f14ee4ecbc4916704de8d3e321033"
+            "digest": "99e55f49bdbe35446da142719e7882ed1311a5bf2ce7794fa35c842d7f6365be"
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
@@ -10299,7 +10299,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "b852934db9d304a1aa6d5a865600cce6d84f14ee4ecbc4916704de8d3e321033"
+            "digest": "99e55f49bdbe35446da142719e7882ed1311a5bf2ce7794fa35c842d7f6365be"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
@@ -10347,7 +10347,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "b852934db9d304a1aa6d5a865600cce6d84f14ee4ecbc4916704de8d3e321033"
+            "digest": "99e55f49bdbe35446da142719e7882ed1311a5bf2ce7794fa35c842d7f6365be"
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
@@ -10395,7 +10395,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "b852934db9d304a1aa6d5a865600cce6d84f14ee4ecbc4916704de8d3e321033"
+            "digest": "99e55f49bdbe35446da142719e7882ed1311a5bf2ce7794fa35c842d7f6365be"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
@@ -10619,7 +10619,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "b852934db9d304a1aa6d5a865600cce6d84f14ee4ecbc4916704de8d3e321033"
+            "digest": "99e55f49bdbe35446da142719e7882ed1311a5bf2ce7794fa35c842d7f6365be"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -11417,7 +11417,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "b852934db9d304a1aa6d5a865600cce6d84f14ee4ecbc4916704de8d3e321033"
+            "digest": "99e55f49bdbe35446da142719e7882ed1311a5bf2ce7794fa35c842d7f6365be"
           }
         ]
       },
@@ -11449,7 +11449,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "b852934db9d304a1aa6d5a865600cce6d84f14ee4ecbc4916704de8d3e321033"
+            "digest": "99e55f49bdbe35446da142719e7882ed1311a5bf2ce7794fa35c842d7f6365be"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/Upgrade-PlotPickleTunnelCatalog.ps1",
@@ -11501,7 +11501,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "b852934db9d304a1aa6d5a865600cce6d84f14ee4ecbc4916704de8d3e321033"
+            "digest": "99e55f49bdbe35446da142719e7882ed1311a5bf2ce7794fa35c842d7f6365be"
           }
         ]
       },
@@ -11656,7 +11656,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "b852934db9d304a1aa6d5a865600cce6d84f14ee4ecbc4916704de8d3e321033"
+            "digest": "99e55f49bdbe35446da142719e7882ed1311a5bf2ce7794fa35c842d7f6365be"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",

@@ -391,3 +391,17 @@ test("#3142 malformed or escalated supervisor authority cannot report online or 
   await writeFile(enabledPath, JSON.stringify(original) + "\n");
   assert.equal((await supervisorStatus({ appRoot: root, now })).state, "RUNNING");
 }));
+
+
+test("#3142 malformed running lock never clears local STOP during explicit reenable", () => sandbox(async root => {
+  await enable(root);
+  const opts = { appRoot: root, platform: "win32", consent: CONSENT, head, paired, now };
+  await disableSupervisor({ appRoot: root, now });
+  const lock = path.join(folder(root), "running.lock");
+  await writeFile(lock, "{malformed lock\\n");
+  await assert.rejects(reenableSupervisor(opts), /SUPERVISOR_LOCKED_OR_STALE/);
+  assert.equal((await supervisorStatus({ appRoot: root, now })).state, "STOP_REQUESTED");
+  assert.match(await readFile(path.join(folder(root), "stop-request.json"), "utf8"), /localOperator/);
+  await rm(lock);
+  assert.equal((await reenableSupervisor(opts)).state, "ENABLED_NOT_RUNNING");
+}));

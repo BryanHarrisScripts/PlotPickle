@@ -200,7 +200,9 @@ export async function reenableSupervisor({ appRoot = appRootDefault(), consent, 
   const p = dirs(appRoot);
   const enabled = await safeRead(p.enabled);
   if (!validEnabledAuthority(enabled)) throw Error("SUPERVISOR_AUTHORITY_UNVERIFIABLE");
-  if (await safeRead(p.lock)) throw Error("SUPERVISOR_LOCKED_OR_STALE");
+  // A malformed or symlinked running.lock is still a lock. Never clear STOP
+  // while service ownership is uncertain merely because JSON parsing failed.
+  if (await existsOrdinaryFile(p.lock)) throw Error("SUPERVISOR_LOCKED_OR_STALE");
   if ((await head()) !== enabled.sourceHead) throw Error("STALE_SOURCE_HEAD");
   const info = await paired({ appRoot });
   if (!info.enabled || info.hostId !== enabled.hostId

@@ -4240,7 +4240,8 @@
           "tests/issue-3110-factory-named-test-mcp.test.mjs",
           "tests/issue-3159-pi-headless-inference.test.mjs",
           "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
-          "tests/issue-3278-storage-mcp.test.mjs"
+          "tests/issue-3278-storage-mcp.test.mjs",
+          "tests/issue-3303-headless-gateway-acceptance.test.mjs"
         ]
       },
       "cost": "fast",
@@ -7199,7 +7200,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "4e92907c33b59ad9814c72c84a21f68f71b876a2ba7f57bd4784430f4640b91b"
+            "digest": "bdffbf2be42374214c895984cbb5b3b87c36b3117db449cb3b0669ff03d081e0"
           }
         ]
       },
@@ -8033,7 +8034,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "4e92907c33b59ad9814c72c84a21f68f71b876a2ba7f57bd4784430f4640b91b"
+            "digest": "bdffbf2be42374214c895984cbb5b3b87c36b3117db449cb3b0669ff03d081e0"
           }
         ]
       },
@@ -9970,7 +9971,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "805cbd9b4a96a1e0735577fe573db3cc0ace2b0bd7ca675de7b9e22efab378a9"
+            "digest": "41b421cf17c524d07687b3d84de3e5faa90d7eaca60e9384145732301f8fbb2a"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -10014,7 +10015,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "805cbd9b4a96a1e0735577fe573db3cc0ace2b0bd7ca675de7b9e22efab378a9"
+            "digest": "41b421cf17c524d07687b3d84de3e5faa90d7eaca60e9384145732301f8fbb2a"
           }
         ],
         "truthRefs": [
@@ -10050,7 +10051,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "805cbd9b4a96a1e0735577fe573db3cc0ace2b0bd7ca675de7b9e22efab378a9"
+            "digest": "41b421cf17c524d07687b3d84de3e5faa90d7eaca60e9384145732301f8fbb2a"
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
@@ -10293,7 +10294,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "805cbd9b4a96a1e0735577fe573db3cc0ace2b0bd7ca675de7b9e22efab378a9"
+            "digest": "41b421cf17c524d07687b3d84de3e5faa90d7eaca60e9384145732301f8fbb2a"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
@@ -10341,7 +10342,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "805cbd9b4a96a1e0735577fe573db3cc0ace2b0bd7ca675de7b9e22efab378a9"
+            "digest": "41b421cf17c524d07687b3d84de3e5faa90d7eaca60e9384145732301f8fbb2a"
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
@@ -10353,7 +10354,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "4e92907c33b59ad9814c72c84a21f68f71b876a2ba7f57bd4784430f4640b91b"
+            "digest": "bdffbf2be42374214c895984cbb5b3b87c36b3117db449cb3b0669ff03d081e0"
           }
         ],
         "truthRefs": [
@@ -10389,11 +10390,11 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "805cbd9b4a96a1e0735577fe573db3cc0ace2b0bd7ca675de7b9e22efab378a9"
+            "digest": "41b421cf17c524d07687b3d84de3e5faa90d7eaca60e9384145732301f8fbb2a"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "4e92907c33b59ad9814c72c84a21f68f71b876a2ba7f57bd4784430f4640b91b"
+            "digest": "bdffbf2be42374214c895984cbb5b3b87c36b3117db449cb3b0669ff03d081e0"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -10613,7 +10614,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "805cbd9b4a96a1e0735577fe573db3cc0ace2b0bd7ca675de7b9e22efab378a9"
+            "digest": "41b421cf17c524d07687b3d84de3e5faa90d7eaca60e9384145732301f8fbb2a"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -11411,7 +11412,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "805cbd9b4a96a1e0735577fe573db3cc0ace2b0bd7ca675de7b9e22efab378a9"
+            "digest": "41b421cf17c524d07687b3d84de3e5faa90d7eaca60e9384145732301f8fbb2a"
           }
         ]
       },
@@ -11443,7 +11444,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "805cbd9b4a96a1e0735577fe573db3cc0ace2b0bd7ca675de7b9e22efab378a9"
+            "digest": "41b421cf17c524d07687b3d84de3e5faa90d7eaca60e9384145732301f8fbb2a"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/Upgrade-PlotPickleTunnelCatalog.ps1",
@@ -11495,7 +11496,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "805cbd9b4a96a1e0735577fe573db3cc0ace2b0bd7ca675de7b9e22efab378a9"
+            "digest": "41b421cf17c524d07687b3d84de3e5faa90d7eaca60e9384145732301f8fbb2a"
           }
         ]
       },
@@ -11640,6 +11641,38 @@
             "digest": "b0563ee2663d315bb8e169309cfe4f8c5427cacd4aeb6e2cabf6faecf7e2bd11"
           }
         ]
+      },
+      {
+        "target": "tests/issue-3303-headless-gateway-acceptance.test.mjs",
+        "targetDigest": "c09bdf3ffb1b0dcdbc85b09e569d1bb53c1ef49e9dd9925ed422c01733530244",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "41b421cf17c524d07687b3d84de3e5faa90d7eaca60e9384145732301f8fbb2a"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
+            "digest": "3e1bd50c1234a88098f6b2313fe00c9dd23a38e14551213e9d6daba175c3d626"
+          }
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic authenticated MCP request, exact stage receipt, pinned fixed node-test target, write-once result, replay and invalid-selection refusal. Does not prove live owner-Windows execution, API provider invocation, independent product verification, worker dispatcher, source mutation, or merge."
       }
     ]
   }

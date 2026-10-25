@@ -176,7 +176,12 @@ if ($RepairSettings) {
         throw 'SUPERVISOR_TASK_NOT_READY_OR_ALREADY_RUNNING'
     }
     $null = Assert-ExactBoundWorker
-    $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 5) -StartWhenAvailable
+    # Preserve the owner's existing task settings. Rebuilding a SettingsSet
+    # would silently reset unrelated settings such as Hidden or battery policy.
+    $settings = $task.Settings
+    $settings.RestartCount = 3
+    $settings.RestartInterval = 'PT5M'
+    $settings.StartWhenAvailable = $true
     Set-ScheduledTask -TaskName $taskName -Settings $settings -ErrorAction Stop | Out-Null
     $verified = Read-OwnedTask
     if ($null -eq $verified -or

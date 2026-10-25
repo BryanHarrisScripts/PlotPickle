@@ -8,7 +8,8 @@
     "tests/issue-3303-headless-gateway-acceptance.test.mjs",
     "config/verification/test-catalog.json",
     "docs/developer-briefs/3303-headless-windows-gateway-acceptance.md",
-    "config/development-convergence/3303-headless-gateway-acceptance.json"
+    "config/development-convergence/3303-headless-gateway-acceptance.json",
+    ".github/workflows/architecture-shadow.yml"
   ],
   "acceptance": [
     {
@@ -56,6 +57,17 @@
           "type": "file-contains",
           "path": "docs/developer-briefs/3303-headless-windows-gateway-acceptance.md",
           "contains": "independentVerification=false"
+        }
+      ]
+    },
+    {
+      "id": "NATIVE-WINDOWS-EXACT-HEAD",
+      "criterion": "Run the fixed gateway acceptance regression in the existing native Windows verifier job on the exact PR head.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "node --test tests/issue-3303-headless-gateway-acceptance.test.mjs"
         }
       ]
     }

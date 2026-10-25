@@ -6,7 +6,7 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { publishAuthorizedDraftOnce, validatePublicationGrant } from
-  '../scripts/engineering-team/gateway/authorized-pr-publish-once.mjs';
+  '../scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs';
 import { runOwnerCodingAndPublishOnce } from '../scripts/engineering-team/gateway/authorized-coding-once.mjs';
 
 const exec = promisify(execFile);

@@ -167,8 +167,8 @@ export async function dispatchOutboundObserveOnce({
     return uncertain("OUTBOUND_COMPLETION_RECEIPT_UNVERIFIABLE");
   return Object.freeze({ state: "MODEL_REPLY_PERSISTED", code: "OUTBOUND_OBSERVE_ONLY",
     questionId: question.messageId, sourceHead: source.head,
-    modelRequestAttempted: true, modelInvokedVerified: true,
-    sourceMutationAuthorized: false, replayAuthorized: false,
+    modelRequestAttempted: true, modelInvokedVerified: false,
+    providerResponseValidated: true, sourceMutationAuthorized: false, replayAuthorized: false,
     independentVerification: false, autonomousCodingVerified: false });
 }
 async function privateGrant(root) {

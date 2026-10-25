@@ -11751,7 +11751,7 @@
       },
       {
         "target": "tests/issue-3142-authorized-publish-once.test.mjs",
-        "targetDigest": "6a6ed0e091fc079bb06fc633855fe2715c0d692a2178fc75d04b1bf40b400dc5",
+        "targetDigest": "c61089832fd7725fe30edbc8362825be2029407345b8d6910e5a888a00ac920e",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11773,7 +11773,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-publish-once.mjs",
-            "digest": "b6de8052598640c1682f4f1dac04fe51152e6009fa1d78b1f491ea2a7656c398"
+            "digest": "59c179bf977fd033359ae7ca2903db85e58579442bbd40beb3575358587f5c96"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",

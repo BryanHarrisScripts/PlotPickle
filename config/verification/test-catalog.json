@@ -11644,7 +11644,7 @@
       },
       {
         "target": "tests/issue-3259-outbound-openai-once.test.mjs",
-        "targetDigest": "a13d69ad651d90561f20d69792077bde3a2143378d3b87facb336f6cf633ef55",
+        "targetDigest": "3ef450dc2c99fcb4d3782c1c48e88d12d076eb73ed59d6a03769e2d63894541d",
         "catalogueIds": [
           "agent.conversation-mcp-3259"
         ],
@@ -11666,7 +11666,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/outbound-openai-once.mjs",
-            "digest": "423d50c384622044f26a0b893b5147ba2226487ea775be9c57de8d8136561d78"
+            "digest": "14cece7ad3965935b2518e0177333486391e3116b82a150564981e353613f120"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-contract.mjs",

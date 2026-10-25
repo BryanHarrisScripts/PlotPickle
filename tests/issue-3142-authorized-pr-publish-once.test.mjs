@@ -219,7 +219,7 @@ test('modified, detached or unexpectedly dirty coding stage cannot publish', () 
   }));
 
 test('one invocation can hand off an authorized prepared commit to separate publication without manual steps', async () => {
-  let coding = 0, publishing = 0;
+  let coding = 0, publishing = 0, recording = 0;
   const options = {
     grantId: ID, publicationId: PUB,
     code: async ({ grantId }) => {
@@ -230,19 +230,39 @@ test('one invocation can hand off an authorized prepared commit to separate publ
     publish: async ({ publicationId }) => {
       assert.equal(publicationId, PUB);
       publishing++;
-      return { state: 'DRAFT_PR_CREATED', automaticMergeAuthorized: false };
+      return { state: 'DRAFT_PR_CREATED', prNumber: 4242, remoteCommit: REMOTE,
+        automaticMergeAuthorized: false };
+    },
+    record: async ({ requestId, publicationId }) => {
+      assert.equal(requestId, ID);
+      assert.equal(publicationId, PUB);
+      recording++;
+      return { state: 'SOURCE_COMMITTED_AND_PR_PUBLISHED',
+        receiptId: 'f'.repeat(64), requestId: ID, publicationId: PUB,
+        prNumber: 4242, candidateHead: REMOTE };
     },
   };
-  assert.equal((await runOwnerCodingAndPublishOnce(options)).state, 'DRAFT_PR_CREATED');
+  const success = await runOwnerCodingAndPublishOnce(options);
+  assert.equal(success.state, 'DRAFT_PR_CREATED');
+  assert.equal(success.engineeringReceiptId, 'f'.repeat(64));
+  assert.equal(success.verificationState, 'WAITING_FOR_SEPARATE_VERIFIER');
   assert.equal(coding, 1);
   assert.equal(publishing, 1);
+  assert.equal(recording, 1);
   const blocked = await runOwnerCodingAndPublishOnce({
     ...options, code: async () => ({ state: 'BLOCKED', code: 'OWNER_GRANT_REQUIRED' }),
   });
   assert.equal(blocked.state, 'BLOCKED');
   assert.equal(publishing, 1);
+  assert.equal(recording, 1);
+  const lost = await runOwnerCodingAndPublishOnce({
+    ...options, record: async () => ({ state: 'BLOCKED' }),
+  });
+  assert.equal(lost.state, 'DRAFT_PR_RECEIPT_UNVERIFIED');
+  assert.equal(lost.code, 'ENGINEERING_RECEIPT_MISSING_OR_INCONSISTENT');
+  assert.equal(lost.automaticMergeAuthorized, false);
   assert.equal((await runOwnerCodingAndPublishOnce({
     ...options, publicationId: 'bad',
   })).code, 'CODING_AND_PUBLISH_GRANT_IDS_REQUIRED');
-  assert.equal(coding, 1);
+  assert.equal(coding, 2);
 });

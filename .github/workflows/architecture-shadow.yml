@@ -275,6 +275,14 @@ jobs:
       - name: Test durable conversation and authenticated MCP boundary on native Windows
         shell: pwsh
         run: node --test tests/issue-3259-bidirectional-gateway-p1.test.mjs tests/issue-3259-conversation-mcp.test.mjs tests/issue-3154-chatgpt-factory-mcp.test.mjs
+      - name: Verify authenticated headless gateway acceptance route on native Windows
+        shell: pwsh
+        env:
+          PLOTPICKLE_PROOF_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          $actual = (& git rev-parse HEAD).Trim()
+          if ($actual -ne $env:PLOTPICKLE_PROOF_SOURCE_HEAD) { throw "Wrong exact-head Windows gateway acceptance checkout" }
+          node --test tests/issue-3303-headless-gateway-acceptance.test.mjs
       - name: Run real Windows Factory candidate listener with isolated synthetic Auth and MAIN sentinel
         shell: pwsh
         env:

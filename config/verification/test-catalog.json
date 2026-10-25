@@ -11833,7 +11833,7 @@
       },
       {
         "target": "tests/issue-3302-two-receipt-verifier.test.mjs",
-        "targetDigest": "acb6a3c1b6b0434bbaa26cafeda386c32b4fa7e364fcf91ed978a2b14dd1ae48",
+        "targetDigest": "c5b45829bd5d21ea65afe284692ff8161a1290e64ad95c08ecdfa195a4abbe83",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11855,7 +11855,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/verification/two-receipt-verifier.mjs",
-            "digest": "ba04f1b34dfa1e4a10e3d816a10a1916b83aeb6304d16e7915331ee76ebdc8ca"
+            "digest": "3558cf3b56edc64643d2a20106f0b5ad9b46a1d168244495341a06dc476609f7"
           },
           {
             "path": "scripts/engineering-team/gateway/receipts/write-once-json.mjs",

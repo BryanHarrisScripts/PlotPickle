@@ -222,14 +222,16 @@ test("#3142 authenticated Factory status observes canonical supervisor without s
   assert.doesNotMatch(JSON.stringify(failed),/SECRET_SUPERVISOR/);
 }));
 
-test("#3142 authenticated Factory status reports stage count bounds without cleanup",()=>sandbox(async root=>{
+test("#3241 authenticated status shows 70 retained stages without granting cleanup or admission",()=>sandbox(async root=>{
   await seed(root);
   const request={jsonrpc:"2.0",id:43,method:"tools/call",
     params:{name:"factory_status",arguments:{}}};
   let reads=0;
   const stageBudgetRead=async()=>{reads++;return {
-    state:"BLOCKED",code:"STAGE_BUDGET_EXCEEDED",
-    observedStagesAtLeast:3,maximumStages:3,privatePath:"SECRET_STAGE_PATH",
+    state:"READY",code:"RETAINED_STAGES_PRESERVED",
+    observedRetainedStages:70,maxConcurrentStaging:1,
+    retentionReferenceState:"UNVERIFIED",cleanupAuthorized:false,
+    privatePath:"SECRET_STAGE_PATH",
   };};
   const guest=await handleRpc(request,{root,now:()=>4000,
     controlAuthenticated:false,stageBudgetRead});
@@ -239,30 +241,36 @@ test("#3142 authenticated Factory status reports stage count bounds without clea
     controlAuthenticated:true,stageBudgetRead});
   assert.equal(reads,1);
   assert.deepEqual(owner.result.structuredContent.stageCapacity,{
-    state:"BLOCKED",code:"STAGE_BUDGET_EXCEEDED",observedStages:null,
-    observedStagesAtLeast:3,maximumStages:3,
+    state:"READY",code:"RETAINED_STAGES_PRESERVED",
+    observedRetainedStages:70,observedStagesAtLeast:null,
+    maxConcurrentStaging:1,retentionReferenceState:"UNVERIFIED",
     stagingAuthorized:false,cleanupAuthorized:false,
+    diskCapacityVerified:false,processOwnershipVerified:false,
   });
   assert.doesNotMatch(JSON.stringify(owner),/SECRET_STAGE_PATH/);
-  const available=sanitizeStageCapacityObservation({
-    state:"READY",code:"STAGE_BUDGET_AVAILABLE",observedStages:2,maximumStages:3,
+  const exceeded=sanitizeStageCapacityObservation({
+    state:"BLOCKED",code:"STAGE_INVENTORY_BUDGET_EXCEEDED",
+    observedStagesAtLeast:4097,privatePath:"SECRET_STAGE_PATH",
   });
-  assert.equal(available.observedStages,2);
-  assert.equal(available.stagingAuthorized,false);
+  assert.equal(exceeded.state,"BLOCKED");
+  assert.equal(exceeded.observedStagesAtLeast,4097);
+  assert.equal(exceeded.stagingAuthorized,false);
   const malformed=sanitizeStageCapacityObservation({
-    state:"READY",code:"STAGE_BUDGET_AVAILABLE",observedStages:9999,maximumStages:3,
+    state:"READY",code:"RETAINED_STAGES_PRESERVED",
+    observedRetainedStages:9999,maxConcurrentStaging:1,
+    retentionReferenceState:"UNVERIFIED",cleanupAuthorized:false,
     privatePath:"SECRET_STAGE_PATH",
   });
   assert.equal(malformed.state,"UNVERIFIED");
-  assert.equal(malformed.observedStages,null);
+  assert.equal(malformed.observedRetainedStages,null);
   const thrown=await handleRpc(request,{root,now:()=>4000,
     controlAuthenticated:true,
     stageBudgetRead:async()=>{throw Error("SECRET_STAGE_PATH");}});
-  assert.equal(thrown.result.structuredContent.stageCapacity.code,"STAGE_BUDGET_UNVERIFIED");
+  assert.equal(thrown.result.structuredContent.stageCapacity.code,"STAGE_INVENTORY_UNVERIFIED");
   assert.doesNotMatch(JSON.stringify(thrown),/SECRET_STAGE_PATH/);
 }));
 
-test("#3142 seventy retained candidate stages block staging even without a lock",()=>sandbox(async root=>{
+test("#3241 seventy retained candidate stages remain visible but are not active workers",()=>sandbox(async root=>{
   await seed(root);
   const base=path.join(root,"chat-candidate-stages");
   await mkdir(base);
@@ -277,18 +285,18 @@ test("#3142 seventy retained candidate stages block staging even without a lock"
     supervisorRead:async()=>({state:"OFF"})});
   const status=owner.result.structuredContent;
   assert.deepEqual(status.stageCapacity,{
-    state:"BLOCKED",code:"STAGE_BUDGET_EXCEEDED",
-    observedStages:null,observedStagesAtLeast:3,maximumStages:3,
+    state:"READY",code:"RETAINED_STAGES_PRESERVED",
+    observedRetainedStages:70,observedStagesAtLeast:null,
+    maxConcurrentStaging:1,retentionReferenceState:"UNVERIFIED",
     stagingAuthorized:false,cleanupAuthorized:false,
+    diskCapacityVerified:false,processOwnershipVerified:false,
   });
   assert.deepEqual(status.stageLock,{
     state:"ABSENT",stagingAuthorized:false,cleanupAuthorized:false,
     processOwnershipVerified:false,
   });
-  assert.equal(status.stageCapacity.cleanupAuthorized,false);
-  assert.equal(status.stageLock.cleanupAuthorized,false);
   const remaining=await (await import("node:fs/promises")).readdir(base);
-  assert.equal(remaining.length,70,"read-only observation must not remove retained stages");
+  assert.equal(remaining.length,70,"read-only observation cannot remove retained stages");
 }));
 
 test("#3142 staging lock observation is authenticated, read-only and fails closed",()=>sandbox(async root=>{
@@ -607,8 +615,11 @@ test("PR stage disk-space and stage-budget denials are preserved in immutable au
  const github={exactHead:async()=>OLD};
  for(const [index,code] of ["DISK_SPACE_INSUFFICIENT","DISK_SPACE_UNVERIFIED",
    "STAGE_BUDGET_UNVERIFIED","STAGE_BUDGET_EXCEEDED",
-   "STAGE_BUDGET_BUSY","STAGE_BUDGET_LOCK_RELEASE_FAILED"].entries()){
-   const requestId=String.fromCharCode(97+index).repeat(32);
+   "STAGE_BUDGET_BUSY","STAGE_BUDGET_LOCK_RELEASE_FAILED",
+   "STAGE_INVENTORY_UNVERIFIED","STAGE_INVENTORY_BUDGET_EXCEEDED",
+   "STAGE_ADMISSION_UNVERIFIED","STAGE_ADMISSION_BUSY",
+   "STAGE_ADMISSION_LOCK_RELEASE_FAILED","BLOCK_RESOURCE_PRESSURE"].entries()){
+   const requestId=(index+1).toString(16).padStart(32,"0");
    const args={requestId,expectedHead:OLD,suite:"factory-pr-stage",
      candidatePrNumber:3310,candidateHead:NEW};
    const ops={testHead:async()=>OLD,

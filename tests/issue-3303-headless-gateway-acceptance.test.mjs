@@ -63,11 +63,15 @@ test("#3303 owner Windows headless route uses existing isolated engineering runn
       assert.equal(stage.stageId, STAGE);
       assert.deepEqual(task, { requestId: REQUEST, expectedHead: MAIN,
         stageRequestId: STAGE, candidatePrNumber: 3301, candidateHead: CANDIDATE,
-        mode: "node-test", target: "tests/issue-3259-outbound-openai-once.test.mjs",
-        scriptArgs: [] });
+        ...(calls === 1
+          ? { mode: "node-script", target: "scripts/verification-test-truth.mjs",
+              scriptArgs: ["--base-ref", "origin/main"] }
+          : { mode: "node-test", target: "tests/issue-3259-outbound-openai-once.test.mjs",
+              scriptArgs: [] }) });
+      assert.ok(calls <= 2, "admission must precede one test, never replay");
       return { state: "TEST_PASSED", code: "ENGINEERING_TASK_PASSED",
         sourceHead: MAIN, candidateHead: CANDIDATE, candidatePrNumber: 3301,
-        stageId: STAGE, mode: "node-test", exitCode: 0, durationMs: 25,
+        stageId: STAGE, mode: task.mode, exitCode: 0, durationMs: 25,
         outputDigest: DIGEST, independentVerification: false, modelInvoked: false };
     },
   } };
@@ -82,11 +86,11 @@ test("#3303 owner Windows headless route uses existing isolated engineering runn
   assert.equal(answer.independentVerification, false);
   // A subprocess test receipt cannot independently attest a live provider outcome.
   assert.equal(answer.modelInvoked, null);
-  assert.equal(calls, 1);
+  assert.equal(calls, 2);
   const receipt = await factoryControlReceipt({ root, requestId: REQUEST });
   assert.equal(receipt.outputDigest, DIGEST);
   assert.equal((await rpc(selection, opts)).result.structuredContent.state, "DUPLICATE_OR_UNVERIFIABLE_REQUEST");
-  assert.equal(calls, 1);
+  assert.equal(calls, 2);
   const persisted = await readFile(path.join(root, "mcp-control-requests", REQUEST + "-result.json"), "utf8");
   assert.equal(persisted.includes("OPENAI_API_KEY"), false);
 }));
@@ -111,4 +115,26 @@ test("#3303 missing staged proof is refused, and wrong exact MAIN blocks before 
   } })).result.structuredContent;
   assert.equal(mismatch.code, "EXACT_HEAD_MISMATCH");
   assert.equal(calls, 1);
+}));
+
+test("#3303 rejected truth admission prevents executing candidate test source", () => sandbox(async root => {
+  await stageReceipt(root);
+  let calls = 0;
+  const result = (await rpc(selection, { root, controlAuthenticated: true,
+    engineeringEnabled: true, controlOps: {
+      testHead: async () => MAIN,
+      engineering: async ({ selection: task }) => {
+        calls++;
+        assert.equal(task.target, "scripts/verification-test-truth.mjs");
+        return { state: "TEST_FAILED", code: "ENGINEERING_TASK_FAILED",
+          sourceHead: MAIN, candidateHead: CANDIDATE,
+          candidatePrNumber: 3301, stageId: STAGE,
+          mode: "node-script", exitCode: 1, outputDigest: DIGEST };
+      },
+    },
+  })).result.structuredContent;
+  assert.equal(result.state, "TEST_FAILED");
+  assert.equal(result.code, "ENGINEERING_TASK_FAILED");
+  assert.equal(calls, 1);
+  assert.equal(result.independentVerification, false);
 }));

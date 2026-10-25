@@ -23,3 +23,17 @@ An authenticated `factory_status` also reads the existing fail-closed candidate-
 ## Fixed-path stage-lock observation
 
 Authenticated status also reports a separate `stageLock` field of `HELD`, `ABSENT`, or `UNVERIFIED` using a read-only check of the existing fixed private `.candidate-stage-budget.lock` directory. This field never reveals paths, provides no cleanup/staging authority, and does not infer process ownership from a lock. Guest status does not read the lock. Missing locks do not prove staging eligibility: retained-stage count, disk capacity, candidate identity and independent owner-host acceptance remain separate gates.
+
+## Owner-approved #3241 admission correction — October 25, 2026
+
+The owner approved replacing the temporary `maxRetainedStages:3` growth brake because **retained historical evidence is not active execution concurrency**. This bounded expansion of PR #3298 is explicitly reflected in its development-convergence manifest. It remains distinct from making the Software Factory/dispatcher RUNNING.
+
+- A fast, bounded read-only inventory accepts up to 4,096 valid immutable stage identifiers as *retained records*, without deleting, recycling, treating them as reclaimable, or counting them as active workers. The observed 70 are protected, not silently pruned. Malformed entries, symlinks or an incomplete inventory block admission.
+- An atomic owner-private lock allows only **one new candidate stage at a time**. A retained lock blocks work rather than being silently cleared. The actual lock path is the private autonomous-queue **parent** (`.candidate-stage-budget.lock`), not a child of `chat-candidate-stages`.
+- The existing read-only disk preflight moves inside that lock and checks the actual available bytes for the repository and staging root. The first conservative admission floor is 8 GiB free + 1 GiB growth margin = 9 GiB. This margin is provisional until the future Storage Steward learns from verified per-stage growth and owner process dependencies. It is not a claim of reserved bytes or post-stage headroom.
+- Authenticated `factory_status` reports `observedRetainedStages`, `retentionReferenceState:UNVERIFIED`, `maxConcurrentStaging:1` with `stagingAuthorized:false`, `diskCapacityVerified:false`, `cleanupAuthorized:false`. A READY inventory is *not* authorization, verified Git worktree ownership, a process liveness claim or a Product Gate.
+- Stage admission failures are sanitized into typed `BLOCK_RESOURCE_PRESSURE`, `STAGE_ADMISSION_BUSY`, `STAGE_ADMISSION_UNVERIFIED` and `STAGE_INVENTORY_UNVERIFIED` states. A failed or uncertain stage retains its evidence for review and cannot be automatically replayed.
+
+**Acceptance boundary:** synthetic tests prove 70 untouched directories do not veto *read-only admission policy* solely by count, and that low disk/lock races fail closed before Git fetch. Hosted native Windows CI is required on the exact PR head; independent acceptance on the owner's actual Windows installation remains separate. The owner’s previous `StageLockPresent: False` queried the wrong directory, so it cannot prove the real parent lock was absent. A pre-merge owner tunnel staging attempt returned the sanitized generic `CONTROL_OPERATION_BLOCKED`, not a verified new-worktree success or an identified failure reason.
+
+No files, artifacts, credentials, registered worktrees or application processes are deleted, overwritten, stopped or restarted by this change.

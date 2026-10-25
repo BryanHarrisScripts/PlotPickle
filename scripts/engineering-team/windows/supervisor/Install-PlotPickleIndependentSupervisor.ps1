@@ -44,6 +44,21 @@ $arguments = ('"{0}" --serve --consent {1}' -f $scriptPath, $requiredConsent)
 function Get-TaskByName([string]$name) {
     return @(Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue)
 }
+function Test-TaskPrincipalIsCurrentUser([string]$taskUserId) {
+    if ([string]::IsNullOrWhiteSpace($taskUserId)) { return $false }
+    # Task Scheduler may normalize DOMAIN\user to user. Compare SIDs when
+    # possible, then permit only the current identity's exact short name.
+    $current = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+    try {
+        $resolved = (New-Object System.Security.Principal.NTAccount($taskUserId)).Translate(
+            [System.Security.Principal.SecurityIdentifier])
+        if ($resolved.Value -eq $current.User.Value) { return $true }
+    } catch {
+        # A bare local username can fail NTAccount translation on some hosts.
+    }
+    $parts = $current.Name.Split('\')
+    return ($parts.Count -gt 1 -and $taskUserId -ieq $parts[$parts.Count - 1])
+}
 function Read-OwnedTask {
     $matching = @(Get-TaskByName $taskName)
     if ($matching.Count -eq 0) { return $null }
@@ -52,7 +67,7 @@ function Read-OwnedTask {
     $actions = @($task.Actions)
     if ($actions.Count -ne 1 -or
         $task.TaskPath -ne '\' -or
-        $task.Principal.UserId -ne $identity -or
+        -not (Test-TaskPrincipalIsCurrentUser ([string]$task.Principal.UserId)) -or
         $actions[0].Execute -ne $node -or
         $actions[0].Arguments -ne $arguments -or
         $actions[0].WorkingDirectory -ne $repo) {

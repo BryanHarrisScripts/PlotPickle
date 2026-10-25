@@ -285,3 +285,68 @@ test("#3142 native Windows PowerShell logon installer denies unauthorized instal
   assert.equal(result.automaticMergeEnabled, false);
   assert.equal(result.taskInstalled, false, "disposable Windows CI must not have installed a supervisor task");
 });
+
+test("#3142 malformed STOP marker blocks status, polling and startup rather than being ignored", () => sandbox(async root => {
+  await enable(root);
+  const opts = { appRoot: root, platform: "win32", consent: CONSENT, head, paired, now };
+  await writeFile(path.join(folder(root), "stop-request.json"), "{invalid JSON\n");
+  assert.equal((await supervisorStatus({ appRoot: root, now })).state, "STOP_REQUESTED");
+  let calls = 0;
+  const result = await supervisorCycle({ ...opts,
+    queue: async () => { calls++; return { eligible: 1 }; },
+    poll: async () => { calls++; return { state: "POLL_COMPLETE", processed: 1 }; },
+  });
+  assert.equal(result.state, "STOPPED");
+  assert.equal(result.reason, "LOCAL_KILL_SWITCH");
+  assert.equal(calls, 0);
+  await assert.rejects(pauseSupervisor(opts), /LOCAL_STOP_REQUIRES_OPERATOR_REENABLE/);
+  await assert.rejects(resumeSupervisor(opts), /LOCAL_STOP_REQUIRES_OPERATOR_REENABLE/);
+  await assert.rejects(serveSupervisor({ appRoot: root, platform: "win32",
+    consent: CONSENT, maxCycles: 1 }), /LOCAL_STOP_REQUIRES_OPERATOR_REENABLE/);
+}));
+
+test("#3142 STOP arriving during queue inspection prevents the next remote poll", () => sandbox(async root => {
+  await enable(root);
+  let polled = false;
+  const result = await supervisorCycle({ appRoot: root, platform: "win32", head, paired, now,
+    queue: async () => {
+      await writeFile(path.join(folder(root), "stop-request.json"), "{unreadable\n");
+      return { eligible: 1 };
+    },
+    poll: async () => { polled = true; return { state: "POLL_COMPLETE", processed: 1 }; },
+  });
+  assert.equal(result.state, "STOPPED");
+  assert.equal(result.remoteProcessed, 0);
+  assert.equal(polled, false);
+}));
+
+test("#3142 STOP during in-flight poll preserves observed work but never reports RUNNING", () => sandbox(async root => {
+  await enable(root);
+  const result = await supervisorCycle({ appRoot: root, platform: "win32", head, paired, now,
+    queue: async () => ({ eligible: 1 }),
+    poll: async () => {
+      await writeFile(path.join(folder(root), "stop-request.json"), "{unreadable\n");
+      return { state: "POLL_COMPLETE", processed: 1 };
+    },
+  });
+  assert.equal(result.state, "STOP_REQUESTED");
+  assert.equal(result.reason, "LOCAL_KILL_SWITCH");
+  assert.equal(result.remoteProcessed, 1, "already observed in-flight work is not erased");
+  assert.equal((await supervisorStatus({ appRoot: root, now })).state, "STOP_REQUESTED");
+}));
+
+test("#3142 supervisor exits promptly when STOP arrives between bounded cycles", () => sandbox(async root => {
+  await enable(root);
+  let cycles = 0;
+  const result = await serveSupervisor({ appRoot: root, platform: "win32",
+    consent: CONSENT, now, maxCycles: 2,
+    cycle: async () => {
+      cycles++;
+      await writeFile(path.join(folder(root), "stop-request.json"), "{invalid\n");
+      return { state: "RUNNING" };
+    },
+    delay: async () => { throw Error("STOP must not wait for another cycle"); },
+  });
+  assert.equal(result.state, "STOPPED");
+  assert.equal(cycles, 1);
+}));

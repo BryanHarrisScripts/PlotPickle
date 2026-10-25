@@ -4242,7 +4242,8 @@
           "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
           "tests/issue-3278-storage-mcp.test.mjs",
           "tests/issue-3303-headless-gateway-acceptance.test.mjs",
-          "tests/issue-3142-authorized-coding-once.test.mjs"
+          "tests/issue-3142-authorized-coding-once.test.mjs",
+          "tests/issue-3142-authorized-publish-once.test.mjs"
         ]
       },
       "cost": "fast",
@@ -11741,6 +11742,38 @@
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
             "digest": "2bed4b31a9e26f4871438f6505867168acea1ae1c0df4603cad58ce97c33563e"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/gateway-host.mjs",
+            "digest": "17755df74f92130264bfe8f81f0496262accd57bf2218753f98031aeb652d7f8"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-authorized-publish-once.test.mjs",
+        "targetDigest": "6a6ed0e091fc079bb06fc633855fe2715c0d692a2178fc75d04b1bf40b400dc5",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Mocked Git and PR transport only; verifies exact one-use publication grant, private prepared-commit and edit-grant binding, fixed draft PR, push/POST reservation, duplicate no-replay, uncertain external results and denial of unauthorized paths/parent/remote. Does not prove live GitHub credentials, actual remote branch/PR creation, native owner Windows publication, CI execution of model-generated code, independent product acceptance, background dispatch or merge.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/authorized-publish-once.mjs",
+            "digest": "b6de8052598640c1682f4f1dac04fe51152e6009fa1d78b1f491ea2a7656c398"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",

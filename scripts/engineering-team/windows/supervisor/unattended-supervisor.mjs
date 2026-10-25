@@ -60,7 +60,8 @@ function validEnabledAuthority(record) {
     record.kind === "independent-windows-supervisor" &&
     SHA.test(record.sourceHead || "") &&
     /^host-[a-f0-9]{32}$/.test(record.hostId || "") &&
-    /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/.test(record.authorizedActor || "") &&
+    typeof record.authorizedActor === "string" &&
+    record.authorizedActor.length > 0 && record.authorizedActor.length <= 80 &&
     Number.isSafeInteger(record.enabledAt) && record.enabledAt > 0 &&
     record.remoteControlScope === "paired-start-status-stop-only" &&
     record.modelDispatchAllowed === false &&
@@ -286,9 +287,10 @@ export async function supervisorStatus({ appRoot = appRootDefault(), now = Date.
   const enabled = await safeRead(p.enabled);
   if (!enabled && !await existsOrdinaryFile(p.enabled))
     return Object.freeze({ state: "OFF", reason: "NOT_ENABLED" });
+  // A durable local STOP wins even when the grant itself is unreadable.
+  if (await existsOrdinaryFile(p.stop)) return Object.freeze({ state: "STOP_REQUESTED", reason: "LOCAL_KILL_SWITCH" });
   if (!validEnabledAuthority(enabled))
     return Object.freeze({ state: "BLOCKED", reason: "SUPERVISOR_AUTHORITY_UNVERIFIABLE" });
-  if (await existsOrdinaryFile(p.stop)) return Object.freeze({ state: "STOP_REQUESTED", reason: "LOCAL_KILL_SWITCH" });
   const pause = await safeRead(p.pause);
   if (!pause && await existsOrdinaryFile(p.pause))
     return Object.freeze({ state: "BLOCKED", exactSha: enabled.sourceHead, reason: "PAUSE_REQUEST_UNVERIFIABLE" });
@@ -323,9 +325,9 @@ export async function supervisorCycle({
   const enabled = await safeRead(p.enabled);
   if (!enabled && !await existsOrdinaryFile(p.enabled))
     return Object.freeze({ state: "OFF", reason: "NOT_ENABLED" });
+  if (await existsOrdinaryFile(p.stop)) return Object.freeze({ state: "STOPPED", reason: "LOCAL_KILL_SWITCH" });
   if (!validEnabledAuthority(enabled))
     return Object.freeze({ state: "BLOCKED", reason: "SUPERVISOR_AUTHORITY_UNVERIFIABLE" });
-  if (await existsOrdinaryFile(p.stop)) return Object.freeze({ state: "STOPPED", reason: "LOCAL_KILL_SWITCH" });
   if ((await head()) !== enabled.sourceHead)
     return Object.freeze({ state: "BLOCKED", reason: "STALE_SOURCE_HEAD" });
   const info = await paired({ appRoot });

@@ -27,6 +27,7 @@ import { runFactoryDependencyPreflight, checkFactoryDependencyProof,
 import { inspectFactoryServiceLock } from "../queue/factory-service-lock.mjs";
 import { summarizeFactoryObserver } from "./factory-observer.mjs";
 import { supervisorStatus } from "../windows/supervisor/unattended-supervisor.mjs";
+import { assessCandidateStageCount } from "./storage/factory-stage-budget.mjs";
 import { allowedFactoryTestNames, readFactoryVerificationHead,
   runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr,
   inspectFactorySyncSource,syncFactoryMain,runFactoryStoryUat,
@@ -180,7 +181,25 @@ export function sanitizeSupervisorObservation(raw,now=Date.now()) {
   });
 }
 
-export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,verifyHead=readFactoryVerificationHead,readSupervisor=null}={}) {
+// Private stage capacity is advisory only. It does not certify disk space,
+// source checkout, the stage lock or permission to delete retained worktrees.
+export function sanitizeStageCapacityObservation(raw) {
+  const ready=raw?.state==="READY" && raw?.code==="STAGE_BUDGET_AVAILABLE" &&
+    raw?.maximumStages===3 && Number.isSafeInteger(raw?.observedStages) &&
+    raw.observedStages>=0 && raw.observedStages<3;
+  const full=raw?.state==="BLOCKED" && raw?.code==="STAGE_BUDGET_EXCEEDED" &&
+    raw?.maximumStages===3 && Number.isSafeInteger(raw?.observedStagesAtLeast) &&
+    raw.observedStagesAtLeast>=3;
+  return Object.freeze({
+    state:ready?"READY":full?"BLOCKED":"UNVERIFIED",
+    code:ready?"STAGE_BUDGET_AVAILABLE":full?"STAGE_BUDGET_EXCEEDED":"STAGE_BUDGET_UNVERIFIED",
+    observedStages:ready?raw.observedStages:null,
+    observedStagesAtLeast:full?3:null,
+    maximumStages:3,stagingAuthorized:false,cleanupAuthorized:false,
+  });
+}
+
+export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,verifyHead=readFactoryVerificationHead,readSupervisor=null,readStageBudget=null}={}) {
   let raw;
   try { raw=await readFactoryStatus({root,now}); }
   catch { return {state:"UNKNOWN",enabled:null,reason:"PRIVATE_STATE_UNREADABLE",
@@ -206,6 +225,11 @@ export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,veri
     let supervisor=null;
     try {supervisor=await readSupervisor();}catch {supervisor=null;}
     result.supervisor=sanitizeSupervisorObservation(supervisor,now());
+  }
+  if(typeof readStageBudget==="function") {
+    let stageBudget=null;
+    try {stageBudget=await readStageBudget();}catch {stageBudget=null;}
+    result.stageCapacity=sanitizeStageCapacityObservation(stageBudget);
   }
   // Fixed private filename only; never expose npm stderr, cache paths or raw proof payload.
   result.dependencyPreflight=sanitizeDependencyPreflight(
@@ -778,7 +802,8 @@ async function conversationSource(expectedHead) {
 export async function executeMcpRequest(request,{root=privateFactoryRoot(),github,
   now=Date.now,controlAuthenticated=false,controlOps,
   engineeringEnabled=false,gatewayRoot=privateGatewayRoot(),gatewaySource=conversationSource,
-  storageInspect=inspectFactoryStorage,supervisorRead=supervisorStatus}={}) {
+  storageInspect=inspectFactoryStorage,supervisorRead=supervisorStatus,
+  stageBudgetRead=assessCandidateStageCount}={}) {
   if(!request || request.jsonrpc!=="2.0" || typeof request.method!=="string")
     return {error:{code:-32600,message:"Invalid JSON-RPC request"}};
   switch(request.method) {
@@ -822,6 +847,8 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
       let value;
       if(name==="factory_status")value=await factoryStatus({
         root,now,readSupervisor:controlAuthenticated?supervisorRead:null,
+        readStageBudget:controlAuthenticated
+          ?()=>stageBudgetRead({base:path.join(root,"chat-candidate-stages")}):null,
       });
       else if(name==="factory_observer")value=await factoryObserver({root,now});
       else if(name==="factory_evidence"){

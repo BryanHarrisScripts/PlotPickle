@@ -6,7 +6,7 @@ import { mkdtemp, mkdir, readFile, writeFile, symlink, rm } from "node:fs/promis
 import os from "node:os";
 import path from "node:path";
 import {
-  privateFactoryRoot, sanitizeReceipt, sanitizeDependencyPreflight, sanitizeSupervisorObservation, factoryStatus, factoryEvidence,
+  privateFactoryRoot, sanitizeReceipt, sanitizeDependencyPreflight, sanitizeSupervisorObservation, factoryStatus, sanitizeStageCapacityObservation, factoryEvidence,
   factoryIssuePreview, factoryObserver, factoryHostHead, executeMcpRequest, handleRpc, MCP_TOOLS,
   createLocalMcpHttpServer, runStdio, controlTokenMatches,
   MCP_CONTROL_TOOLS, factoryControlReceipt,
@@ -220,6 +220,46 @@ test("#3142 authenticated Factory status observes canonical supervisor without s
   assert.equal(failed.result.structuredContent.supervisor.state,"UNVERIFIED");
   assert.equal(failed.result.structuredContent.supervisor.workerProcessVerified,false);
   assert.doesNotMatch(JSON.stringify(failed),/SECRET_SUPERVISOR/);
+}));
+
+test("#3142 authenticated Factory status reports stage count bounds without cleanup",()=>sandbox(async root=>{
+  await seed(root);
+  const request={jsonrpc:"2.0",id:43,method:"tools/call",
+    params:{name:"factory_status",arguments:{}}};
+  let reads=0;
+  const stageBudgetRead=async()=>{reads++;return {
+    state:"BLOCKED",code:"STAGE_BUDGET_EXCEEDED",
+    observedStagesAtLeast:3,maximumStages:3,privatePath:"SECRET_STAGE_PATH",
+  };};
+  const guest=await handleRpc(request,{root,now:()=>4000,
+    controlAuthenticated:false,stageBudgetRead});
+  assert.equal(reads,0);
+  assert.equal(Object.hasOwn(guest.result.structuredContent,"stageCapacity"),false);
+  const owner=await handleRpc(request,{root,now:()=>4000,
+    controlAuthenticated:true,stageBudgetRead});
+  assert.equal(reads,1);
+  assert.deepEqual(owner.result.structuredContent.stageCapacity,{
+    state:"BLOCKED",code:"STAGE_BUDGET_EXCEEDED",observedStages:null,
+    observedStagesAtLeast:3,maximumStages:3,
+    stagingAuthorized:false,cleanupAuthorized:false,
+  });
+  assert.doesNotMatch(JSON.stringify(owner),/SECRET_STAGE_PATH/);
+  const available=sanitizeStageCapacityObservation({
+    state:"READY",code:"STAGE_BUDGET_AVAILABLE",observedStages:2,maximumStages:3,
+  });
+  assert.equal(available.observedStages,2);
+  assert.equal(available.stagingAuthorized,false);
+  const malformed=sanitizeStageCapacityObservation({
+    state:"READY",code:"STAGE_BUDGET_AVAILABLE",observedStages:9999,maximumStages:3,
+    privatePath:"SECRET_STAGE_PATH",
+  });
+  assert.equal(malformed.state,"UNVERIFIED");
+  assert.equal(malformed.observedStages,null);
+  const thrown=await handleRpc(request,{root,now:()=>4000,
+    controlAuthenticated:true,
+    stageBudgetRead:async()=>{throw Error("SECRET_STAGE_PATH");}});
+  assert.equal(thrown.result.structuredContent.stageCapacity.code,"STAGE_BUDGET_UNVERIFIED");
+  assert.doesNotMatch(JSON.stringify(thrown),/SECRET_STAGE_PATH/);
 }));
 
 test("protocol initialization, tool schemas, denylist and malformed args fail closed",()=>sandbox(async root=>{

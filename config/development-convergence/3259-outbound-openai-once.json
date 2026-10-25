@@ -8,7 +8,8 @@
     "tests/issue-3259-outbound-openai-once.test.mjs",
     "config/verification/test-catalog.json",
     "docs/developer-briefs/3259-one-shot-outbound-ai-observe-transport.md",
-    "config/development-convergence/3259-outbound-openai-once.json"
+    "config/development-convergence/3259-outbound-openai-once.json",
+    ".github/workflows/architecture-shadow.yml"
   ],
   "acceptance": [
     {
@@ -56,6 +57,17 @@
           "type": "file-contains",
           "path": "tests/issue-3259-outbound-openai-once.test.mjs",
           "contains": "records one real gateway answer without source/merge authority"
+        }
+      ]
+    },
+    {
+      "id": "NATIVE-WINDOWS-EXACT-HEAD",
+      "criterion": "Existing native Windows conversation lane runs the new fixture with its canonical P1/P2 tests on checked-out PR head.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "tests/issue-3259-outbound-openai-once.test.mjs"
         }
       ]
     }

@@ -5,10 +5,11 @@
  * signed owner-Windows result. No model, shell, Pi, PR mutation or merge.
  */
 import { createHash, verify as verifySignature } from 'node:crypto';
-import { lstat, mkdir, open, readFile } from 'node:fs/promises';
+import { lstat, mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { privateGatewayRoot } from '../gateway-host.mjs';
+import { appendPrivateJsonOnce as writeOnce } from '../receipts/write-once-json.mjs';
 
 const REPO = 'BryanHarrisScripts/PlotPickle';
 const API = 'https://api.github.com/repos/' + REPO;
@@ -35,17 +36,6 @@ async function dir(root, sub) {
   if (!s.isDirectory() || s.isSymbolicLink()) throw Error('STORAGE_UNVERIFIABLE');
   return name;
 }
-async function writeOnce(p, data) {
-  let f;
-  try {
-    f = await open(p, 'wx', 0o600);
-    await f.writeFile(JSON.stringify(data) + '\n');
-    await f.sync();
-    return true;
-  } catch { return false; }
-  finally { await f?.close().catch(() => {}); }
-}
-
 /** Validate correlations among five OWNER-PRIVATE documents, not issue prose. */
 export function engineeringReceiptFor({ requestId, grant, edit, publicationGrant,
   reservation, published, at } = {}) {
@@ -159,10 +149,10 @@ export function verifyOwnerWitness(w, engineering, publicKey, at) {
       !Number.isSafeInteger(w.observedAt) || !Number.isSafeInteger(at) ||
       w.observedAt > at + 60_000 || at - w.observedAt > 7 * 86_400_000)
     return false;
-  try {
-    return verifySignature(null, Buffer.from(ownerWitnessPayload(w)),
-      publicKey, Buffer.from(w.signature, 'base64'));
-  } catch { return false; }
+  // A malformed independent verifier key is a proof-system fault, not a
+  // routine negative signature. The caller records the typed blocked outcome.
+  return verifySignature(null, Buffer.from(ownerWitnessPayload(w)),
+    publicKey, Buffer.from(w.signature, 'base64'));
 }
 
 async function boundedResponse(response) {
@@ -295,10 +285,17 @@ export async function issueVerifierReceiptOnce({
     })) return block('VERIFIER_ATTEMPT_ALREADY_RESERVED');
   } catch { return block('VERIFIER_STORAGE_UNVERIFIABLE'); }
   const github = await collectGitHubChecks(engineering, { token, fetchImpl });
-  const ownerProven = verifyOwnerWitness(witness, engineering, witnessPublicKey, now());
+  let ownerProven = false, ownerProofFault = false;
+  try {
+    ownerProven = verifyOwnerWitness(witness, engineering, witnessPublicKey, now());
+  } catch (error) {
+    if (!(error instanceof Error)) throw error;
+    ownerProofFault = true;
+  }
   const state = github.state === 'PASS' && ownerProven ? 'INDEPENDENTLY_VERIFIED' :
     github.state === 'PASS' ? 'BLOCKED' : github.state;
   const code = github.state !== 'PASS' ? github.code :
+    ownerProofFault ? 'OWNER_WINDOWS_SIGNATURE_UNVERIFIABLE' :
     ownerProven ? 'TWO_RECEIPTS_EXACT_HEAD_VERIFIED' : 'OWNER_WINDOWS_EVIDENCE_MISSING_OR_INVALID';
   const result = Object.freeze({
     schemaVersion: 1, kind: 'independent-verifier',

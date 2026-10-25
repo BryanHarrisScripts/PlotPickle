@@ -199,7 +199,21 @@ export function sanitizeStageCapacityObservation(raw) {
   });
 }
 
-export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,verifyHead=readFactoryVerificationHead,readSupervisor=null,readStageBudget=null}={}) {
+// Only inspect the fixed private lock. Its presence is not process ownership.
+export async function observeCandidateStageLock({root=privateFactoryRoot(),inspect=lstat}={}) {
+  try {
+    const entry=await inspect(path.join(root,".candidate-stage-budget.lock"));
+    return {state:entry?.isDirectory()===true && !entry?.isSymbolicLink()?"HELD":"UNVERIFIED"};
+  } catch (error) {
+    return {state:error?.code==="ENOENT"?"ABSENT":"UNVERIFIED"};
+  }
+}
+export function sanitizeStageLockObservation(raw) {
+  return Object.freeze({state:["HELD","ABSENT"].includes(raw?.state)?raw.state:"UNVERIFIED",
+    stagingAuthorized:false,cleanupAuthorized:false,processOwnershipVerified:false});
+}
+
+export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,verifyHead=readFactoryVerificationHead,readSupervisor=null,readStageBudget=null,readStageLock=null}={}) {
   let raw;
   try { raw=await readFactoryStatus({root,now}); }
   catch { return {state:"UNKNOWN",enabled:null,reason:"PRIVATE_STATE_UNREADABLE",
@@ -230,6 +244,11 @@ export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,veri
     let stageBudget=null;
     try {stageBudget=await readStageBudget();}catch {stageBudget=null;}
     result.stageCapacity=sanitizeStageCapacityObservation(stageBudget);
+  }
+  if(typeof readStageLock==="function") {
+    let observed=null;
+    try {observed=await readStageLock();}catch {observed=null;}
+    result.stageLock=sanitizeStageLockObservation(observed);
   }
   // Fixed private filename only; never expose npm stderr, cache paths or raw proof payload.
   result.dependencyPreflight=sanitizeDependencyPreflight(
@@ -803,7 +822,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
   now=Date.now,controlAuthenticated=false,controlOps,
   engineeringEnabled=false,gatewayRoot=privateGatewayRoot(),gatewaySource=conversationSource,
   storageInspect=inspectFactoryStorage,supervisorRead=supervisorStatus,
-  stageBudgetRead=assessCandidateStageCount}={}) {
+  stageBudgetRead=assessCandidateStageCount,stageLockRead=observeCandidateStageLock}={}) {
   if(!request || request.jsonrpc!=="2.0" || typeof request.method!=="string")
     return {error:{code:-32600,message:"Invalid JSON-RPC request"}};
   switch(request.method) {
@@ -849,6 +868,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
         root,now,readSupervisor:controlAuthenticated?supervisorRead:null,
         readStageBudget:controlAuthenticated
           ?()=>stageBudgetRead({base:path.join(root,"chat-candidate-stages")}):null,
+        readStageLock:controlAuthenticated?()=>stageLockRead({root}):null,
       });
       else if(name==="factory_observer")value=await factoryObserver({root,now});
       else if(name==="factory_evidence"){

@@ -9966,14 +9966,14 @@
       },
       {
         "target": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
-        "targetDigest": "e2301acfe3e825f6aaf5c556b96e0b8ec15c56a5479b3155d2eff0999e5d1596",
+        "targetDigest": "8fbfde7dc1b91f070a6eac3b68e8d533ede26ed80577dedb2780260553ef6f87",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "899d9b7556b77832e2f4a330d3f18c6a4aaf15fbbca56b2630cae8f15450ae1f"
+            "digest": "412088470a65d0d75dc689ce712aff3247399dfb7d1a4ccda725eb6ac3e1f199"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -9982,6 +9982,10 @@
           {
             "path": "scripts/engineering-team/queue/factory-service-lock.mjs",
             "digest": "3b6720b35cbc1a854b056a91e63704578d085a244a0897e0426852d81b5a1bb1"
+          },
+          {
+            "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
+            "digest": "681dba56405951e7fa15df41fda4dce6b9e4c09f67396d4aeca5043fac607862"
           }
         ],
         "truthRefs": [
@@ -9998,7 +10002,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic private Factory receipts, deterministic observer snapshot, and local MCP HTTP/stdio protocol tests only. Symlink evidence rejection is checked when fixture creation is permitted; restricted Windows accounts cannot exercise that negative control. No native Windows task/process ownership, scheduled ChatGPT MCP access, source edit, Product UAT, or autonomous merge proof."
+        "limits": "Synthetic private Factory receipts, deterministic observer and MCP HTTP/stdio tests; additionally verifies authenticated-only sanitized read-only canonical supervisor snapshot, forged/stale heartbeat and thrown-read denial. Symlink fixture is conditional on Windows privileges. No independent owner Windows task/PID/descendant ownership, authenticated Start, scheduled ChatGPT dispatch, source edit, Product UAT, replay or autonomous merge proof."
       },
       {
         "target": "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs",
@@ -10017,7 +10021,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "899d9b7556b77832e2f4a330d3f18c6a4aaf15fbbca56b2630cae8f15450ae1f"
+            "digest": "412088470a65d0d75dc689ce712aff3247399dfb7d1a4ccda725eb6ac3e1f199"
           }
         ],
         "truthRefs": [
@@ -10045,7 +10049,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "3d603e3cc97cac74236d71ae39e87226abf5cbbe465e7ac13e38f8fd5c60b9af"
+            "digest": "d05d01028d0473765bb7f20f60d306f73f74832c552cddfb696d91b853130054"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-story-evidence-verifier.mjs",
@@ -10053,7 +10057,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "899d9b7556b77832e2f4a330d3f18c6a4aaf15fbbca56b2630cae8f15450ae1f"
+            "digest": "412088470a65d0d75dc689ce712aff3247399dfb7d1a4ccda725eb6ac3e1f199"
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
@@ -10296,11 +10300,11 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "899d9b7556b77832e2f4a330d3f18c6a4aaf15fbbca56b2630cae8f15450ae1f"
+            "digest": "412088470a65d0d75dc689ce712aff3247399dfb7d1a4ccda725eb6ac3e1f199"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "3d603e3cc97cac74236d71ae39e87226abf5cbbe465e7ac13e38f8fd5c60b9af"
+            "digest": "d05d01028d0473765bb7f20f60d306f73f74832c552cddfb696d91b853130054"
           },
           {
             "path": "scripts/full-verification-process.mjs",
@@ -10340,11 +10344,11 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "3d603e3cc97cac74236d71ae39e87226abf5cbbe465e7ac13e38f8fd5c60b9af"
+            "digest": "d05d01028d0473765bb7f20f60d306f73f74832c552cddfb696d91b853130054"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "899d9b7556b77832e2f4a330d3f18c6a4aaf15fbbca56b2630cae8f15450ae1f"
+            "digest": "412088470a65d0d75dc689ce712aff3247399dfb7d1a4ccda725eb6ac3e1f199"
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
@@ -10392,7 +10396,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "899d9b7556b77832e2f4a330d3f18c6a4aaf15fbbca56b2630cae8f15450ae1f"
+            "digest": "412088470a65d0d75dc689ce712aff3247399dfb7d1a4ccda725eb6ac3e1f199"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
@@ -10616,7 +10620,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "899d9b7556b77832e2f4a330d3f18c6a4aaf15fbbca56b2630cae8f15450ae1f"
+            "digest": "412088470a65d0d75dc689ce712aff3247399dfb7d1a4ccda725eb6ac3e1f199"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -11167,7 +11171,7 @@
       },
       {
         "target": "tests/issue-3241-disk-space-preflight.test.mjs",
-        "targetDigest": "97ea2d383ec6bd886a54f991e72b0e985d8ad721ee31007b29779b3c96795ff8",
+        "targetDigest": "3530ebd241f565649cd3100e91c84d089398d96beac71c853416db8e825db75d",
         "catalogueIds": [
           "agent.factory-storage-headroom-3241"
         ],
@@ -11197,7 +11201,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "3d603e3cc97cac74236d71ae39e87226abf5cbbe465e7ac13e38f8fd5c60b9af"
+            "digest": "d05d01028d0473765bb7f20f60d306f73f74832c552cddfb696d91b853130054"
           }
         ]
       },
@@ -11414,7 +11418,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "899d9b7556b77832e2f4a330d3f18c6a4aaf15fbbca56b2630cae8f15450ae1f"
+            "digest": "412088470a65d0d75dc689ce712aff3247399dfb7d1a4ccda725eb6ac3e1f199"
           }
         ]
       },
@@ -11446,7 +11450,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "899d9b7556b77832e2f4a330d3f18c6a4aaf15fbbca56b2630cae8f15450ae1f"
+            "digest": "412088470a65d0d75dc689ce712aff3247399dfb7d1a4ccda725eb6ac3e1f199"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/Upgrade-PlotPickleTunnelCatalog.ps1",
@@ -11498,7 +11502,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "899d9b7556b77832e2f4a330d3f18c6a4aaf15fbbca56b2630cae8f15450ae1f"
+            "digest": "412088470a65d0d75dc689ce712aff3247399dfb7d1a4ccda725eb6ac3e1f199"
           }
         ]
       },
@@ -11532,7 +11536,7 @@
       },
       {
         "target": "tests/issue-3241-stage-growth-budget.test.mjs",
-        "targetDigest": "e2952483b1bce47662723b14e0350b9e236e4b5c60b0bfe9bde300b43cca2462",
+        "targetDigest": "1e20474a565983e525122761b06a01f0cf3356c2668decce7d87c360d0976a36",
         "catalogueIds": [
           "agent.factory-storage-headroom-3241"
         ],
@@ -11550,15 +11554,15 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic staging lock and count ceiling, no deletion, pathless typed result, 8GiB preflight and fail-closed races. This is NOT independently verified user Windows reclaim, physical allocation, runtime retention or product UI acceptance.",
+        "limits": "Synthetic resource-aware stage admission preserving 70 retained worktrees, one active stage via atomic lock, real free-space preflight plus conservative 1GiB growth margin, bounded inventory and preservation of unknown refs. No deletion, owner-Windows installed Product Gate, real reclaimable-byte measurement or live running process proof.",
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/storage/factory-stage-budget.mjs",
-            "digest": "992c4080e3325115edfe1533d4b343accbde53e6ef5bb85625b6cb130596e13b"
+            "digest": "accb3c96c6f1970324fc0fcd94470b9ff340470abdc4ecbce096954bf0f40c36"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
-            "digest": "3d603e3cc97cac74236d71ae39e87226abf5cbbe465e7ac13e38f8fd5c60b9af"
+            "digest": "d05d01028d0473765bb7f20f60d306f73f74832c552cddfb696d91b853130054"
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
@@ -11653,7 +11657,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "899d9b7556b77832e2f4a330d3f18c6a4aaf15fbbca56b2630cae8f15450ae1f"
+            "digest": "412088470a65d0d75dc689ce712aff3247399dfb7d1a4ccda725eb6ac3e1f199"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",

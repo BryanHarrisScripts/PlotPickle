@@ -108,16 +108,16 @@ test("#3241 candidate staging rejects low/unverified disk without fetching candi
       run:async()=>{git++;throw Error("Forbidden Git when no headroom");},
     };
     const r=await stageFactoryCandidatePr({...args,diskPreflight:async input=>{
-      assert.equal(input.requiredBytes,FACTORY_DISK_MIN_FREE_BYTES.candidateStage);
+      assert.equal(input.requiredBytes,FACTORY_DISK_MIN_FREE_BYTES.candidateStage+1024**3);
       return low();
     }});
-    assert.equal(r.code,"DISK_SPACE_INSUFFICIENT");
+    assert.equal(r.code,"BLOCK_RESOURCE_PRESSURE");
     assert.equal(r.state,"BLOCKED");
     assert.equal(r.issueReserved,false);
     assert.equal(git,0);
     const unknown=await stageFactoryCandidatePr({...args,
       requestId:"d".repeat(32),diskPreflight:async()=>{throw Error("PRIVATE_KEY");}});
-    assert.equal(unknown.code,"DISK_SPACE_UNVERIFIED");
+    assert.equal(unknown.code,"STAGE_ADMISSION_UNVERIFIED");
     assert.equal(git,0);
     assert.equal(JSON.stringify([r,unknown]).includes("PRIVATE_KEY"),false);
   }));

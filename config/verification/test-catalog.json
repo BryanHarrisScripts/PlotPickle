@@ -7205,7 +7205,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "30983fb79c8004f78677009c9a1614d3939a27abe1c627bbef78ae65ab4b1dc5"
+            "digest": "fb759c0a3bc5030cade2be5a97c8b1368f6c0888acaf63905e770b9777ff28ff"
           }
         ]
       },
@@ -8039,7 +8039,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "30983fb79c8004f78677009c9a1614d3939a27abe1c627bbef78ae65ab4b1dc5"
+            "digest": "fb759c0a3bc5030cade2be5a97c8b1368f6c0888acaf63905e770b9777ff28ff"
           }
         ]
       },
@@ -10359,7 +10359,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "30983fb79c8004f78677009c9a1614d3939a27abe1c627bbef78ae65ab4b1dc5"
+            "digest": "fb759c0a3bc5030cade2be5a97c8b1368f6c0888acaf63905e770b9777ff28ff"
           }
         ],
         "truthRefs": [
@@ -10399,7 +10399,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "30983fb79c8004f78677009c9a1614d3939a27abe1c627bbef78ae65ab4b1dc5"
+            "digest": "fb759c0a3bc5030cade2be5a97c8b1368f6c0888acaf63905e770b9777ff28ff"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -11743,7 +11743,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "81f020fca1349acea990a307a72fb38e5795928e5609043441b683ffb21bead2"
+            "digest": "c363d721cf2126608dc5bfa87400f8ab4d3d0b5f2093f60cbad7d42d4264a4e0"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -11785,7 +11785,7 @@
       },
       {
         "target": "tests/issue-3142-authorized-pr-publish-once.test.mjs",
-        "targetDigest": "c10d1bdcd5ac422c561677e037bf5ca85287854c32c2177bac4dbc05ed51e707",
+        "targetDigest": "5b98143cfb5d0acff0a082041f9b4789e2c537c79c2731093a20eeff3ce7109b",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11811,7 +11811,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "81f020fca1349acea990a307a72fb38e5795928e5609043441b683ffb21bead2"
+            "digest": "c363d721cf2126608dc5bfa87400f8ab4d3d0b5f2093f60cbad7d42d4264a4e0"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",

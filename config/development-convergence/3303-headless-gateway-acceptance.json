@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "issue": 3303,
+  "phase": "fixed-headless-gateway-acceptance-on-staged-windows-pr",
+  "brief": "docs/developer-briefs/3303-headless-windows-gateway-acceptance.md",
+  "allowedChanges": [
+    "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+    "tests/issue-3303-headless-gateway-acceptance.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3303-headless-windows-gateway-acceptance.md",
+    "config/development-convergence/3303-headless-gateway-acceptance.json"
+  ],
+  "acceptance": [
+    {
+      "id": "AUTHENTICATED-FIXED-SUITE",
+      "criterion": "Reuse the authenticated fixed named test with six source-bound fields, no arbitrary command.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+          "contains": "factory-gateway-acceptance"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3303-headless-gateway-acceptance.test.mjs",
+          "contains": "requires authentication and six exact identity fields"
+        }
+      ]
+    },
+    {
+      "id": "ISOLATED-STAGED-EXECUTION",
+      "criterion": "Invoke the existing engineering runner with the exact staged candidate and a single fixed no-network gateway fixture.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+          "contains": "tests/issue-3259-outbound-openai-once.test.mjs"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3303-headless-gateway-acceptance.test.mjs",
+          "contains": "uses existing isolated engineering runner"
+        }
+      ]
+    },
+    {
+      "id": "RECEIPT-TRUTH",
+      "criterion": "Persist the exact candidate identity, test exit and output digest; never claim independent product acceptance from a fixture.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3303-headless-gateway-acceptance.test.mjs",
+          "contains": "write-once receipt"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3303-headless-windows-gateway-acceptance.md",
+          "contains": "independentVerification=false"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "No app STOP, new generic command endpoint, model invocation, paid API call, automatic merge, replay of old Pi reservations or source mutation.",
+    "The native owner Windows runner and independent product gate remain unproven until a fresh authenticated runtime executes this exact staged candidate suite."
+  ]
+}

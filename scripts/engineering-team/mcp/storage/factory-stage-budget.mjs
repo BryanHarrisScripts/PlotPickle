@@ -1,104 +1,131 @@
 /**
- * #3241: fail-closed cap for opt-in developer Factory PR staging.
+ * #3241: owner-Windows resource-aware, non-destructive candidate admission.
  *
- * This is a growth brake, NOT cleanup, byte accounting, or runtime retention.
- * A private atomic directory excludes concurrent stages until the Git worktree
- * operation settles. Stale locks block new work and require owner inspection.
- * No arbitrary paths are accepted by MCP: the caller supplies the fixed,
- * server-selected private Factory root.
+ * Retained historical Git worktrees are evidence, NOT concurrent workers.
+ * Count inventory to expose pressure, but NEVER delete/recycle a stage or
+ * block solely because there are >3 retained worktrees. A single atomic
+ * owner-private lock serializes candidate admission; a separate fixed-disk
+ * preflight verifies available capacity before the Git operation begins.
+ * A crash-retained lock remains a STOP until independently investigated.
  */
 import { mkdir, opendir, rmdir, lstat } from "node:fs/promises";
 import path from "node:path";
 
 export const FACTORY_STAGING_POLICY = Object.freeze({
-  maxRetainedStages: 3,
+  maxConcurrentStaging: 1,
+  maxInventoryEntries: 4096,
   minFreeBytes: 8 * 1024 ** 3,
+  admissionReserveBytes: 1 * 1024 ** 3,
 });
 const STAGE_ID = /^[a-f0-9]{32}$/u;
-const blocked = (code,extra={}) => Object.freeze({
-  state:"BLOCKED",code,...extra,cleanupAuthorized:false,
-  issueReserved:false,
+const blocked = (code, extra = {}) => Object.freeze({
+  state: "BLOCKED", code, ...extra, cleanupAuthorized: false,
+  issueReserved: false,
 });
-const validBase = ({root,base}) =>
-  typeof root==="string" && path.isAbsolute(root) &&
-  typeof base==="string" && path.isAbsolute(base) &&
-  path.resolve(base)===path.resolve(root,"chat-candidate-stages");
+const validBase = ({ root, base }) =>
+  typeof root === "string" && path.isAbsolute(root) &&
+  typeof base === "string" && path.isAbsolute(base) &&
+  path.resolve(base) === path.resolve(root, "chat-candidate-stages");
 
-/** Fast bounded count, never opens any candidate contents. */
+/**
+ * Bounded metadata inventory only. Existing stages remain untouched regardless
+ * of how many are retained. An unexpected file, junction/symlink, inventory
+ * overflow or incomplete enumeration is unknown ownership and fails closed.
+ * The count is descriptive, NOT a retention quota.
+ */
 export async function assessCandidateStageCount({
-  base, list=opendir, maxRetainedStages=FACTORY_STAGING_POLICY.maxRetainedStages,
-}={}) {
-  if(typeof base!=="string" || !path.isAbsolute(base) ||
-     maxRetainedStages!==FACTORY_STAGING_POLICY.maxRetainedStages)
-    return blocked("STAGE_BUDGET_UNVERIFIED");
-  let count=0;
+  base, list = opendir,
+  maxInventoryEntries = FACTORY_STAGING_POLICY.maxInventoryEntries,
+} = {}) {
+  if (typeof base !== "string" || !path.isAbsolute(base) ||
+      maxInventoryEntries !== FACTORY_STAGING_POLICY.maxInventoryEntries)
+    return blocked("STAGE_INVENTORY_UNVERIFIED");
+  let count = 0;
   try {
-    const handle=await list(base);
+    const handle = await list(base);
     try {
       for await (const entry of handle) {
-        if(!entry.isDirectory() || entry.isSymbolicLink() ||
-           !STAGE_ID.test(entry.name))
-          return blocked("STAGE_BUDGET_UNVERIFIED");
+        if (!entry.isDirectory() || entry.isSymbolicLink() ||
+            !STAGE_ID.test(entry.name))
+          return blocked("STAGE_INVENTORY_UNVERIFIED");
         count++;
-        if(count>=maxRetainedStages)
-          return blocked("STAGE_BUDGET_EXCEEDED",{
-            observedStagesAtLeast:count,
-            maximumStages:maxRetainedStages,
+        if (count > maxInventoryEntries)
+          return blocked("STAGE_INVENTORY_BUDGET_EXCEEDED", {
+            observedStagesAtLeast: count,
           });
       }
     } finally {
-      try { await handle.close(); } catch(error) {
-        if(error?.code!=="ERR_DIR_CLOSED") throw error;
+      try { await handle.close(); } catch (error) {
+        if (error?.code !== "ERR_DIR_CLOSED") throw error;
       }
     }
-    return Object.freeze({state:"READY",code:"STAGE_BUDGET_AVAILABLE",
-      observedStages:count,maximumStages:maxRetainedStages,
-      cleanupAuthorized:false});
-  } catch {
-    return blocked("STAGE_BUDGET_UNVERIFIED");
-  }
+    return Object.freeze({
+      state: "READY", code: "RETAINED_STAGES_PRESERVED",
+      observedRetainedStages: count, retentionReferenceState: "UNVERIFIED",
+      maxConcurrentStaging: FACTORY_STAGING_POLICY.maxConcurrentStaging,
+      cleanupAuthorized: false, issueReserved: false,
+    });
+  } catch { return blocked("STAGE_INVENTORY_UNVERIFIED"); }
 }
 
 /**
- * Serializes budget check + stage creation, preserving a failed lock as
- * fail-closed when the process dies. Only removes our empty owned lock.
- * The onStage callback cannot be reached when the root or count is uncertain.
+ * The atomic lock means at most one new stage at a time. Do not infer that
+ * older registered worktrees consume an active worker slot. An actual disk
+ * preflight supplied by the caller runs WHILE the lock is held to avoid
+ * admitting simultaneous candidates from this MCP route on stale headroom.
+ * No stage callback can execute if admission evidence is incomplete.
  */
 export async function withCandidateStageBudget({
-  root,base, makeLock=mkdir, releaseLock=rmdir, stat=lstat,
-  assess=assessCandidateStageCount, onStage,
-}={}) {
-  if(!validBase({root,base}) || typeof onStage!=="function")
-    return blocked("STAGE_BUDGET_UNVERIFIED");
-  const lock=path.join(root,".candidate-stage-budget.lock");
-  let acquired=false, outcome;
+  root, base, makeLock = mkdir, releaseLock = rmdir, stat = lstat,
+  assess = assessCandidateStageCount, checkCapacity, onStage,
+} = {}) {
+  if (!validBase({ root, base }) || typeof checkCapacity !== "function" ||
+      typeof onStage !== "function")
+    return blocked("STAGE_ADMISSION_UNVERIFIED");
+  const lock = path.join(root, ".candidate-stage-budget.lock");
+  let acquired = false, outcome;
   try {
-    const rootStat=await stat(root);
-    const baseStat=await stat(base);
-    if(!rootStat.isDirectory() || rootStat.isSymbolicLink() ||
-       !baseStat.isDirectory() || baseStat.isSymbolicLink())
-      return blocked("STAGE_BUDGET_UNVERIFIED");
+    const rootStat = await stat(root);
+    const baseStat = await stat(base);
+    if (!rootStat.isDirectory() || rootStat.isSymbolicLink() ||
+        !baseStat.isDirectory() || baseStat.isSymbolicLink())
+      return blocked("STAGE_ADMISSION_UNVERIFIED");
     try {
-      await makeLock(lock); // atomic exclusive mkdir; never recursive
-      acquired=true;
-    } catch(error) {
-      return blocked(error?.code==="EEXIST"?"STAGE_BUDGET_BUSY":"STAGE_BUDGET_UNVERIFIED");
+      await makeLock(lock);
+      acquired = true;
+    } catch (error) {
+      return blocked(error?.code === "EEXIST"
+        ? "STAGE_ADMISSION_BUSY" : "STAGE_ADMISSION_UNVERIFIED");
     }
-    const proof=await assess({base});
-    if(proof?.state!=="READY" || proof.code!=="STAGE_BUDGET_AVAILABLE")
-      outcome=blocked(
-        ["STAGE_BUDGET_EXCEEDED","STAGE_BUDGET_UNVERIFIED"].includes(proof?.code)
-          ? proof.code : "STAGE_BUDGET_UNVERIFIED",
-        proof?.code==="STAGE_BUDGET_EXCEEDED"
-          ? {maximumStages:FACTORY_STAGING_POLICY.maxRetainedStages}: {},
+    const inventory = await assess({ base });
+    if (inventory?.state !== "READY" ||
+        inventory.code !== "RETAINED_STAGES_PRESERVED") {
+      outcome = blocked(
+        ["STAGE_INVENTORY_UNVERIFIED", "STAGE_INVENTORY_BUDGET_EXCEEDED"]
+          .includes(inventory?.code) ? inventory.code : "STAGE_INVENTORY_UNVERIFIED",
       );
-    else outcome=await onStage();
+    } else {
+      const capacity = await checkCapacity();
+      if (capacity?.state !== "READY" ||
+          capacity.code !== "DISK_SPACE_SUFFICIENT" ||
+          !Number.isSafeInteger(capacity.freeBytes) ||
+          capacity.freeBytes < FACTORY_STAGING_POLICY.minFreeBytes +
+            FACTORY_STAGING_POLICY.admissionReserveBytes) {
+        outcome = blocked(capacity?.code === "DISK_SPACE_INSUFFICIENT" ||
+          capacity?.freeBytes < FACTORY_STAGING_POLICY.minFreeBytes +
+            FACTORY_STAGING_POLICY.admissionReserveBytes
+          ? "BLOCK_RESOURCE_PRESSURE" : "STAGE_ADMISSION_UNVERIFIED");
+      } else {
+        outcome = await onStage();
+      }
+    }
   } catch {
-    outcome=blocked("STAGE_BUDGET_UNVERIFIED");
+    outcome = blocked("STAGE_ADMISSION_UNVERIFIED");
   }
-  if(acquired) {
-    try { await releaseLock(lock); }
-    catch {return blocked("STAGE_BUDGET_LOCK_RELEASE_FAILED");}
+  if (acquired) {
+    try { await releaseLock(lock); } catch {
+      return blocked("STAGE_ADMISSION_LOCK_RELEASE_FAILED");
+    }
   }
   return outcome;
 }

@@ -558,13 +558,29 @@ export async function factoryControlAction(name,args,{
               stageReceipt:await factoryControlReceipt({root,requestId:args.stageRequestId}),
               verifyHead:ops.testHead})
             :args.suite==="factory-gateway-acceptance"
-            ?await ops.engineering({selection:{requestId:args.requestId,
-              expectedHead:args.expectedHead,stageRequestId:args.sourceRequestId,
-              candidatePrNumber:args.candidatePrNumber,candidateHead:args.candidateHead,
-              mode:"node-test",target:"tests/issue-3259-outbound-openai-once.test.mjs",
-              scriptArgs:[]},root,repoRoot:ENGINEERING_REPO_ROOT,
-              stageReceipt:await factoryControlReceipt({root,requestId:args.sourceRequestId}),
-              verifyHead:ops.testHead})
+            ?await (async()=>{
+              // Candidate test source is untrusted until its approved-truth
+              // bindings are admitted against the already trusted MAIN base.
+              // Both steps use the existing isolated no-shell engineering runner.
+              const stageReceipt=await factoryControlReceipt({
+                root,requestId:args.sourceRequestId,
+              });
+              const base={requestId:args.requestId,expectedHead:args.expectedHead,
+                stageRequestId:args.sourceRequestId,
+                candidatePrNumber:args.candidatePrNumber,candidateHead:args.candidateHead};
+              const options={root,repoRoot:ENGINEERING_REPO_ROOT,
+                stageReceipt,verifyHead:ops.testHead};
+              const admission=await ops.engineering({...options,selection:{
+                ...base,mode:"node-script",target:"scripts/verification-test-truth.mjs",
+                scriptArgs:["--base-ref","origin/main"],
+              }});
+              if(admission?.state!=="TEST_PASSED"||
+                  admission?.code!=="ENGINEERING_TASK_PASSED")return admission;
+              return await ops.engineering({...options,selection:{
+                ...base,mode:"node-test",
+                target:"tests/issue-3259-outbound-openai-once.test.mjs",scriptArgs:[],
+              }});
+            })()
             :args.suite==="factory-pr-head"
             ?await ops.inspectPr({prNumber:args.candidatePrNumber,
               candidateHead:args.candidateHead,expectedHead:args.expectedHead,

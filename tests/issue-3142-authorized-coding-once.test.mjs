@@ -120,6 +120,40 @@ test('invalid grant or missing credential has no staging side effects', () =>
     assert.equal(writes, 0);
   }));
 
+test('retained coding worktrees exhaust the three-slot budget without consuming a grant', () =>
+  work(async ({ repoRoot, privateRoot }) => {
+    const stages = path.join(privateRoot, 'coding-worktrees');
+    await mkdir(stages, { recursive: true });
+    for (const id of ['3', '4', '5']) await mkdir(path.join(stages, id.repeat(32)));
+    const at = Date.now();
+    let calls = 0;
+    const result = await runAuthorizedCodingOnce({ repoRoot, privateRoot, source,
+      grant: makeGrant(at), credential: 'fake-test-key-not-real-123456', now: () => at,
+      runGit: async () => { calls++; throw Error('must not run'); },
+      requestEdit: async () => { calls++; throw Error('must not call model'); } });
+    assert.equal(result.code, 'CODING_STAGE_BUDGET_EXCEEDED');
+    assert.equal(calls, 0);
+    await assert.rejects(readFile(path.join(privateRoot, 'coding-attempts',
+      '1'.repeat(32) + '.reserved.json'), 'utf8'));
+  }));
+
+test('orphaned budget lock fails closed without model invocation or replay', () =>
+  work(async ({ repoRoot, privateRoot }) => {
+    const receipts = path.join(privateRoot, 'coding-attempts');
+    await mkdir(receipts, { recursive: true });
+    await writeFile(path.join(receipts, '.coding-stage-budget.lock'), 'orphaned');
+    const at = Date.now();
+    let calls = 0;
+    const result = await runAuthorizedCodingOnce({ repoRoot, privateRoot, source,
+      grant: makeGrant(at), credential: 'fake-test-key-not-real-123456', now: () => at,
+      runGit: async () => { calls++; throw Error('must not run'); },
+      requestEdit: async () => { calls++; throw Error('must not call model'); } });
+    assert.equal(result.code, 'CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
+    assert.equal(calls, 0);
+    assert.equal(await readFile(path.join(receipts, '.coding-stage-budget.lock'), 'utf8'),
+      'orphaned');
+  }));
+
 test('native Git creates a real isolated commit without modifying clean main', () =>
   work(async ({ repoRoot, privateRoot }) => {
     const { execFile } = await import('node:child_process');

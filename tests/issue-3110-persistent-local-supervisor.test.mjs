@@ -350,3 +350,44 @@ test("#3142 supervisor exits promptly when STOP arrives between bounded cycles",
   assert.equal(result.state, "STOPPED");
   assert.equal(cycles, 1);
 }));
+
+test("#3142 malformed or escalated supervisor authority cannot report online or poll", () => sandbox(async root => {
+  await enable(root);
+  const enabledPath = path.join(folder(root), "enabled.json");
+  const original = JSON.parse(await readFile(enabledPath, "utf8"));
+  // First establish a genuine heartbeat. An altered grant must invalidate
+  // that heartbeat instead of allowing a stale RUNNING observation.
+  await supervisorCycle({ appRoot: root, platform: "win32", head, paired, now,
+    queue: async () => ({ eligible: 0 }),
+    poll: async () => ({ state: "POLL_COMPLETE", processed: 0 }) });
+  assert.equal((await supervisorStatus({ appRoot: root, now })).state, "RUNNING");
+  const invalid = [
+    { ...original, modelDispatchAllowed: true },
+    { ...original, sourceMutationAllowed: true },
+    { ...original, autonomousMergeAllowed: true },
+    { ...original, remoteControlScope: "unbounded" },
+    { ...original, hostId: "forged" },
+    { schemaVersion: 1, sourceHead: SHA, hostId: PAIRING.hostId },
+  ];
+  let remoteCalls = 0;
+  for (const record of invalid) {
+    await writeFile(enabledPath, JSON.stringify(record) + "\n");
+    const observed = await supervisorStatus({ appRoot: root, now });
+    assert.equal(observed.state, "BLOCKED");
+    assert.equal(observed.reason, "SUPERVISOR_AUTHORITY_UNVERIFIABLE");
+    const cycle = await supervisorCycle({ appRoot: root, platform: "win32", head, paired, now,
+      queue: async () => { remoteCalls++; return { eligible: 1 }; },
+      poll: async () => { remoteCalls++; return { state: "POLL_COMPLETE", processed: 1 }; } });
+    assert.equal(cycle.state, "BLOCKED");
+    assert.equal(cycle.reason, "SUPERVISOR_AUTHORITY_UNVERIFIABLE");
+    const opts = { appRoot: root, platform: "win32", consent: CONSENT, head, paired, now };
+    await assert.rejects(pauseSupervisor(opts), /SUPERVISOR_AUTHORITY_UNVERIFIABLE/);
+    await assert.rejects(resumeSupervisor(opts), /SUPERVISOR_AUTHORITY_UNVERIFIABLE/);
+    await assert.rejects(reenableSupervisor(opts), /SUPERVISOR_AUTHORITY_UNVERIFIABLE/);
+    await assert.rejects(serveSupervisor({ ...opts, maxCycles: 1 }),
+      /SUPERVISOR_AUTHORITY_UNVERIFIABLE/);
+  }
+  assert.equal(remoteCalls, 0);
+  await writeFile(enabledPath, JSON.stringify(original) + "\n");
+  assert.equal((await supervisorStatus({ appRoot: root, now })).state, "RUNNING");
+}));

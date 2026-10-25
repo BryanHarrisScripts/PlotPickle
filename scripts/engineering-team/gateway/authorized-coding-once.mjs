@@ -259,10 +259,28 @@ export async function runOwnerCodingOnce({ grantId, env = process.env,
     credential: env.OPENAI_API_KEY, now });
 }
 
+/**
+ * Single operator/startup invocation can proceed from coding to draft PR
+ * without a Human handoff between stages. Both independent private grants are
+ * checked by their respective owners; this wrapper creates neither grant.
+ */
+export async function runOwnerCodingAndPublishOnce({ grantId, publicationId,
+  code = runOwnerCodingOnce, publish = null } = {}) {
+  if (!ID.test(grantId || '') || !ID.test(publicationId || ''))
+    return block('CODING_AND_PUBLISH_GRANT_IDS_REQUIRED');
+  const prepared = await code({ grantId });
+  if (prepared?.state !== 'LOCAL_COMMIT_PREPARED') return prepared;
+  const publisher = publish || (await import('./authorized-pr-publish-once.mjs')).runOwnerPublishOnce;
+  return publisher({ publicationId });
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
   const result = args.length === 2 && args[0] === '--once'
-    ? await runOwnerCodingOnce({ grantId: args[1] }) : block('CODING_EXACT_ARGUMENTS_REQUIRED');
+    ? await runOwnerCodingOnce({ grantId: args[1] })
+    : args.length === 3 && args[0] === '--once-and-publish'
+      ? await runOwnerCodingAndPublishOnce({ grantId: args[1], publicationId: args[2] })
+      : block('CODING_EXACT_ARGUMENTS_REQUIRED');
   process.stdout.write(JSON.stringify(result) + '\n');
-  if (result.state !== 'LOCAL_COMMIT_PREPARED') process.exitCode = 2;
+  if (!['LOCAL_COMMIT_PREPARED', 'DRAFT_PR_CREATED'].includes(result.state)) process.exitCode = 2;
 }

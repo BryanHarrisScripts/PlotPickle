@@ -19,3 +19,7 @@ Keep #3142 OPEN and preserve locked #3274 roadmap, README, source/truth admissio
 ## Owner-only stage-capacity diagnostic
 
 An authenticated `factory_status` also reads the existing fail-closed candidate-stage count policy without adding an MCP tool or executing a stage. The sanitized `stageCapacity` field distinguishes `STAGE_BUDGET_AVAILABLE`, `STAGE_BUDGET_EXCEEDED`, and `STAGE_BUDGET_UNVERIFIED`; it reveals only bounded counts and the fixed limit of three. Guest status does not read the private stage directory. Every response explicitly denies staging or cleanup authorization; disk headroom, lock ownership, Git worktree identity, process ownership, and owner-Windows acceptance remain separate checks. There is no retention cleanup or automatic retry.
+
+## Fixed-path stage-lock observation
+
+Authenticated status also reports a separate `stageLock` field of `HELD`, `ABSENT`, or `UNVERIFIED` using a read-only check of the existing fixed private `.candidate-stage-budget.lock` directory. This field never reveals paths, provides no cleanup/staging authority, and does not infer process ownership from a lock. Guest status does not read the lock. Missing locks do not prove staging eligibility: retained-stage count, disk capacity, candidate identity and independent owner-host acceptance remain separate gates.

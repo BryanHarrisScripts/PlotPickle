@@ -28,8 +28,9 @@ const uncertain = code => Object.freeze({ state: "STARTED_UNCONFIRMED", code,
 
 function validGrant(grant, source, question, now) {
   return exact(grant, ["schemaVersion", "kind", "grantId", "questionId",
-    "sourceHead", "model", "expiresAt", "maxOutputTokens", "maxRequests", "consent"]) &&
+    "sourceHead", "questionDigest", "model", "expiresAt", "maxOutputTokens", "maxRequests", "consent"]) &&
     grant.schemaVersion === 1 && grant.kind === "outbound-observe-once" &&
+    grant.questionDigest === gatewayDigest(question.payload) &&
     ID.test(grant.grantId) && grant.questionId === question.messageId &&
     SHA.test(grant.sourceHead) && grant.sourceHead === source.head &&
     /^[a-z][a-z0-9.-]{1,47}$/.test(grant.model) &&

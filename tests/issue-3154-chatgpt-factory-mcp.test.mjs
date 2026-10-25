@@ -500,6 +500,27 @@ test("MCP control denies stale head and held worker without consuming a request 
  assert.equal(retry.state,"DUPLICATE_OR_UNVERIFIABLE_REQUEST");
 }));
 
+test("PR stage disk-space denial is preserved in immutable authenticated receipt",()=>sandbox(async root=>{
+ await seed(root);
+ const source=await import("../scripts/engineering-team/mcp/factory-readonly-server.mjs");
+ const github={exactHead:async()=>OLD};
+ for(const [index,code] of ["DISK_SPACE_INSUFFICIENT","DISK_SPACE_UNVERIFIED"].entries()){
+   const requestId=(index===0?"a":"b").repeat(32);
+   const args={requestId,expectedHead:OLD,suite:"factory-pr-stage",
+     candidatePrNumber:3310,candidateHead:NEW};
+   const ops={testHead:async()=>OLD,
+     stagePr:async()=>({state:"BLOCKED",code,sourceHead:OLD})};
+   const result=await source.factoryControlAction("factory_run_named_test",args,
+     {root,github,ops});
+   assert.equal(result.state,"BLOCKED");
+   assert.equal(result.code,code);
+   const receipt=await factoryControlReceipt({root,requestId});
+   assert.equal(receipt.state,"BLOCKED");
+   assert.equal(receipt.code,code);
+   assert.equal(receipt.replayAuthorized,false);
+ }
+}));
+
 test("Factory Observer reports queue evidence without invoking Pi or certifying ChatGPT",()=>sandbox(async root=>{
   const jobs=await seed(root);
   const original=await readFile(path.join(jobs,"result-3141.json"),"utf8");

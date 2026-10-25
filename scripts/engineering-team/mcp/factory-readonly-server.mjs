@@ -572,7 +572,7 @@ export async function factoryControlAction(name,args,{
                 stageReceipt,verifyHead:ops.testHead};
               const admission=await ops.engineering({...options,selection:{
                 ...base,mode:"node-script",target:"scripts/verification-test-truth.mjs",
-                scriptArgs:["--base-ref","origin/main"],
+                scriptArgs:["--base-ref",args.expectedHead],
               }});
               if(admission?.state!=="TEST_PASSED"||
                   admission?.code!=="ENGINEERING_TASK_PASSED")return admission;

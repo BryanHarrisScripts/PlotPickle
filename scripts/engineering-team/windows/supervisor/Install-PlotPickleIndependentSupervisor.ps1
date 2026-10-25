@@ -147,7 +147,9 @@ if ($Install) {
     $action = New-ScheduledTaskAction -Execute $node -Argument $arguments -WorkingDirectory $repo
     $trigger = New-ScheduledTaskTrigger -AtLogOn -User $identity
     $principal = New-ScheduledTaskPrincipal -UserId $identity -LogonType Interactive -RunLevel Limited
-    $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero)
+    # Bounded Task Scheduler retry on abnormal process failure; intentional STOP remains governed by the local disable marker.
+    # AtLogOn/Interactive cannot guarantee startup before a user signs in.
+    $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 5) -StartWhenAvailable
     Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings | Out-Null
     [pscustomobject]@{
         state = 'INSTALLED_NOT_STARTED'

@@ -6,7 +6,7 @@
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { lstat, mkdir, open, readFile, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, open, readdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gatewayAppSource, privateGatewayRoot } from './gateway-host.mjs';
@@ -83,6 +83,45 @@ async function onceJson(filename, data) {
   } catch { return false; }
   finally { await handle?.close().catch(() => {}); }
 }
+/**
+ * A crash-retained stage is evidence, not garbage. Serialize admission and
+ * cap retained coding stages before consuming a grant or calling a model.
+ * An abandoned lock requires owner inspection; never steal it by age.
+ */
+async function reserveCodingStage(stages, receipts, grant, at) {
+  const lockPath = path.join(receipts, '.coding-stage-budget.lock');
+  let lock;
+  try {
+    lock = await open(lockPath, 'wx', 0o600);
+    await lock.writeFile(JSON.stringify({ grantId: grant.grantId, acquiredAt: at }) + '\n');
+    await lock.sync();
+    const entries = await readdir(stages, { withFileTypes: true });
+    const ids = new Set();
+    for (const entry of entries) {
+      const reserved = /^\.reserved-([a-f0-9]{32})\.json$/.exec(entry.name);
+      if (reserved && entry.isFile() && !entry.isSymbolicLink()) ids.add(reserved[1]);
+      else if (ID.test(entry.name) && entry.isDirectory() && !entry.isSymbolicLink())
+        ids.add(entry.name);
+      else return block('CODING_STAGE_CONTENT_UNVERIFIABLE');
+    }
+    if (ids.size >= 3) return block('CODING_STAGE_BUDGET_EXCEEDED');
+    // Persistent sentinel counts the slot even if Git has not created the
+    // worktree yet. It is never removed automatically after an uncertain run.
+    const saved = await onceJson(path.join(stages, '.reserved-' + grant.grantId + '.json'),
+      { schemaVersion: 1, grantId: grant.grantId, reservedAt: at,
+        state: 'RESERVED_NO_REPLAY' });
+    if (!saved) return block('CODING_STAGE_RESERVATION_UNVERIFIABLE');
+    return null;
+  } catch { return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE'); }
+  finally {
+    if (lock) {
+      await lock.close().catch(() => {});
+      // Failure to release leaves the lock in place and future work blocked.
+      await unlink(lockPath).catch(() => {});
+    }
+  }
+}
+
 async function boundedResponse(response) {
   if (!response?.ok || !response.body?.getReader) return null;
   const reader = response.body.getReader();
@@ -155,6 +194,8 @@ export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, g
     if (!r.isDirectory() || r.isSymbolicLink() || !s.isDirectory() || s.isSymbolicLink())
       return block('CODING_PRIVATE_STORAGE_UNVERIFIABLE');
   } catch { return block('CODING_PRIVATE_STORAGE_UNVERIFIABLE'); }
+  const stageBudget = await reserveCodingStage(stages, receipts, grant, at);
+  if (stageBudget) return stageBudget;
   const reservation = path.join(receipts, grant.grantId + '.reserved.json');
   if (!await onceJson(reservation, { schemaVersion: 1, grantId: grant.grantId,
     issueNumber: grant.issueNumber, sourceHead: source.head, reservedAt: at,

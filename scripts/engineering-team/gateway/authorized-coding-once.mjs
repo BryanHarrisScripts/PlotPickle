@@ -194,9 +194,15 @@ export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, g
     if (!r.isDirectory() || r.isSymbolicLink() || !s.isDirectory() || s.isSymbolicLink())
       return block('CODING_PRIVATE_STORAGE_UNVERIFIABLE');
   } catch { return block('CODING_PRIVATE_STORAGE_UNVERIFIABLE'); }
+  const reservation = path.join(receipts, grant.grantId + '.reserved.json');
+  // Preserve the existing idempotent duplicate outcome without allocating a
+  // second stage slot. A concurrent delivery still fails closed on the lock.
+  try { await lstat(reservation); return block('CODING_ALREADY_RESERVED_OR_UNVERIFIABLE'); }
+  catch (error) {
+    if (error?.code !== 'ENOENT') return block('CODING_ALREADY_RESERVED_OR_UNVERIFIABLE');
+  }
   const stageBudget = await reserveCodingStage(stages, receipts, grant, at);
   if (stageBudget) return stageBudget;
-  const reservation = path.join(receipts, grant.grantId + '.reserved.json');
   if (!await onceJson(reservation, { schemaVersion: 1, grantId: grant.grantId,
     issueNumber: grant.issueNumber, sourceHead: source.head, reservedAt: at,
     state: 'RESERVED_NO_REPLAY' })) return block('CODING_ALREADY_RESERVED_OR_UNVERIFIABLE');

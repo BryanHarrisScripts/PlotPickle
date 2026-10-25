@@ -155,7 +155,7 @@ export function verifyOwnerWitness(w, engineering, publicKey, at) {
     publicKey, Buffer.from(w.signature, 'base64'));
 }
 
-async function boundedResponse(response) {
+async function boundedResponse(response, allowArray = false) {
   if (!response?.ok || typeof response.body?.getReader !== 'function') return null;
   const reader = response.body.getReader(), parts = [];
   let n = 0;
@@ -169,7 +169,7 @@ async function boundedResponse(response) {
       parts.push(Buffer.from(value));
     }
     const parsed = JSON.parse(Buffer.concat(parts).toString('utf8'));
-    return object(parsed) ? parsed : null;
+    return object(parsed) || (allowArray && Array.isArray(parsed)) ? parsed : null;
   } catch { return null; }
   finally { reader.releaseLock(); }
 }
@@ -178,16 +178,19 @@ async function boundedResponse(response) {
 export async function collectGitHubChecks(engineering, {
   token, fetchImpl = globalThis.fetch,
 } = {}) {
+  if (!CODE.test(engineering?.changedPath || '') ||
+      !DIGEST.test(engineering?.sourceContentDigest || ''))
+    return { state: 'BLOCKED', code: 'VERIFIER_SOURCE_BINDING_UNVERIFIABLE' };
   if (typeof token !== 'string' || token.length < 20 ||
       typeof fetchImpl !== 'function') return { state: 'BLOCKED', code: 'VERIFIER_TOKEN_REQUIRED' };
-  const read = async route => {
+  const read = async (route, allowArray = false) => {
     const response = await fetchImpl(API + route, {
       method: 'GET', redirect: 'error',
       headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28' },
       signal: AbortSignal.timeout(25000),
     });
-    const json = await boundedResponse(response);
+    const json = await boundedResponse(response, allowArray);
     if (!json) throw Error('UNVERIFIABLE_READ_ONLY_RESPONSE');
     return json;
   };
@@ -203,6 +206,29 @@ export async function collectGitHubChecks(engineering, {
     if (commit.tree?.sha !== engineering.tree || commit.parents?.length !== 1 ||
         commit.parents[0]?.sha !== engineering.sourceHead)
       return { state: 'BLOCKED', code: 'COMMIT_PARENT_OR_TREE_MISMATCH' };
+    // Verify the published one-file edit independently of the publisher's
+    // private reservation. A green CI run for the same SHA cannot substitute
+    // for the owner-authorized path and exact committed UTF-8 blob bytes.
+    const files = await read('/pulls/' + engineering.prNumber + '/files?per_page=100', true);
+    if (!Array.isArray(files) || files.length !== 1 ||
+        files[0]?.filename !== engineering.changedPath ||
+        files[0]?.status !== 'modified' || !SHA.test(files[0]?.sha || ''))
+      return { state: 'BLOCKED', code: 'PR_CHANGED_PATH_UNVERIFIABLE' };
+    const blob = await read('/git/blobs/' + files[0].sha);
+    if (blob.sha !== files[0].sha || blob.encoding !== 'base64' ||
+        typeof blob.content !== 'string' ||
+        !Number.isSafeInteger(blob.size) || blob.size < 1 || blob.size > 16_384)
+      return { state: 'BLOCKED', code: 'PR_SOURCE_BLOB_UNVERIFIABLE' };
+    const encoded = blob.content.replace(/\\s/gu, '');
+    if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u.test(encoded))
+      return { state: 'BLOCKED', code: 'PR_SOURCE_BLOB_UNVERIFIABLE' };
+    const bytes = Buffer.from(encoded, 'base64');
+    const gitBlobSha = createHash('sha1').update('blob ' + bytes.length + '\\0')
+      .update(bytes).digest('hex');
+    if (bytes.length !== blob.size || !Buffer.from(bytes.toString('utf8')).equals(bytes) ||
+        gitBlobSha !== blob.sha ||
+        createHash('sha256').update(bytes).digest('hex') !== engineering.sourceContentDigest)
+      return { state: 'BLOCKED', code: 'PR_SOURCE_DIGEST_MISMATCH' };
     const inventory = await read('/actions/runs?head_sha=' + engineering.candidateHead +
       '&event=pull_request&per_page=30');
     if (!Number.isInteger(inventory.total_count) || inventory.total_count > 30 ||

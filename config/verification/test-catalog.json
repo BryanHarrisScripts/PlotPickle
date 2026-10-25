@@ -9971,7 +9971,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c52661d2b4dbfc1b61164b24bdbbbb7a9cd9e012d1f35ce5fca1f4aa54fedf6e"
+            "digest": "e0c5f2b03f2d8968a0d4f39853d85dbd6da4d12e6c6b2530611118af89209bb6"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -10015,7 +10015,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c52661d2b4dbfc1b61164b24bdbbbb7a9cd9e012d1f35ce5fca1f4aa54fedf6e"
+            "digest": "e0c5f2b03f2d8968a0d4f39853d85dbd6da4d12e6c6b2530611118af89209bb6"
           }
         ],
         "truthRefs": [
@@ -10051,7 +10051,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c52661d2b4dbfc1b61164b24bdbbbb7a9cd9e012d1f35ce5fca1f4aa54fedf6e"
+            "digest": "e0c5f2b03f2d8968a0d4f39853d85dbd6da4d12e6c6b2530611118af89209bb6"
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
@@ -10294,7 +10294,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c52661d2b4dbfc1b61164b24bdbbbb7a9cd9e012d1f35ce5fca1f4aa54fedf6e"
+            "digest": "e0c5f2b03f2d8968a0d4f39853d85dbd6da4d12e6c6b2530611118af89209bb6"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
@@ -10342,7 +10342,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c52661d2b4dbfc1b61164b24bdbbbb7a9cd9e012d1f35ce5fca1f4aa54fedf6e"
+            "digest": "e0c5f2b03f2d8968a0d4f39853d85dbd6da4d12e6c6b2530611118af89209bb6"
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
@@ -10390,7 +10390,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c52661d2b4dbfc1b61164b24bdbbbb7a9cd9e012d1f35ce5fca1f4aa54fedf6e"
+            "digest": "e0c5f2b03f2d8968a0d4f39853d85dbd6da4d12e6c6b2530611118af89209bb6"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
@@ -10614,7 +10614,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c52661d2b4dbfc1b61164b24bdbbbb7a9cd9e012d1f35ce5fca1f4aa54fedf6e"
+            "digest": "e0c5f2b03f2d8968a0d4f39853d85dbd6da4d12e6c6b2530611118af89209bb6"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -11412,7 +11412,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c52661d2b4dbfc1b61164b24bdbbbb7a9cd9e012d1f35ce5fca1f4aa54fedf6e"
+            "digest": "e0c5f2b03f2d8968a0d4f39853d85dbd6da4d12e6c6b2530611118af89209bb6"
           }
         ]
       },
@@ -11444,7 +11444,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c52661d2b4dbfc1b61164b24bdbbbb7a9cd9e012d1f35ce5fca1f4aa54fedf6e"
+            "digest": "e0c5f2b03f2d8968a0d4f39853d85dbd6da4d12e6c6b2530611118af89209bb6"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/Upgrade-PlotPickleTunnelCatalog.ps1",
@@ -11496,7 +11496,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c52661d2b4dbfc1b61164b24bdbbbb7a9cd9e012d1f35ce5fca1f4aa54fedf6e"
+            "digest": "e0c5f2b03f2d8968a0d4f39853d85dbd6da4d12e6c6b2530611118af89209bb6"
           }
         ]
       },
@@ -11644,14 +11644,14 @@
       },
       {
         "target": "tests/issue-3303-headless-gateway-acceptance.test.mjs",
-        "targetDigest": "810842078b1bd796eb98edd4d6fc3b76f080ad6724cc4578444f76851443302e",
+        "targetDigest": "c75a5eadc91ed397b5b0b5b39c06da414033573815d0fb633793e163a82fccd0",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "c52661d2b4dbfc1b61164b24bdbbbb7a9cd9e012d1f35ce5fca1f4aa54fedf6e"
+            "digest": "e0c5f2b03f2d8968a0d4f39853d85dbd6da4d12e6c6b2530611118af89209bb6"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",

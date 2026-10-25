@@ -166,7 +166,8 @@ export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, g
     await git(repoRoot, ['worktree', 'add', '--detach', stage, source.head]);
     await git(stage, ['switch', '-c', branch]);
     const stageFile = await safePath(stage, grant.targetPath);
-    if (await regularFile(stageFile, 16_384) !== original) throw Error('STAGED_SOURCE_DIFFERENT');
+    if ((await regularFile(stageFile, 16_384)).replace(/\r\n/g, '\n') !== original.replace(/\r\n/g, '\n'))
+      throw Error('STAGED_SOURCE_DIFFERENT');
     const proposal = await requestEdit({ grant, original, credential, fetchImpl });
     const updated = boundedSourceEdit(original, proposal);
     if (!updated || updated.length > 16_384) throw Error('MODEL_EDIT_UNVERIFIABLE');

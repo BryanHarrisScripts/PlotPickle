@@ -254,6 +254,12 @@ test("#3142 independent Windows logon plan never starts or modifies the legacy P
   assert.match(script, /SUPERVISOR_TASK_MAY_STILL_BE_RUNNING_REQUEST_STOP_FIRST/);
   assert.match(script, /START_REQUESTED_UNCONFIRMED/);
   assert.match(script, /STOP_REQUESTED_UNCONFIRMED/);
+  const repairMode = script.slice(script.indexOf("if ($RepairSettings) {"), script.indexOf("if ($Start) {"));
+  assert.match(repairMode, /Read-OwnedTask/);
+  assert.match(repairMode, /Assert-ExactBoundWorker/);
+  assert.match(repairMode, /SUPERVISOR_TASK_NOT_READY_OR_ALREADY_RUNNING/);
+  assert.match(repairMode, /Set-ScheduledTask -TaskName \$taskName -Settings \$settings/);
+  assert.doesNotMatch(repairMode, /Start-ScheduledTask|Register-ScheduledTask|Unregister-ScheduledTask/);
   assert.doesNotMatch(script, /Start-ScheduledTask\s+-TaskName\s+\$legacyTask/);
   // Only executable PowerShell lines count; explanatory comments that name
   // forbidden operations are not an execution path.
@@ -273,10 +279,11 @@ test("#3142 native Windows PowerShell logon installer denies unauthorized instal
   });
   // All denial probes exit before Get-ScheduledTask/Register/Start/Unregister.
   for (const arguments_ of [
-    [], ["-Install"], ["-Start"], ["-Uninstall"],
+    [], ["-Install"], ["-Start"], ["-Uninstall"], ["-RepairSettings"],
     ["-Install", "-Consent", "WRONG_CONSENT"],
     ["-Start", "-Consent", "WRONG_CONSENT"],
     ["-Uninstall", "-Consent", "WRONG_CONSENT"],
+    ["-RepairSettings", "-Consent", "WRONG_CONSENT"],
   ]) {
     assert.throws(() => run(arguments_), /Command failed/, String(arguments_));
   }
@@ -285,6 +292,8 @@ test("#3142 native Windows PowerShell logon installer denies unauthorized instal
   assert.equal(result.workerProcessVerified, false);
   assert.equal(result.autonomousCodingVerified, false);
   assert.equal(result.automaticMergeEnabled, false);
+  assert.equal(result.recoveryPolicyVerified, false);
+  assert.equal(result.startupScope, "AT_LOGON_AFTER_SIGN_IN");
   assert.equal(result.taskInstalled, false, "disposable Windows CI must not have installed a supervisor task");
 });
 
@@ -454,12 +463,18 @@ test("#3142 disposable Windows Task Scheduler registration retains SID ownership
     "  $action = New-ScheduledTaskAction -Execute $env:ComSpec -Argument '/c exit 0'",
     "  $trigger = New-ScheduledTaskTrigger -AtLogOn -User $identity",
     "  $principal = New-ScheduledTaskPrincipal -UserId $identity -LogonType Interactive -RunLevel Limited",
-    "  $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 5) -StartWhenAvailable",
-    "  Register-ScheduledTask -TaskName $name -Action $action -Trigger $trigger -Principal $principal -Settings $settings | Out-Null",
+    "  $initialSettings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero)",
+    "  Register-ScheduledTask -TaskName $name -Action $action -Trigger $trigger -Principal $principal -Settings $initialSettings | Out-Null",
     "  $created = $true",
     "  $task = Get-ScheduledTask -TaskName $name -ErrorAction Stop",
     "  if (-not (Test-TaskPrincipalIsCurrentUser ([string]$task.Principal.UserId))) { throw 'REGISTERED_OWNER_REJECTED' }",
     "  if ($task.State -ne 'Ready') { throw 'REGISTERED_TASK_NOT_READY' }",
+    "  if ($task.Settings.RestartCount -ne 0) { throw 'FIXTURE_NOT_UNCONFIGURED' }",
+    "  $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 5) -StartWhenAvailable",
+    "  Set-ScheduledTask -TaskName $name -Settings $settings -ErrorAction Stop | Out-Null",
+    "  $task = Get-ScheduledTask -TaskName $name -ErrorAction Stop",
+    "  if ($task.Actions.Count -ne 1 -or $task.Actions[0].Execute -ne $env:ComSpec) { throw 'TASK_ACTION_CHANGED' }",
+    "  if ($task.Triggers.Count -ne 1) { throw 'TASK_TRIGGER_CHANGED' }",
     "  if ($task.Settings.RestartCount -ne 3) { throw 'BOUNDED_RESTART_COUNT_MISSING' }",
     "  if ($task.Settings.RestartInterval -ne 'PT5M') { throw 'BOUNDED_RESTART_INTERVAL_MISSING' }",
     "  if (-not $task.Settings.StartWhenAvailable) { throw 'MISSED_LOGON_RECOVERY_MISSING' }",

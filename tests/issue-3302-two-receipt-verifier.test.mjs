@@ -13,9 +13,9 @@ import {
 const REQUEST = 'a'.repeat(32), PUBLICATION = 'b'.repeat(32), ATTEMPT = 'c'.repeat(32);
 const SOURCE = '1'.repeat(40), LOCAL = '2'.repeat(40), REMOTE = '3'.repeat(40);
 const TREE = '4'.repeat(40), NOW = 1800000000000;
-const BLOB_TEXT = 'export const value = 42;\\n';
+const BLOB_TEXT = 'export const value = 42;\n';
 const CONTENT = createHash('sha256').update(BLOB_TEXT).digest('hex');
-const BLOB_SHA = createHash('sha1').update('blob ' + Buffer.byteLength(BLOB_TEXT) + '\\0')
+const BLOB_SHA = createHash('sha1').update('blob ' + Buffer.byteLength(BLOB_TEXT) + '\0')
   .update(BLOB_TEXT).digest('hex');
 const BRANCH = 'engineering/3142-' + REQUEST;
 const TARGET = 'scripts/engineering-team/gateway/example.mjs';
@@ -89,7 +89,7 @@ function fakeGithub({ bad = null } = {}) {
       sha: bad === 'blob-sha' ? SOURCE : BLOB_SHA,
       encoding: bad === 'blob-encoding' ? 'utf-8' : 'base64',
       size: Buffer.byteLength(BLOB_TEXT) + (bad === 'blob-size' ? 1 : 0),
-      content: Buffer.from(bad === 'blob-digest' ? 'export const value = 43;\\n' : BLOB_TEXT)
+      content: Buffer.from(bad === 'blob-digest' ? 'export const value = 43;\n' : BLOB_TEXT)
         .toString('base64'),
     });
     if (url.includes('/actions/runs?')) {

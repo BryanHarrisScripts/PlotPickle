@@ -4241,7 +4241,8 @@
           "tests/issue-3159-pi-headless-inference.test.mjs",
           "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
           "tests/issue-3278-storage-mcp.test.mjs",
-          "tests/issue-3303-headless-gateway-acceptance.test.mjs"
+          "tests/issue-3303-headless-gateway-acceptance.test.mjs",
+          "tests/issue-3142-authorized-coding-once.test.mjs"
         ]
       },
       "cost": "fast",
@@ -11712,6 +11713,38 @@
           {
             "path": "scripts/engineering-team/gateway/conversation-service.mjs",
             "digest": "7291486d145d2645e5fae2b6c8f09c44f661a90b679602a02b028164642f8f57"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-authorized-coding-once.test.mjs",
+        "targetDigest": "c1b8f00eeef6a4b7e862ecf1f142032c545a57035a82f85d967adb13e2233376",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "One-use local owner grant fixture and a real isolated Git worktree/commit; verifies exact source, path, digest, duplicate non-replay, bounded model suggestion, syntax-only checks and unchanged MAIN. Does not prove live paid model invocation, staged PR publication, independently executed focused test, owner-Windows acceptance, background dispatch or green-only merge.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
+            "digest": "25bb4527128a5cf50eec7709de606f433eca6c188301a24e9a86fbade5e84091"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/gateway-host.mjs",
+            "digest": "17755df74f92130264bfe8f81f0496262accd57bf2218753f98031aeb652d7f8"
           }
         ]
       }

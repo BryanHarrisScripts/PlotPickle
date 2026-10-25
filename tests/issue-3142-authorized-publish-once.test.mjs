@@ -39,18 +39,22 @@ async function fixture(callback) {
 }
 
 function mockedGit({ wrongParent = false, existingRemote = false,
-  uncertainPush = false } = {}) {
+  uncertainPush = false, wrongPushUrl = false, staleMain = false } = {}) {
   const calls = [];
   let pushed = false;
   const git = async (cwd, args) => {
     calls.push(args);
-    if (args[0] === 'remote') return { stdout: 'https://github.com/BryanHarrisScripts/PlotPickle.git\n' };
+    if (args[0] === 'remote') return { stdout: wrongPushUrl && args.includes('--push')
+      ? 'https://github.com/other/repo.git\n'
+      : 'https://github.com/BryanHarrisScripts/PlotPickle.git\n' };
     if (args[0] === 'rev-parse') return { stdout: COMMIT + '\n' };
     if (args[0] === 'show') return { stdout: (wrongParent ? COMMIT : MAIN) + '\n' };
     if (args[0] === 'diff-tree') return { stdout: TARGET + '\n' };
     if (args[0] === 'status') return { stdout: '' };
     if (args[0] === 'ls-remote') return {
-      stdout: (existingRemote || pushed ? COMMIT + '\t' + REF + '\n' : '')
+      stdout: args[3] === 'refs/heads/main'
+        ? (staleMain ? COMMIT : MAIN) + '\trefs/heads/main\n'
+        : (existingRemote || pushed ? COMMIT + '\t' + REF + '\n' : '')
     };
     if (args.includes('push')) {
       pushed = true;
@@ -97,6 +101,7 @@ test('prepared commit publishes one exact branch and a draft PR, never merges or
     assert.equal(prCalls[0].base, 'main');
     assert.equal(prCalls[0].maintainer_can_modify, false);
     assert.equal(calls.filter(args => args.includes('push')).length, 1);
+    assert.equal(calls.some(args => args.some(x => x.startsWith('--force-with-lease='))), true);
     assert.equal(calls.some(args => args.includes('merge') || args.includes('reset')), false);
     assert.equal((await publishPreparedCommit(opts)).code, 'PUBLISH_ALREADY_RESERVED');
     assert.equal(prCalls.length, 1);
@@ -111,7 +116,8 @@ test('prepared commit publishes one exact branch and a draft PR, never merges or
 test('untrusted commit parent or existing remote branch never reserves or publishes', () =>
   fixture(async ({ repoRoot, privateRoot }) => {
     const at = Date.now();
-    for (const setup of [{ wrongParent: true }, { existingRemote: true }]) {
+    for (const setup of [{ wrongParent: true }, { existingRemote: true },
+      { wrongPushUrl: true }, { staleMain: true }]) {
       const { git, calls } = mockedGit(setup);
       const result = await publishPreparedCommit({ repoRoot, privateRoot, source,
         grant: grantAt(at), token: TOKEN, now: () => at, runGit: git,

@@ -744,8 +744,13 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
       const isConversation=name==="factory_conversation";
       const isStorage=name==="factory_storage_inventory";
       const isEngineering=name==="factory_engineering_run";
+      // Executing candidate PR code requires the existing explicit owner opt-in,
+      // even when exposed as a fixed named suite rather than a generic runner.
+      const isGatewayAcceptance=name==="factory_run_named_test"&&
+        args.suite==="factory-gateway-acceptance";
       const isControl=MCP_CONTROL_TOOLS.some(x=>x.name===name) || isEngineering;
-      if(isEngineering&&!engineeringEnabled)return {error:{code:-32601,message:"Unknown tool"}};
+      if((isEngineering||isGatewayAcceptance)&&!engineeringEnabled)
+        return {error:{code:-32601,message:"Unknown tool"}};
       if(isControl&&!controlAuthenticated)return {error:{code:-32001,message:"Factory control authorization required"}};
       if(isControl&&!validControlArgs(name,args))return {error:invalidParams()};
       if(isConversation&&!controlAuthenticated)return {error:{code:-32001,message:"Conversation authorization required"}};

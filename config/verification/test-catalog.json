@@ -7203,7 +7203,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "35c1497e944ea619a70646505f5ea6d855901d3799a31ae28ecda1878e40a42a"
+            "digest": "6a3411a7ffbba8248d4c120fa69bd16d4a05c2b59d823bd79e7c1ff917a27533"
           }
         ]
       },
@@ -8037,7 +8037,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "35c1497e944ea619a70646505f5ea6d855901d3799a31ae28ecda1878e40a42a"
+            "digest": "6a3411a7ffbba8248d4c120fa69bd16d4a05c2b59d823bd79e7c1ff917a27533"
           }
         ]
       },
@@ -10357,7 +10357,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "35c1497e944ea619a70646505f5ea6d855901d3799a31ae28ecda1878e40a42a"
+            "digest": "6a3411a7ffbba8248d4c120fa69bd16d4a05c2b59d823bd79e7c1ff917a27533"
           }
         ],
         "truthRefs": [
@@ -10397,7 +10397,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "35c1497e944ea619a70646505f5ea6d855901d3799a31ae28ecda1878e40a42a"
+            "digest": "6a3411a7ffbba8248d4c120fa69bd16d4a05c2b59d823bd79e7c1ff917a27533"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",

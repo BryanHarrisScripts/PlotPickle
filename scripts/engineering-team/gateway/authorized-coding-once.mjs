@@ -10,6 +10,7 @@ import { lstat, mkdir, open, readdir, readFile, unlink, writeFile } from 'node:f
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gatewayAppSource, privateGatewayRoot } from './gateway-host.mjs';
+import { appendPrivateJsonOnce as onceJson } from './receipts/write-once-json.mjs';
 
 const exec = promisify(execFile);
 const ID = /^[a-f0-9]{32}$/;
@@ -72,16 +73,6 @@ async function safePath(root, relative) {
     if (stat.isSymbolicLink()) throw Error('SYMLINK_DENIED');
   }
   return current;
-}
-async function onceJson(filename, data) {
-  let handle;
-  try {
-    handle = await open(filename, 'wx', 0o600);
-    await handle.writeFile(JSON.stringify(data) + '\n');
-    await handle.sync();
-    return true;
-  } catch { return false; }
-  finally { await handle?.close().catch(() => {}); }
 }
 /**
  * A crash-retained stage is evidence, not garbage. Serialize admission and

@@ -265,13 +265,35 @@ export async function runOwnerCodingOnce({ grantId, env = process.env,
  * checked by their respective owners; this wrapper creates neither grant.
  */
 export async function runOwnerCodingAndPublishOnce({ grantId, publicationId,
-  code = runOwnerCodingOnce, publish = null } = {}) {
+  code = runOwnerCodingOnce, publish = null, record = null } = {}) {
   if (!ID.test(grantId || '') || !ID.test(publicationId || ''))
     return block('CODING_AND_PUBLISH_GRANT_IDS_REQUIRED');
   const prepared = await code({ grantId });
   if (prepared?.state !== 'LOCAL_COMMIT_PREPARED') return prepared;
   const publisher = publish || (await import('./publication/authorized-pr-publish-once.mjs')).runOwnerPublishOnce;
-  return publisher({ publicationId });
+  const published = await publisher({ publicationId });
+  if (published?.state !== 'DRAFT_PR_CREATED') return published;
+  // A remote PR created but lacking its private engineering receipt is NOT a
+  // completed Factory result. Never replay publishing to repair a lost receipt.
+  const writer = record || (await import('./verification/two-receipt-verifier.mjs')).issueEngineeringReceiptOnce;
+  let receipt;
+  try {
+    receipt = await writer({ privateRoot: privateGatewayRoot(process.env),
+      requestId: grantId, publicationId });
+  } catch { receipt = null; }
+  if (receipt?.state !== 'SOURCE_COMMITTED_AND_PR_PUBLISHED' ||
+      receipt.requestId !== grantId ||
+      receipt.publicationId !== publicationId ||
+      receipt.prNumber !== published.prNumber ||
+      receipt.candidateHead !== published.remoteCommit) {
+    return Object.freeze({ ...published, state: 'DRAFT_PR_RECEIPT_UNVERIFIED',
+      code: 'ENGINEERING_RECEIPT_MISSING_OR_INCONSISTENT',
+      engineeringReceiptId: null, independentVerification: false,
+      automaticMergeAuthorized: false, replayAuthorized: false });
+  }
+  return Object.freeze({ ...published, engineeringReceiptId: receipt.receiptId,
+    verificationState: 'WAITING_FOR_SEPARATE_VERIFIER',
+    independentVerification: false, automaticMergeAuthorized: false });
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

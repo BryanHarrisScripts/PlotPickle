@@ -262,6 +262,35 @@ test("#3142 authenticated Factory status reports stage count bounds without clea
   assert.doesNotMatch(JSON.stringify(thrown),/SECRET_STAGE_PATH/);
 }));
 
+test("#3142 seventy retained candidate stages block staging even without a lock",()=>sandbox(async root=>{
+  await seed(root);
+  const base=path.join(root,"chat-candidate-stages");
+  await mkdir(base);
+  for(let i=0;i<70;i++)
+    await mkdir(path.join(base,i.toString(16).padStart(32,"0")));
+  const request={jsonrpc:"2.0",id:45,method:"tools/call",
+    params:{name:"factory_status",arguments:{}}};
+  const guest=await handleRpc(request,{root,controlAuthenticated:false});
+  assert.equal(Object.hasOwn(guest.result.structuredContent,"stageCapacity"),false);
+  assert.equal(Object.hasOwn(guest.result.structuredContent,"stageLock"),false);
+  const owner=await handleRpc(request,{root,controlAuthenticated:true,
+    supervisorRead:async()=>({state:"OFF"})});
+  const status=owner.result.structuredContent;
+  assert.deepEqual(status.stageCapacity,{
+    state:"BLOCKED",code:"STAGE_BUDGET_EXCEEDED",
+    observedStages:null,observedStagesAtLeast:3,maximumStages:3,
+    stagingAuthorized:false,cleanupAuthorized:false,
+  });
+  assert.deepEqual(status.stageLock,{
+    state:"ABSENT",stagingAuthorized:false,cleanupAuthorized:false,
+    processOwnershipVerified:false,
+  });
+  assert.equal(status.stageCapacity.cleanupAuthorized,false);
+  assert.equal(status.stageLock.cleanupAuthorized,false);
+  const remaining=await (await import("node:fs/promises")).readdir(base);
+  assert.equal(remaining.length,70,"read-only observation must not remove retained stages");
+}));
+
 test("#3142 staging lock observation is authenticated, read-only and fails closed",()=>sandbox(async root=>{
   await seed(root);
   const request={jsonrpc:"2.0",id:44,method:"tools/call",

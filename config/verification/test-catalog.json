@@ -11718,7 +11718,7 @@
       },
       {
         "target": "tests/issue-3142-tunnel-watchdog-policy.test.mjs",
-        "targetDigest": "c8b747f5bf77b450c16c092879ebb93012234038bd6dd489235b5c025b132e5d",
+        "targetDigest": "b61bace3a3bbf216d70226e6a3e038511be4c7396334382f23961e65944c1887",
         "catalogueIds": [
           "agent.settings-compute-tunnel-3254"
         ],
@@ -11740,7 +11740,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/tunnel/tunnel-watchdog-policy.mjs",
-            "digest": "238b92d7b7e918a6b0016e7656d38dcfe7fdd009f807db8c774e00c20fb7f9f0"
+            "digest": "d49b718cc543cb2b29516115b7a9e04846abb8a5feb9dc6432ee35269dd25c46"
           }
         ]
       }

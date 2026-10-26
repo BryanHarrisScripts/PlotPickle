@@ -11,7 +11,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gatewayAppSource, privateGatewayRoot } from "../../gateway/gateway-host.mjs";
-import { runOwnerCodingAndPublishOnce } from "../../gateway/authorized-coding-once.mjs";
+import { runOwnerCodingOnce, runOwnerCodingAndPublishOnce } from "../../gateway/authorized-coding-once.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const ID = /^[a-f0-9]{32}$/;
@@ -20,6 +20,11 @@ const MAX_BODY = 8192;
 const PROTOCOL = "2025-06-18";
 const TOOL_DEFINITIONS = Object.freeze([
   { name: "engineering_dispatch_status", description: "Read local execution grant/STOP/lock readiness. Does not claim the Factory is online.", inputSchema: {type:"object",properties:{},additionalProperties:false} },
+  { name: "engineering_prepare_once", description: "Use one existing owner coding grant to prepare an exact-head local commit. Returns the previously unknown commit for a SEPARATE exact-commit publication grant; never publishes, tests or merges.", inputSchema: {type:"object",properties:{
+    requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+    expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
+    codingGrantId:{type:"string",pattern:"^[a-f0-9]{32}$"}
+  },required:["requestId","expectedHead","codingGrantId"],additionalProperties:false} },
   { name: "engineering_execute_once", description: "On the paired Windows owner host, consume TWO existing separate owner grants to execute one coding request and publish only a draft PR. Exact clean main, STOP and write-once no-replay checks apply; no tests or merge are implied.", inputSchema: {type:"object",properties:{
     requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
     expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
@@ -87,6 +92,16 @@ async function receipt(root,id) {
     return {state:"NO_RESERVATION",requestId:id,replayAuthorized:false};
   }
   const result=await safeRecord(path.join(p.receipts,id+".result.json"));
+  const validPrepared=result?.requestId===id && result.state==="LOCAL_COMMIT_PREPARED" &&
+    reserved.phase==="PREPARE" && reserved.codingGrantId===result.codingGrantId &&
+    reserved.expectedHead===result.sourceHead &&
+    ID.test(result.codingGrantId||"") && SHA.test(result.localCommit||"") &&
+    Number.isSafeInteger(result.issueNumber) && result.issueNumber>=1 &&
+    result.issueNumber<=9_999_999 &&
+    result.branch==="engineering/"+result.issueNumber+"-"+result.codingGrantId &&
+    result.focusedTestExecuted===false && result.pullRequestCreated===false &&
+    result.independentVerification===false && result.automaticMergeAuthorized===false &&
+    result.replayAuthorized===false;
   const validPublished=result?.requestId===id && result.state==="DRAFT_PR_CREATED" &&
     Number.isSafeInteger(result.prNumber) && result.prNumber>=1 &&
     result.prNumber<=9_999_999 && SHA.test(result.candidateHead||"") &&
@@ -97,7 +112,7 @@ async function receipt(root,id) {
     typeof result.code==="string" && /^[A-Z0-9_]{3,100}$/.test(result.code) &&
     result.replayAuthorized===false && result.independentVerification===false &&
     result.automaticMergeAuthorized===false;
-  if(validPublished||validBlocked)
+  if(validPrepared||validPublished||validBlocked)
     return {...result,replayAuthorized:false,independentVerification:false,
       automaticMergeAuthorized:false};
   return {state:"STARTED_UNCONFIRMED",requestId:id,replayAuthorized:false,
@@ -109,7 +124,7 @@ export async function dispatcherAction(name,args={},{
   root=privateGatewayRoot(),platform=process.platform,
   enabled=process.env.PLOTPICKLE_ENGINEERING_DISPATCH_ENABLED==="1",
   source=()=>gatewayAppSource({repoRoot:REPO}),
-  execute=runOwnerCodingAndPublishOnce,now=Date.now,
+  execute=runOwnerCodingAndPublishOnce,prepare=runOwnerCodingOnce,now=Date.now,
 }={}) {
   const p=locations(root);
   if(name==="engineering_dispatch_status" && exact(args,[]))return {
@@ -128,11 +143,16 @@ export async function dispatcherAction(name,args={},{
         inFlightMayContinue:true};
     return {state:"STOP_REQUESTED",replayAuthorized:false,inFlightMayContinue:true};
   }
-  if(name!=="engineering_execute_once"||!exact(args,
-    ["requestId","expectedHead","codingGrantId","publicationId"])||
+  const preparing=name==="engineering_prepare_once";
+  const combined=name==="engineering_execute_once";
+  if((!preparing&&!combined)||!exact(args,preparing
+    ?["requestId","expectedHead","codingGrantId"]
+    :["requestId","expectedHead","codingGrantId","publicationId"])||
       !ID.test(args.requestId||"")||!SHA.test(args.expectedHead||"")||
-      !ID.test(args.codingGrantId||"")||!ID.test(args.publicationId||"")||
-      args.codingGrantId===args.publicationId)return blocked("INVALID_EXECUTION_SELECTION");
+      !ID.test(args.codingGrantId||"")||
+      (combined&&(!ID.test(args.publicationId||"")||
+        args.codingGrantId===args.publicationId)))
+    return blocked("INVALID_EXECUTION_SELECTION");
   if(platform!=="win32"||!enabled)return blocked("DISPATCH_NOT_ENABLED",args.requestId);
   if(await stopped(p))return blocked("INTENTIONAL_STOP_OR_PAUSE",args.requestId);
   let verified;
@@ -158,18 +178,31 @@ export async function dispatcherAction(name,args={},{
     }
     if(!await writeOnce(path.join(p.receipts,args.requestId+".reserved.json"),{
       schemaVersion:1,requestId:args.requestId,expectedHead:args.expectedHead,
-      codingGrantId:args.codingGrantId,publicationId:args.publicationId,
+      codingGrantId:args.codingGrantId,
+      ...(combined?{publicationId:args.publicationId}:{}),
+      phase:preparing?"PREPARE":"COMBINED",
       reservedAt:now(),state:"RESERVED_NO_REPLAY"}))
       return blocked("REQUEST_ALREADY_RESERVED_NO_REPLAY",args.requestId);
     let result;
     try {
       // No arguments derived from GitHub issue text; worker checks BOTH private
       // grants independently, and cannot perform automatic merge.
-      result=await execute({grantId:args.codingGrantId,publicationId:args.publicationId});
+      result=preparing
+        ?await prepare({grantId:args.codingGrantId})
+        :await execute({grantId:args.codingGrantId,publicationId:args.publicationId});
     }catch{return {state:"STARTED_UNCONFIRMED",requestId:args.requestId,replayAuthorized:false};}
     // Success requires the verified TWO-grant publication and a correlated
     // durable engineering receipt. A PR-like model response is not evidence.
-    const published=result?.state==="DRAFT_PR_CREATED" &&
+    const prepared=preparing && result?.state==="LOCAL_COMMIT_PREPARED" &&
+      result.grantId===args.codingGrantId && result.sourceHead===args.expectedHead &&
+      result.code==="SYNTAX_CHECK_PASSED_TESTS_PENDING" &&
+      Number.isSafeInteger(result.issueNumber) && result.issueNumber>=1 &&
+      result.issueNumber<=9_999_999 && SHA.test(result.commit||"") &&
+      result.branch==="engineering/"+result.issueNumber+"-"+args.codingGrantId &&
+      result.sourceMutationVerified===true && result.focusedTestExecuted===false &&
+      result.pullRequestCreated===false && result.independentVerification===false &&
+      result.automaticMergeAuthorized===false && result.replayAuthorized===false;
+    const published=combined && result?.state==="DRAFT_PR_CREATED" &&
       result.grantId===args.codingGrantId &&
       result.publicationId===args.publicationId &&
       result.sourceHead===args.expectedHead &&
@@ -182,15 +215,22 @@ export async function dispatcherAction(name,args={},{
       result.independentVerification===false &&
       result.automaticMergeAuthorized===false &&
       result.replayAuthorized===false;
-    const value=published ? {
+    const value=prepared ? {
+      state:"LOCAL_COMMIT_PREPARED",requestId:args.requestId,
+      codingGrantId:args.codingGrantId,sourceHead:args.expectedHead,
+      issueNumber:result.issueNumber,localCommit:result.commit,branch:result.branch,
+      focusedTestExecuted:false,pullRequestCreated:false,replayAuthorized:false,
+      independentVerification:false,automaticMergeAuthorized:false
+    } : published ? {
       state:"DRAFT_PR_CREATED",requestId:args.requestId,prNumber:result.prNumber,
       candidateHead:result.remoteCommit,engineeringReceiptId:result.engineeringReceiptId,
       focusedTestExecuted:false,replayAuthorized:false,independentVerification:false,
       automaticMergeAuthorized:false
-    } : blocked("ENGINEERING_OR_PUBLICATION_RECEIPT_UNVERIFIED",args.requestId);
+    } : blocked(preparing?"PREPARED_CODING_RECEIPT_UNVERIFIED":
+      "ENGINEERING_OR_PUBLICATION_RECEIPT_UNVERIFIED",args.requestId);
     if(!await writeOnce(path.join(p.receipts,args.requestId+".result.json"),value))
       return {state:"STARTED_UNCONFIRMED",requestId:args.requestId,replayAuthorized:false};
-    complete=value.state==="DRAFT_PR_CREATED";
+    complete=value.state==="DRAFT_PR_CREATED"||value.state==="LOCAL_COMMIT_PREPARED";
     return value;
   } finally {
     // Ambiguous work retains the lock. A STOP before reservation cannot have
@@ -203,7 +243,7 @@ export async function dispatcherAction(name,args={},{
   }
 }
 export async function dispatcherRpc(message,{
-  authenticated=false,root,platform,enabled,source,execute,now,
+  authenticated=false,root,platform,enabled,source,execute,prepare,now,
 }={}) {
   if(message?.jsonrpc!=="2.0"||!Object.hasOwn(message,"id"))
     return {jsonrpc:"2.0",id:null,error:{code:-32600,message:"Invalid request"}};
@@ -221,7 +261,7 @@ export async function dispatcherRpc(message,{
   const name=message.params?.name,args=message.params?.arguments??{};
   if(!TOOL_DEFINITIONS.some(x=>x.name===name)||!args||typeof args!=="object")
     return {jsonrpc:"2.0",id,error:{code:-32602,message:"Invalid tool selection"}};
-  const output=await dispatcherAction(name,args,{root,platform,enabled,source,execute,now});
+  const output=await dispatcherAction(name,args,{root,platform,enabled,source,execute,prepare,now});
   return {jsonrpc:"2.0",id,result:{structuredContent:output,
     content:[{type:"text",text:JSON.stringify(output)}],isError:false}};
 }

@@ -129,9 +129,14 @@ export async function dispatcherAction(name,args={},{
     return blocked("REQUEST_ALREADY_RESERVED_NO_REPLAY",args.requestId);
   if(!await writeOnce(p.lock,{requestId:args.requestId,sourceHead:verified.head,at:now()}))
     return blocked("ACTIVE_OR_STALE_EXECUTION_LOCK",args.requestId);
-  let complete=false;
+  let complete=false, stoppedBeforeReservation=false;
   try {
-    if(await stopped(p))return blocked("INTENTIONAL_STOP_OR_PAUSE",args.requestId);
+    // STOP after preflight but before reservation is a known no-work outcome.
+    // Release only our lock; the durable STOP marker remains authoritative.
+    if(await stopped(p)) {
+      stoppedBeforeReservation=true;
+      return blocked("INTENTIONAL_STOP_OR_PAUSE",args.requestId);
+    }
     if(!await writeOnce(path.join(p.receipts,args.requestId+".reserved.json"),{
       schemaVersion:1,requestId:args.requestId,expectedHead:args.expectedHead,
       codingGrantId:args.codingGrantId,publicationId:args.publicationId,
@@ -169,9 +174,10 @@ export async function dispatcherAction(name,args={},{
     complete=value.state==="DRAFT_PR_CREATED";
     return value;
   } finally {
-    // A failure/ambiguous result retains the lock for owner reconciliation.
+    // Ambiguous work retains the lock. A STOP before reservation cannot have
+    // invoked the worker, so release only our owned lock while preserving STOP.
     // Never clean uncertain worktrees, grants, branches, or reservations.
-    if(complete) {
+    if(complete||stoppedBeforeReservation) {
       const lock=await safeRecord(p.lock);
       if(lock?.requestId===args.requestId)await unlink(p.lock).catch(()=>{});
     }

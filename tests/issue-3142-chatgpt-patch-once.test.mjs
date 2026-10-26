@@ -8,6 +8,8 @@ import os from "node:os";
 import path from "node:path";
 import { validateChatEditGrant, prepareChatEditOnce } from
   "../scripts/engineering-team/gateway/chat/owner-chat-edit-once.mjs";
+import { issueFirstChatPilotGrant } from
+  "../scripts/engineering-team/gateway/chat/owner-chat-pilot-grant.mjs";
 import { validateCodingGrant } from
   "../scripts/engineering-team/gateway/authorized-coding-once.mjs";
 import { validatePublicationGrant } from
@@ -188,3 +190,70 @@ test("manual Architecture Verification dispatch checks full accumulated patch, n
   assert.ok(workflow.split(base).length-1 >= 9);
   assert.doesNotMatch(workflow,/github\.event\.pull_request\.base\.sha \|\| github\.event\.before \|\| 'HEAD\^'/);
 });
+
+
+test("Owner console grants one fixed ChatGPT pilot with source/test digest, no API, no replay",()=>fixture(async root=>{
+  const {repo,head}=await createRepo(root);
+  const privateRoot=path.join(root,"conversation-gateway");
+  await mkdir(privateRoot);
+  const now=1900000000,id="e".repeat(32);
+  const options={
+    repoRoot:repo,privateRoot,platform:"win32",interactive:true,
+    consent:"AUTHORIZE_ONE_CHATGPT_SOURCE_EDIT",now:()=>now,
+    newId:()=>id,getSource:async()=>({head,channel:"main"}),
+    git:async args=>{
+      assert.deepEqual(args,["rev-parse","origin/main"]);
+      return head;
+    }
+  };
+  const result=await issueFirstChatPilotGrant(options);
+  assert.equal(result.state,"OWNER_CHAT_GRANT_READY");
+  assert.equal(result.grantId,id);
+  assert.equal(result.issueNumber,3142);
+  assert.equal(result.modelInvoked,false);
+  assert.equal(result.pullRequestCreated,false);
+  assert.equal(result.automaticMergeAuthorized,false);
+  const grant=JSON.parse(await readFile(path.join(privateRoot,"owner-coding-grants",
+    id+".json"),"utf8"));
+  assert.equal(validateChatEditGrant(grant,{head,channel:"main"},now),true);
+  assert.equal(grant.targetPath,target);
+  assert.equal(grant.targetDigest,digest(sourceText));
+  assert.equal(grant.focusedTest,focusedTest);
+  assert.equal(grant.expiresAt,now+1800000);
+  assert.equal(await readFile(path.join(repo,...target.split("/")),"utf8"),sourceText);
+  assert.equal(await git(repo,"rev-parse","HEAD"),head);
+  const repeated=await issueFirstChatPilotGrant({...options,newId:()=>"f".repeat(32)});
+  assert.equal(repeated.state,"BLOCKED");
+  assert.equal(repeated.code,"PILOT_ALREADY_RESERVED_OR_UNVERIFIABLE");
+  await assert.rejects(()=>lstat(path.join(privateRoot,"owner-coding-grants",
+    "f".repeat(32)+".json")),{code:"ENOENT"});
+}));
+test("Owner ChatGPT grant refuses non-console, wrong consent, stale MAIN and intentional STOP without a grant",()=>fixture(async root=>{
+  const {repo,head}=await createRepo(root);
+  const privateRoot=path.join(root,"conversation-gateway");
+  await mkdir(privateRoot);
+  const now=1900000000,id="d".repeat(32);
+  const opts={
+    repoRoot:repo,privateRoot,platform:"win32",interactive:true,
+    consent:"AUTHORIZE_ONE_CHATGPT_SOURCE_EDIT",now:()=>now,
+    newId:()=>id,getSource:async()=>({head,channel:"main"}),
+    git:async()=>head
+  };
+  for(const [update,code] of [
+    [{platform:"linux"},"OWNER_WINDOWS_CONSOLE_REQUIRED"],
+    [{interactive:false},"OWNER_WINDOWS_CONSOLE_REQUIRED"],
+    [{consent:"AUTHORIZE_ONE_ENGINEERING_SOURCE_EDIT"},"EXPLICIT_OWNER_EDIT_CONSENT_REQUIRED"],
+    [{getSource:async()=>({head:"a".repeat(40),channel:"main"})},"EXACT_ORIGIN_MAIN_UNVERIFIABLE"]
+  ]){
+    const r=await issueFirstChatPilotGrant({...opts,...update});
+    assert.equal(r.code,code);
+    assert.equal(r.state,"BLOCKED");
+  }
+  const supervisor=path.join(root,"supervisor");
+  await mkdir(supervisor);
+  await writeFile(path.join(supervisor,"stop-request.json"),"{}");
+  const stopped=await issueFirstChatPilotGrant(opts);
+  assert.equal(stopped.code,"INTENTIONAL_STOP_OR_PAUSE");
+  await assert.rejects(()=>lstat(path.join(privateRoot,"owner-coding-grants",
+    id+".json")),{code:"ENOENT"});
+}));

@@ -11973,6 +11973,34 @@
             "digest": "a76c0a29f82cf8a2e4203cfab4d4b190c713b9c063d795318397f00b8e921dc2"
           }
         ]
+      },
+      {
+        "target": "tests/issue-2264-ben-every-pr.test.mjs",
+        "targetDigest": "046ecf8163c70b24b6402df5af6f340d02541eaa6dcdf8fe91326572e242266f",
+        "catalogueIds": [
+          "verification.phase7-merge-authority"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Static Architecture Verification topology and BEN policy assertions; the approved manual workflow_dispatch full origin/main diff is statically present, but this fixture does not itself prove GitHub Actions execution, BEN findings, a real Windows runner, owner-machine acceptance, or green-only merge.",
+        "inputs": [
+          {
+            "path": ".github/workflows/architecture-shadow.yml",
+            "digest": "a76c0a29f82cf8a2e4203cfab4d4b190c713b9c063d795318397f00b8e921dc2"
+          }
+        ]
       }
     ]
   }

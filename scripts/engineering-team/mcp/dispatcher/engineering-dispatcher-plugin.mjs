@@ -25,6 +25,14 @@ const TOOL_DEFINITIONS = Object.freeze([
     expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
     codingGrantId:{type:"string",pattern:"^[a-f0-9]{32}$"}
   },required:["requestId","expectedHead","codingGrantId"],additionalProperties:false} },
+  { name: "engineering_publish_prepared_once", description: "After a separate owner-issued exact-commit publication grant, publish a previously prepared local commit as a draft PR; never merge or claim independent verification.", inputSchema: {type:"object",properties:{
+    requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+    expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
+    preparedRequestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+    codingGrantId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+    localCommit:{type:"string",pattern:"^[a-f0-9]{40}$"},
+    publicationId:{type:"string",pattern:"^[a-f0-9]{32}$"}
+  },required:["requestId","expectedHead","preparedRequestId","codingGrantId","localCommit","publicationId"],additionalProperties:false} },
   { name: "engineering_execute_once", description: "On the paired Windows owner host, consume TWO existing separate owner grants to execute one coding request and publish only a draft PR. Exact clean main, STOP and write-once no-replay checks apply; no tests or merge are implied.", inputSchema: {type:"object",properties:{
     requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
     expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
@@ -102,7 +110,14 @@ async function receipt(root,id) {
     result.focusedTestExecuted===false && result.pullRequestCreated===false &&
     result.independentVerification===false && result.automaticMergeAuthorized===false &&
     result.replayAuthorized===false;
-  const validPublished=result?.requestId===id && result.state==="DRAFT_PR_CREATED" &&
+  const validPublishBinding=reserved.phase!=="PUBLISH" ||
+    (result?.preparedRequestId===reserved.preparedRequestId &&
+      result?.localCommit===reserved.localCommit &&
+      result?.codingGrantId===reserved.codingGrantId &&
+      result?.publicationId===reserved.publicationId &&
+      result?.sourceHead===reserved.expectedHead);
+  const validPublished=validPublishBinding && result?.requestId===id &&
+    result.state==="DRAFT_PR_CREATED" &&
     Number.isSafeInteger(result.prNumber) && result.prNumber>=1 &&
     result.prNumber<=9_999_999 && SHA.test(result.candidateHead||"") &&
     /^[a-f0-9]{64}$/.test(result.engineeringReceiptId||"") &&
@@ -119,12 +134,36 @@ async function receipt(root,id) {
     independentVerification:false,automaticMergeAuthorized:false};
 }
 
+/**
+ * Publish only an already-prepared private coding receipt. The canonical
+ * publisher still requires a SECOND owner grant pinned to the exact commit,
+ * checks the committed blob/tree and owns GitHub no-replay reservations.
+ * This bridge never issues a grant or reruns the model.
+ */
+async function publishPreviouslyPreparedOnce({grantId,publicationId}) {
+  return runOwnerCodingAndPublishOnce({grantId,publicationId,
+    code:async({grantId:actual})=>{
+      const prepared=await safeRecord(path.join(privateGatewayRoot(),
+        "coding-attempts",actual+".result.json"));
+      if(prepared?.state!=="LOCAL_COMMIT_PREPARED" ||
+        prepared.grantId!==actual || !SHA.test(prepared.commit||"") ||
+        prepared.sourceMutationVerified!==true ||
+        prepared.focusedTestExecuted!==false ||
+        prepared.pullRequestCreated!==false ||
+        prepared.independentVerification!==false ||
+        prepared.replayAuthorized!==false)
+        return blocked("PREPARED_CODING_RECEIPT_UNVERIFIABLE");
+      return prepared;
+    }});
+}
+
 /** Separate control surface; only a locally provisioned owner grant can authorize work. */
 export async function dispatcherAction(name,args={},{
   root=privateGatewayRoot(),platform=process.platform,
   enabled=process.env.PLOTPICKLE_ENGINEERING_DISPATCH_ENABLED==="1",
   source=()=>gatewayAppSource({repoRoot:REPO}),
-  execute=runOwnerCodingAndPublishOnce,prepare=runOwnerCodingOnce,now=Date.now,
+  execute=runOwnerCodingAndPublishOnce,prepare=runOwnerCodingOnce,
+  publish=publishPreviouslyPreparedOnce,now=Date.now,
 }={}) {
   const p=locations(root);
   if(name==="engineering_dispatch_status" && exact(args,[]))return {
@@ -145,13 +184,19 @@ export async function dispatcherAction(name,args={},{
   }
   const preparing=name==="engineering_prepare_once";
   const combined=name==="engineering_execute_once";
-  if((!preparing&&!combined)||!exact(args,preparing
+  const publishing=name==="engineering_publish_prepared_once";
+  if((!preparing&&!combined&&!publishing)||!exact(args,preparing
     ?["requestId","expectedHead","codingGrantId"]
-    :["requestId","expectedHead","codingGrantId","publicationId"])||
+    :publishing
+      ?["requestId","expectedHead","preparedRequestId","codingGrantId","localCommit","publicationId"]
+      :["requestId","expectedHead","codingGrantId","publicationId"])||
       !ID.test(args.requestId||"")||!SHA.test(args.expectedHead||"")||
       !ID.test(args.codingGrantId||"")||
-      (combined&&(!ID.test(args.publicationId||"")||
-        args.codingGrantId===args.publicationId)))
+      ((combined||publishing)&&(!ID.test(args.publicationId||"")||
+        args.codingGrantId===args.publicationId))||
+      (publishing&&(!ID.test(args.preparedRequestId||"")||
+        !SHA.test(args.localCommit||"")||
+        args.preparedRequestId===args.requestId)))
     return blocked("INVALID_EXECUTION_SELECTION");
   if(platform!=="win32"||!enabled)return blocked("DISPATCH_NOT_ENABLED",args.requestId);
   if(await stopped(p))return blocked("INTENTIONAL_STOP_OR_PAUSE",args.requestId);
@@ -159,6 +204,14 @@ export async function dispatcherAction(name,args={},{
   try { verified=await source(); }catch{return blocked("SOURCE_UNVERIFIABLE",args.requestId);}
   if(verified?.head!==args.expectedHead||verified?.channel!=="main")
     return blocked("EXACT_CLEAN_MAIN_REQUIRED",args.requestId);
+  if(publishing) {
+    const prepared=await receipt(root,args.preparedRequestId);
+    if(prepared.state!=="LOCAL_COMMIT_PREPARED" ||
+      prepared.codingGrantId!==args.codingGrantId ||
+      prepared.sourceHead!==args.expectedHead ||
+      prepared.localCommit!==args.localCommit)
+      return blocked("PREPARED_REQUEST_UNVERIFIABLE",args.requestId);
+  }
   try {
     await mkdir(p.receipts,{recursive:true,mode:0o700});
     const st=await lstat(p.receipts);
@@ -179,8 +232,10 @@ export async function dispatcherAction(name,args={},{
     if(!await writeOnce(path.join(p.receipts,args.requestId+".reserved.json"),{
       schemaVersion:1,requestId:args.requestId,expectedHead:args.expectedHead,
       codingGrantId:args.codingGrantId,
-      ...(combined?{publicationId:args.publicationId}:{}),
-      phase:preparing?"PREPARE":"COMBINED",
+      ...((combined||publishing)?{publicationId:args.publicationId}:{}),
+      ...(publishing?{preparedRequestId:args.preparedRequestId,
+        localCommit:args.localCommit}:{}),
+      phase:preparing?"PREPARE":publishing?"PUBLISH":"COMBINED",
       reservedAt:now(),state:"RESERVED_NO_REPLAY"}))
       return blocked("REQUEST_ALREADY_RESERVED_NO_REPLAY",args.requestId);
     let result;
@@ -189,7 +244,9 @@ export async function dispatcherAction(name,args={},{
       // grants independently, and cannot perform automatic merge.
       result=preparing
         ?await prepare({grantId:args.codingGrantId})
-        :await execute({grantId:args.codingGrantId,publicationId:args.publicationId});
+        :publishing
+          ?await publish({grantId:args.codingGrantId,publicationId:args.publicationId})
+          :await execute({grantId:args.codingGrantId,publicationId:args.publicationId});
     }catch{return {state:"STARTED_UNCONFIRMED",requestId:args.requestId,replayAuthorized:false};}
     // Success requires the verified TWO-grant publication and a correlated
     // durable engineering receipt. A PR-like model response is not evidence.
@@ -202,7 +259,8 @@ export async function dispatcherAction(name,args={},{
       result.sourceMutationVerified===true && result.focusedTestExecuted===false &&
       result.pullRequestCreated===false && result.independentVerification===false &&
       result.automaticMergeAuthorized===false && result.replayAuthorized===false;
-    const published=combined && result?.state==="DRAFT_PR_CREATED" &&
+    const published=(combined||publishing) && result?.state==="DRAFT_PR_CREATED" &&
+      (!publishing||result.localCommit===args.localCommit) &&
       result.grantId===args.codingGrantId &&
       result.publicationId===args.publicationId &&
       result.sourceHead===args.expectedHead &&
@@ -223,6 +281,9 @@ export async function dispatcherAction(name,args={},{
       independentVerification:false,automaticMergeAuthorized:false
     } : published ? {
       state:"DRAFT_PR_CREATED",requestId:args.requestId,prNumber:result.prNumber,
+      ...(publishing?{preparedRequestId:args.preparedRequestId,
+        localCommit:args.localCommit,codingGrantId:args.codingGrantId,
+        publicationId:args.publicationId,sourceHead:args.expectedHead}:{}),
       candidateHead:result.remoteCommit,engineeringReceiptId:result.engineeringReceiptId,
       focusedTestExecuted:false,replayAuthorized:false,independentVerification:false,
       automaticMergeAuthorized:false
@@ -243,7 +304,7 @@ export async function dispatcherAction(name,args={},{
   }
 }
 export async function dispatcherRpc(message,{
-  authenticated=false,root,platform,enabled,source,execute,prepare,now,
+  authenticated=false,root,platform,enabled,source,execute,prepare,publish,now,
 }={}) {
   if(message?.jsonrpc!=="2.0"||!Object.hasOwn(message,"id"))
     return {jsonrpc:"2.0",id:null,error:{code:-32600,message:"Invalid request"}};
@@ -261,7 +322,7 @@ export async function dispatcherRpc(message,{
   const name=message.params?.name,args=message.params?.arguments??{};
   if(!TOOL_DEFINITIONS.some(x=>x.name===name)||!args||typeof args!=="object")
     return {jsonrpc:"2.0",id,error:{code:-32602,message:"Invalid tool selection"}};
-  const output=await dispatcherAction(name,args,{root,platform,enabled,source,execute,prepare,now});
+  const output=await dispatcherAction(name,args,{root,platform,enabled,source,execute,prepare,publish,now});
   return {jsonrpc:"2.0",id,result:{structuredContent:output,
     content:[{type:"text",text:JSON.stringify(output)}],isError:false}};
 }

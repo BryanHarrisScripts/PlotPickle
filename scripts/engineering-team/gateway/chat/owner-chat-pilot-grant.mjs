@@ -9,6 +9,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { lstat, mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import process from "node:process";
 import { gatewayAppSource, privateGatewayRoot } from "../gateway-host.mjs";
 import { appendPrivateJsonOnce } from "../receipts/write-once-json.mjs";
@@ -133,7 +134,7 @@ export async function issueFirstChatPilotGrant({
     pullRequestCreated:false,independentVerification:false,
     automaticMergeAuthorized:false};
 }
-if(process.argv[1] && import.meta.url===new URL("file://"+path.resolve(process.argv[1]).replaceAll("\\","/")).href) {
+if(process.argv[1] && import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href) {
   const exact=process.argv.length===3 && process.argv[2]===CONSENT;
   const result=await issueFirstChatPilotGrant({
     consent:exact?CONSENT:null

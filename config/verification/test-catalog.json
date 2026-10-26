@@ -11812,7 +11812,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
-            "digest": "a8f5a775bb3ead50d3011e8dc5a4e78002b727d66c0ee81067eeee9f89e92809"
+            "digest": "1c873941661b28564c6014b7165cd6ff9b23c4928db29b589d73d7e4b40d5001"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -11826,7 +11826,7 @@
       },
       {
         "target": "tests/issue-3142-authorized-pr-publish-once.test.mjs",
-        "targetDigest": "5b98143cfb5d0acff0a082041f9b4789e2c537c79c2731093a20eeff3ce7109b",
+        "targetDigest": "8bc97dfd17660fe836d246af964c5026a6228b2d0d6c8c4f318c5de3eff56903",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11848,7 +11848,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
-            "digest": "a8f5a775bb3ead50d3011e8dc5a4e78002b727d66c0ee81067eeee9f89e92809"
+            "digest": "1c873941661b28564c6014b7165cd6ff9b23c4928db29b589d73d7e4b40d5001"
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",

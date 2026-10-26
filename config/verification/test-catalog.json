@@ -11928,7 +11928,7 @@
       },
       {
         "target": "tests/issue-3142-chatgpt-patch-once.test.mjs",
-        "targetDigest": "47cc4116e7bea6e347e6ba96224bc340ea8d27683e3f4de7fbcdf3c58d470060",
+        "targetDigest": "fb3881375c1976b61967c5643fdbe6f733b5534f674e6e91bf072284faebb8c5",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11946,7 +11946,7 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Only fixed owner-private ChatGPT edit grant and bounded exact text replacement; real local disposable Git worktree/commit in fixture, no actual owner-Windows tool deployment, separate MCP pairing, private grant provisioning, independent owner Windows product proof, credentials, verified source execution, merge or unattended next cycle.",
+        "limits": "Bounded ChatGPT patch and FIXED first-pilot owner-console grant; fixture proof of exact MAIN, target/test SHA-256, one-use no-replay and STOP plus real disposable Git worktree. No live owner machine code execution, connected second plugin, HTTPS pairing, real GitHub draft publication, signed independent Product Gate or merge.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
@@ -11971,6 +11971,10 @@
           {
             "path": ".github/workflows/architecture-shadow.yml",
             "digest": "a76c0a29f82cf8a2e4203cfab4d4b190c713b9c063d795318397f00b8e921dc2"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/chat/owner-chat-pilot-grant.mjs",
+            "digest": "17acb53aa85268821b8d216f3760823bd188fc9bb55d4a9a998a8fa96d22d42c"
           }
         ]
       },

@@ -142,6 +142,15 @@ test('publisher requires separate exact-commit owner authorization; invalid gran
     }
     assert.equal((await publishAuthorizedDraftOnce({ ...options(f, gh.fetchImpl),
       prepared: { ...f.prepared, independentVerification: true } })).state, 'BLOCKED');
+    // A forged or missing automatic-merge authority flag must fail closed.
+    for (const prepared of [
+      { ...f.prepared, automaticMergeAuthorized: true },
+      { ...f.prepared, automaticMergeAuthorized: undefined },
+    ]) {
+      assert.equal((await publishAuthorizedDraftOnce({
+        ...options(f, gh.fetchImpl), prepared,
+      })).state, 'BLOCKED');
+    }
     assert.equal(gh.calls.length, 0);
   }));
 

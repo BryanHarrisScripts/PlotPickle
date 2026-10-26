@@ -12,7 +12,7 @@ import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gatewayAppSource, privateGatewayRoot } from "../../gateway/gateway-host.mjs";
 import { runOwnerCodingOnce, runOwnerCodingAndPublishOnce } from "../../gateway/authorized-coding-once.mjs";
-import { runOwnerChatEditOnce } from "../../gateway/owner-chat-edit-once.mjs";
+import { runOwnerChatEditOnce } from "../../gateway/chat/owner-chat-edit-once.mjs";
 
 // The owner launches the candidate-side MCP bridge WITH cwd pinned to
 // the separately trusted, exact-clean MAIN checkout. Deriving MAIN from this

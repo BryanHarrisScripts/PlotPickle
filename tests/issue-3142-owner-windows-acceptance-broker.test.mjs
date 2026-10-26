@@ -151,3 +151,13 @@ test("a STOP observed after reservation cannot run candidate staging", () =>
     assert.equal(staged, 0);
     assert.equal((await readOwnerAcceptanceReceipt({ root, requestId: ID })).state, "BLOCKED");
   }));
+
+test("foreign broker receipt parent fails closed before candidate staging", () =>
+  useRoot(async root => {
+    await writeFile(path.join(root, "owner-windows-acceptance"), "not a directory");
+    let called = 0;
+    const opts = fake(root, async () => { called++; });
+    const result = await ownerWindowsAcceptanceAction(allowed, opts);
+    assert.equal(result.code, "RECEIPT_DIRECTORY_UNVERIFIABLE");
+    assert.equal(called, 0);
+  }));

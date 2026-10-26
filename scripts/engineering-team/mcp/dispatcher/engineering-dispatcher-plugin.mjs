@@ -328,7 +328,7 @@ export async function dispatcherAction(name,args={},{
       candidateHead:result.remoteCommit,engineeringReceiptId:result.engineeringReceiptId,
       focusedTestExecuted:false,replayAuthorized:false,independentVerification:false,
       automaticMergeAuthorized:false
-    } : blocked(preparing?"PREPARED_CODING_RECEIPT_UNVERIFIED":
+    } : blocked((preparing||chatting)?"PREPARED_CODING_RECEIPT_UNVERIFIED":
       "ENGINEERING_OR_PUBLICATION_RECEIPT_UNVERIFIED",args.requestId);
     if(!await writeOnce(path.join(p.receipts,args.requestId+".result.json"),value))
       return {state:"STARTED_UNCONFIRMED",requestId:args.requestId,replayAuthorized:false};

@@ -97,6 +97,14 @@ export async function ownerWindowsAcceptanceAction(args, {
   stage = stageFactoryCandidatePr, capacity = assessCandidateStageCount,
   lock = observeCandidateStageLock, now = Date.now,
 } = {}) {
+  // An owner-local, explicitly selected trusted MAIN path is required when
+  // the reviewed broker is executed from an isolated preview of an unmerged PR.
+  // This path is never accepted through MCP, GitHub issue text or a queue.
+  if (args?.mainRoot !== undefined) {
+    if (typeof args.mainRoot !== "string" || !path.isAbsolute(args.mainRoot))
+      return blocked("TRUSTED_MAIN_PATH_INVALID");
+    repoRoot = path.resolve(args.mainRoot);
+  }
   if (args?.action === "receipt")
     return readOwnerAcceptanceReceipt({ root, requestId: args.requestId });
   if (args?.action === "status") {
@@ -181,10 +189,15 @@ export async function ownerWindowsAcceptanceAction(args, {
 
 function parseCli(argv) {
   if (argv.length === 1 && argv[0] === "--status") return { action: "status" };
+  if (argv.length === 3 && argv[0] === "--status" && argv[1] === "--main-root")
+    return { action: "status", mainRoot: argv[2] };
   if (argv.length === 2 && argv[0] === "--receipt") return { action: "receipt", requestId: argv[1] };
-  if (argv.length === 6 && argv[0] === "--stage") return {
+  // No implicit repo selection for an owner stage: the code checkout and
+  // clean trusted MAIN must be independently identified by the operator.
+  if (argv.length === 8 && argv[0] === "--stage" && argv[6] === "--main-root") return {
     action: "stage", candidatePrNumber: Number(argv[1]), candidateHead: argv[2],
     expectedHead: argv[3], requestId: argv[4], consent: argv[5],
+    mainRoot: argv[7],
   };
   return null;
 }

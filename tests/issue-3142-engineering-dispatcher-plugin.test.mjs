@@ -190,7 +190,8 @@ test("MCP call has a bounded input surface and independent service injection",as
     assert.equal(calls,1);
     const list=await dispatcherRpc({jsonrpc:"2.0",id:"2",method:"tools/list"},
       {authenticated:true,...options});
-    assert.equal(list.result.tools.length,6);
+    assert.equal(list.result.tools.length,7);
+    assert.equal(list.result.tools.some(x=>x.name==="engineering_apply_chat_patch_once"),true);
     assert.equal(list.result.tools.some(x=>x.name.includes("merge")),false);
   });
 });
@@ -450,5 +451,79 @@ test("STOP during reservation fsync prevents worker invocation and leaves no rep
       "INTENTIONAL_STOP_OR_PAUSE");
     assert.equal(calls,0);
     assert.equal((await lstat(stopFile)).isFile(),true);
+  });
+});
+
+test("owner-granted ChatGPT patch prepares only a source-bound commit without model or publication",async()=>{
+  await harness(async root=>{
+    let patchCalls=0,combinedCalls=0;
+    const proposal={oldText:"const oldValue = 1;",newText:"const oldValue = 2;"};
+    const selection={requestId:id(60),expectedHead:HEAD,codingGrantId:id(2),...proposal};
+    const opts={...services(root,async()=>{combinedCalls++;throw Error("must not publish");}),
+      chatPatch:async({grantId,proposal:actual})=>{
+        patchCalls++;
+        assert.equal(grantId,id(2));
+        assert.deepEqual(actual,proposal);
+        return {state:"LOCAL_COMMIT_PREPARED",code:"SYNTAX_CHECK_PASSED_TESTS_PENDING",
+          grantId,issueNumber:3142,sourceHead:HEAD,commit:"f".repeat(40),
+          branch:"engineering/3142-"+grantId,sourceMutationVerified:true,
+          focusedTestExecuted:false,pullRequestCreated:false,
+          independentVerification:false,automaticMergeAuthorized:false,
+          replayAuthorized:false,modelInvoked:false,
+          editOrigin:"authenticated-chat-proposal"};
+      }};
+    const prepared=await dispatcherAction("engineering_apply_chat_patch_once",selection,opts);
+    assert.equal(prepared.state,"LOCAL_COMMIT_PREPARED");
+    assert.equal(prepared.editOrigin,"authenticated-chat-proposal");
+    assert.equal(prepared.modelInvoked,false);
+    assert.equal(prepared.pullRequestCreated,false);
+    assert.equal(prepared.independentVerification,false);
+    assert.equal(patchCalls,1);
+    assert.equal(combinedCalls,0);
+    const receipt=await dispatcherAction("engineering_dispatch_receipt",
+      {requestId:id(60)},opts);
+    assert.deepEqual(receipt,prepared);
+    const reservation=JSON.parse(await readFile(path.join(root,"engineering-dispatcher",
+      "requests",id(60)+".reserved.json"),"utf8"));
+    assert.equal(reservation.phase,"CHAT_PATCH");
+    assert.equal((await dispatcherAction("engineering_apply_chat_patch_once",
+      selection,opts)).code,"REQUEST_ALREADY_RESERVED_NO_REPLAY");
+    assert.equal(patchCalls,1);
+    const resultFile=path.join(root,"engineering-dispatcher","requests",
+      id(60)+".result.json");
+    await writeFile(resultFile,JSON.stringify({...receipt,modelInvoked:true})+"\\n");
+    assert.equal((await dispatcherAction("engineering_dispatch_receipt",
+      {requestId:id(60)},opts)).state,"STARTED_UNCONFIRMED");
+  });
+});
+
+test("ChatGPT patch cannot promote a model-invoked or unattributed commit",async()=>{
+  await harness(async root=>{
+    let calls=0;
+    const opts={...services(root,async()=>{throw Error("must not publish");}),
+      chatPatch:async({grantId})=>{
+        calls++;
+        return {state:"LOCAL_COMMIT_PREPARED",code:"SYNTAX_CHECK_PASSED_TESTS_PENDING",
+          grantId,issueNumber:3142,sourceHead:HEAD,commit:"f".repeat(40),
+          branch:"engineering/3142-"+grantId,sourceMutationVerified:true,
+          focusedTestExecuted:false,pullRequestCreated:false,
+          independentVerification:false,automaticMergeAuthorized:false,
+          replayAuthorized:false,modelInvoked:true,
+          editOrigin:"authenticated-chat-proposal"};
+      }};
+    const selection={requestId:id(61),expectedHead:HEAD,codingGrantId:id(2),
+      oldText:"const oldValue = 1;",newText:"const oldValue = 2;"};
+    const outcome=await dispatcherAction("engineering_apply_chat_patch_once",selection,opts);
+    assert.equal(outcome.state,"BLOCKED");
+    assert.equal(outcome.code,"PREPARED_CODING_RECEIPT_UNVERIFIED");
+    assert.equal((await dispatcherAction("engineering_dispatch_receipt",
+      {requestId:id(61)},opts)).state,"BLOCKED");
+    assert.equal(calls,1);
+    const lock=JSON.parse(await readFile(path.join(root,"engineering-dispatcher",
+      "running.lock"),"utf8"));
+    assert.equal(lock.requestId,id(61));
+    assert.equal((await dispatcherAction("engineering_apply_chat_patch_once",
+      {...selection,requestId:id(62)},opts)).code,"ACTIVE_OR_STALE_EXECUTION_LOCK");
+    assert.equal(calls,1);
   });
 });

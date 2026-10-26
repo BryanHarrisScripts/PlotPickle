@@ -11790,7 +11790,7 @@
       },
       {
         "target": "tests/issue-3142-authorized-publish-once.test.mjs",
-        "targetDigest": "e785f4896c3bcb3198eb390ebbcf53b14699ee49a97a6ac9acb839a20ec35bcc",
+        "targetDigest": "d454f937e9a1738a4095a66bdf1ea1f41490b6e63eb888ad45c248adf73f60b3",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],

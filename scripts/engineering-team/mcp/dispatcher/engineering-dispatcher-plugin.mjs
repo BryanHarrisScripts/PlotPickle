@@ -12,6 +12,7 @@ import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gatewayAppSource, privateGatewayRoot } from "../../gateway/gateway-host.mjs";
 import { runOwnerCodingOnce, runOwnerCodingAndPublishOnce } from "../../gateway/authorized-coding-once.mjs";
+import { runOwnerChatEditOnce } from "../../gateway/owner-chat-edit-once.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const ID = /^[a-f0-9]{32}$/;
@@ -20,6 +21,14 @@ const MAX_BODY = 8192;
 const PROTOCOL = "2025-06-18";
 const TOOL_DEFINITIONS = Object.freeze([
   { name: "engineering_dispatch_status", description: "Read local execution grant/STOP/lock readiness. Does not claim the Factory is online.", inputSchema: {type:"object",properties:{},additionalProperties:false} },
+  { name: "engineering_apply_chat_patch_once", description: "Apply ONE bounded ChatGPT-authored exact substitution through a separate private one-use owner chat-edit grant. Commits to an isolated local branch; never runs source, calls a model API, publishes, or merges.", inputSchema: {type:"object",properties:{
+    requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+    expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
+    codingGrantId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+    oldText:{type:"string",minLength:8,maxLength:3000},
+    newText:{type:"string",minLength:1,maxLength:3000}
+  },required:["requestId","expectedHead","codingGrantId","oldText","newText"],
+    additionalProperties:false} },
   { name: "engineering_prepare_once", description: "Use one existing owner coding grant to prepare an exact-head local commit. Returns the previously unknown commit for a SEPARATE exact-commit publication grant; never publishes, tests or merges.", inputSchema: {type:"object",properties:{
     requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
     expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
@@ -101,7 +110,8 @@ async function receipt(root,id) {
   }
   const result=await safeRecord(path.join(p.receipts,id+".result.json"));
   const validPrepared=result?.requestId===id && result.state==="LOCAL_COMMIT_PREPARED" &&
-    reserved.phase==="PREPARE" && reserved.codingGrantId===result.codingGrantId &&
+    (reserved.phase==="PREPARE" || reserved.phase==="CHAT_PATCH") &&
+    reserved.codingGrantId===result.codingGrantId &&
     reserved.expectedHead===result.sourceHead &&
     ID.test(result.codingGrantId||"") && SHA.test(result.localCommit||"") &&
     Number.isSafeInteger(result.issueNumber) && result.issueNumber>=1 &&
@@ -167,7 +177,7 @@ export async function dispatcherAction(name,args={},{
   enabled=process.env.PLOTPICKLE_ENGINEERING_DISPATCH_ENABLED==="1",
   source=()=>gatewayAppSource({repoRoot:REPO}),
   execute=runOwnerCodingAndPublishOnce,prepare=runOwnerCodingOnce,
-  publish=publishPreviouslyPreparedOnce,now=Date.now,
+  chatPatch=runOwnerChatEditOnce,publish=publishPreviouslyPreparedOnce,now=Date.now,
 }={}) {
   const p=locations(root);
   if(name==="engineering_dispatch_status" && exact(args,[]))return {
@@ -187,15 +197,22 @@ export async function dispatcherAction(name,args={},{
     return {state:"STOP_REQUESTED",replayAuthorized:false,inFlightMayContinue:true};
   }
   const preparing=name==="engineering_prepare_once";
+  const chatting=name==="engineering_apply_chat_patch_once";
   const combined=name==="engineering_execute_once";
   const publishing=name==="engineering_publish_prepared_once";
-  if((!preparing&&!combined&&!publishing)||!exact(args,preparing
-    ?["requestId","expectedHead","codingGrantId"]
+  if((!preparing&&!chatting&&!combined&&!publishing)||!exact(args,chatting
+    ?["requestId","expectedHead","codingGrantId","oldText","newText"]
+    :preparing
+      ?["requestId","expectedHead","codingGrantId"]
     :publishing
       ?["requestId","expectedHead","preparedRequestId","codingGrantId","localCommit","publicationId"]
       :["requestId","expectedHead","codingGrantId","publicationId"])||
       !ID.test(args.requestId||"")||!SHA.test(args.expectedHead||"")||
       !ID.test(args.codingGrantId||"")||
+      (chatting&&(typeof args.oldText!=="string"||
+        args.oldText.length<8||args.oldText.length>3000||
+        typeof args.newText!=="string"||args.newText.length<1||
+        args.newText.length>3000||args.oldText===args.newText))||
       ((combined||publishing)&&(!ID.test(args.publicationId||"")||
         args.codingGrantId===args.publicationId))||
       (publishing&&(!ID.test(args.preparedRequestId||"")||
@@ -239,7 +256,7 @@ export async function dispatcherAction(name,args={},{
       ...((combined||publishing)?{publicationId:args.publicationId}:{}),
       ...(publishing?{preparedRequestId:args.preparedRequestId,
         localCommit:args.localCommit}:{}),
-      phase:preparing?"PREPARE":publishing?"PUBLISH":"COMBINED",
+      phase:chatting?"CHAT_PATCH":preparing?"PREPARE":publishing?"PUBLISH":"COMBINED",
       reservedAt:now(),state:"RESERVED_NO_REPLAY"}))
       return blocked("REQUEST_ALREADY_RESERVED_NO_REPLAY",args.requestId);
     // A STOP can arrive while the write-once reservation is being fsynced.
@@ -256,15 +273,18 @@ export async function dispatcherAction(name,args={},{
     try {
       // No arguments derived from GitHub issue text; worker checks BOTH private
       // grants independently, and cannot perform automatic merge.
-      result=preparing
-        ?await prepare({grantId:args.codingGrantId})
-        :publishing
+      result=chatting
+        ?await chatPatch({grantId:args.codingGrantId,
+          proposal:{oldText:args.oldText,newText:args.newText}})
+        :preparing
+          ?await prepare({grantId:args.codingGrantId})
+          :publishing
           ?await publish({grantId:args.codingGrantId,publicationId:args.publicationId})
           :await execute({grantId:args.codingGrantId,publicationId:args.publicationId});
     }catch{return {state:"STARTED_UNCONFIRMED",requestId:args.requestId,replayAuthorized:false};}
     // Success requires the verified TWO-grant publication and a correlated
     // durable engineering receipt. A PR-like model response is not evidence.
-    const prepared=preparing && result?.state==="LOCAL_COMMIT_PREPARED" &&
+    const prepared=(preparing||chatting) && result?.state==="LOCAL_COMMIT_PREPARED" &&
       result.grantId===args.codingGrantId && result.sourceHead===args.expectedHead &&
       result.code==="SYNTAX_CHECK_PASSED_TESTS_PENDING" &&
       Number.isSafeInteger(result.issueNumber) && result.issueNumber>=1 &&
@@ -319,7 +339,7 @@ export async function dispatcherAction(name,args={},{
   }
 }
 export async function dispatcherRpc(message,{
-  authenticated=false,root,platform,enabled,source,execute,prepare,publish,now,
+  authenticated=false,root,platform,enabled,source,execute,prepare,chatPatch,publish,now,
 }={}) {
   if(message?.jsonrpc!=="2.0"||!Object.hasOwn(message,"id"))
     return {jsonrpc:"2.0",id:null,error:{code:-32600,message:"Invalid request"}};
@@ -337,7 +357,7 @@ export async function dispatcherRpc(message,{
   const name=message.params?.name,args=message.params?.arguments??{};
   if(!TOOL_DEFINITIONS.some(x=>x.name===name)||!args||typeof args!=="object")
     return {jsonrpc:"2.0",id,error:{code:-32602,message:"Invalid tool selection"}};
-  const output=await dispatcherAction(name,args,{root,platform,enabled,source,execute,prepare,publish,now});
+  const output=await dispatcherAction(name,args,{root,platform,enabled,source,execute,prepare,chatPatch,publish,now});
   return {jsonrpc:"2.0",id,result:{structuredContent:output,
     content:[{type:"text",text:JSON.stringify(output)}],isError:false}};
 }

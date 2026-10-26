@@ -47,11 +47,19 @@ async function writeOnce(filename, value) {
   finally { await file?.close().catch(() => {}); }
 }
 async function safeReceiptDirectory(root) {
-  const dir = receiptDir(root);
-  await mkdir(dir, { recursive: true, mode: 0o700 });
-  const stat = await lstat(dir);
-  if (!stat.isDirectory() || stat.isSymbolicLink()) throw Error("RECEIPT_DIRECTORY_UNVERIFIABLE");
-  return dir;
+  // Never follow a user-planted junction/symlink into another private domain.
+  // The canonical Factory root must already exist; no arbitrary root creation.
+  const parent = path.join(root, "owner-windows-acceptance");
+  for (const dir of [root, parent, receiptDir(root)]) {
+    if (dir !== root) {
+      try { await mkdir(dir, { mode: 0o700 }); }
+      catch (error) { if (error?.code !== "EEXIST") throw error; }
+    }
+    const stat = await lstat(dir);
+    if (!stat.isDirectory() || stat.isSymbolicLink())
+      throw Error("RECEIPT_DIRECTORY_UNVERIFIABLE");
+  }
+  return receiptDir(root);
 }
 
 /** Read-only result: missing is distinct from a damaged or ambiguous record. */

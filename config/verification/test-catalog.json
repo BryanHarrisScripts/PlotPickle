@@ -4245,7 +4245,8 @@
           "tests/issue-3142-authorized-coding-once.test.mjs",
           "tests/issue-3142-authorized-publish-once.test.mjs",
           "tests/issue-3142-authorized-pr-publish-once.test.mjs",
-          "tests/issue-3302-two-receipt-verifier.test.mjs"
+          "tests/issue-3302-two-receipt-verifier.test.mjs",
+          "tests/issue-3142-owner-windows-acceptance-broker.test.mjs"
         ]
       },
       "cost": "fast",
@@ -11893,6 +11894,49 @@
           {
             "path": "scripts/engineering-team/gateway/receipts/write-once-json.mjs",
             "digest": "e93a45ace974f9b53544b9544bd4e97eef6c475ec4f01ff77ef947c8d4316131"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-owner-windows-acceptance-broker.test.mjs",
+        "targetDigest": "c9efbd49c123ba886815695d9d9b42a9e8eaca176d5c2421132a6bab5691a3a2",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Injected local-console owner authorization, exact clean-MAIN and supervisor STOP/PAUSE/heartbeat checks, bounded PR identity, immutable read-back, uncertain no-replay and static-stage non-promotion. Does not prove an owner-machine call, paid model invocation, real candidate checkout, independent signed verifier, process-tree STOP, product acceptance or merge.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/acceptance/owner-windows-acceptance.mjs",
+            "digest": "42e277cfa224c10ed0526b60b27d27998622afdc9c969a417000204e3b83ee7f"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
+            "digest": "d05d01028d0473765bb7f20f60d306f73f74832c552cddfb696d91b853130054"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/storage/factory-stage-budget.mjs",
+            "digest": "accb3c96c6f1970324fc0fcd94470b9ff340470abdc4ecbce096954bf0f40c36"
+          },
+          {
+            "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
+            "digest": "681dba56405951e7fa15df41fda4dce6b9e4c09f67396d4aeca5043fac607862"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "412088470a65d0d75dc689ce712aff3247399dfb7d1a4ccda725eb6ac3e1f199"
           }
         ]
       }

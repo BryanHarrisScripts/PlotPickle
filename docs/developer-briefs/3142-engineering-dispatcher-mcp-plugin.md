@@ -39,3 +39,27 @@ The MCP server never invokes the ChatGPT conversation model itself. Its editOrig
 The source-bound patch operation requires a private one-use engineering-chat-edit-once grant with explicit owner consent, exact source SHA, file digest, focused test and expiry. Existing publisher requires a second grant fixed to the resulting exact commit and scoped owner-side GitHub authorization. Those grants must come from owner-controlled policy; no issue prose, ChatGPT-generated body or MCP caller may silently create authority. Plugin installation, delegated owner grant provisioning, independent signer/Product Gate and controlled GitHub publication remain release dependencies.
 
 **Acceptance:** prove exact-head CI and native Windows regression first; separately deploy and pair this custom authenticated plugin through a supported owner-approved route; prove one genuine live issue patch, source/PR/test receipts, independent owner-Windows acceptance and authorized merge; stop after the single issue. Fixture success alone cannot complete #3142. Preserve #3311 proof and all legacy blocked non-replayable reservations.
+
+
+## First owner-console ChatGPT grant — separate from connector deployment
+
+The independently successful hosted run for an earlier #3314 head was GitHub Actions `40356337275` at `81745a565a6792ac30f9f3035b50bb8ebf9f28bc` (11 executed jobs green, 4 impact-selected skipped). **Any edits after that exact SHA require a new CI run; the old green run is not accepted for changed source.** Separately, the existing live Factory tunnel's `factory-pr-head` safely confirmed #3311 exact parent `4e1ac0e2cc55402c227ee7cca8cf42d82565f003` against clean MAIN `340dbeb0916a35eec37ae2aa9f078a53d9678b57`, request `8c1e3e0f94a64a2da1f9f534c7a8e091`, `CANDIDATE_HEAD_VERIFIED`. That is identity proof, **not** an owner Product Gate.
+
+The next optional local owner-only operation lives in `scripts/engineering-team/gateway/chat/owner-chat-pilot-grant.mjs`. A reviewed, pinned C:-drive PR preview must contain that script, independently verified against the current GitHub PR #3314 head. It must execute with the **separate clean, trusted MAIN checkout as its working directory** and a real owner-interactive Windows console. No remote MCP request or ChatGPT message may issue this grant. The exact local consent is `AUTHORIZE_ONE_CHATGPT_SOURCE_EDIT`; the CLI accepts that one consent value and no issue prose, filenames, model names, API tokens or arbitrary commands.
+
+This first proof is FIXED to issue **#3142**, source `scripts/engineering-team/mcp/factory-observer.mjs`, and already tracked focused test `tests/issue-3154-chatgpt-factory-mcp.test.mjs`. It derives the target's SHA-256 from clean MAIN, checks `origin/main`, checks STOP/PAUSE, issues a cryptographically random 32-hex grant ID, and fsyncs a private, 30-minute `engineering-chat-edit-once` grant. A durable `.pilot-3142-chat-reserved.json` marker allows **at most one grant**, even if a process dies between writes. There is no retry/overwrite/cleanup bypass. Only the grant ID and sanitized metadata may be returned to ChatGPT. A grant is **not** a source mutation or execution receipt; once issued, the authenticated dispatcher must still validate the source, STOP, reservation, file digest and exact replacement, and must never execute generated code.
+
+Illustrative owner-console command *only after* current-head CI, review of a pinned PR preview and supported plugin pairing:
+```powershell
+$main = 'C:\Users\bryan\PlotPickle'
+$candidate = '<owner-reviewed pinned #3314 preview root>'
+$grantIssuer = Join-Path $candidate 'scripts\engineering-team\gateway\chat\owner-chat-pilot-grant.mjs'
+Push-Location $main
+try {
+    & node $grantIssuer AUTHORIZE_ONE_CHATGPT_SOURCE_EDIT
+    if ($LASTEXITCODE -ne 0) { throw 'OWNER_CHAT_PILOT_GRANT_NOT_ISSUED' }
+} finally { Pop-Location }
+```
+Do **not** run the command against a guessed path or detached preview as cwd; it is not a deployment shortcut. If private owner storage does not exist/is not verified, the issuer blocks instead of creating arbitrary roots. No ChatGPT or OpenAI API key is required by this ChatGPT grant route.
+
+**Still missing:** an owner-reviewed, independently paired HTTPS-to-loopback proxy which authenticates the actual ChatGPT plugin owner and privately injects `x-plotpickle-engineering-dispatch-token`. The new plugin only binds `127.0.0.1:43116/mcp` and must never be directly published to the public internet, have its token pasted in chat/GitHub or accept caller-controlled forwarding headers. The existing Factory tunnel has not acquired these seven tools. Product acceptance also requires the separate local draft publication grant/token, focused tests on the edited worktree, signed independent Windows witness and an exact-head PR Gate. Both #3311 and #3314 stay draft until proven; after a single accepted issue cycle, STOP.

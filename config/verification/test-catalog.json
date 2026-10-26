@@ -11900,7 +11900,7 @@
       },
       {
         "target": "tests/issue-3142-engineering-dispatcher-plugin.test.mjs",
-        "targetDigest": "364e8a082c9848db2a1b03b2c14cdf90b855522c216ee52d5b017321fbbbbe2b",
+        "targetDigest": "4414129e0089184ca37c4d838d379120ca27255076ba070f1b58c7a2095bc53e",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],

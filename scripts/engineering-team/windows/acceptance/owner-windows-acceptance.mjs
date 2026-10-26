@@ -8,7 +8,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { mkdir, lstat, open, readFile } from "node:fs/promises";
-import { randomBytes } from "node:crypto";
 import { privateFactoryRoot, observeCandidateStageLock } from "../../mcp/factory-readonly-server.mjs";
 import { assessCandidateStageCount } from "../../mcp/storage/factory-stage-budget.mjs";
 import { inspectFactoryCandidatePr, readFactoryVerificationHead, stageFactoryCandidatePr } from "../../mcp/factory-named-tests.mjs";

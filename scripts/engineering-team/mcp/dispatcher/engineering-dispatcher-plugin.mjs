@@ -242,6 +242,16 @@ export async function dispatcherAction(name,args={},{
       phase:preparing?"PREPARE":publishing?"PUBLISH":"COMBINED",
       reservedAt:now(),state:"RESERVED_NO_REPLAY"}))
       return blocked("REQUEST_ALREADY_RESERVED_NO_REPLAY",args.requestId);
+    // A STOP can arrive while the write-once reservation is being fsynced.
+    // Recheck before invoking the worker; a proven no-work STOP is terminal
+    // and may release only this request's lock, never its reservation.
+    if(await stopped(p)) {
+      const refused=blocked("INTENTIONAL_STOP_OR_PAUSE",args.requestId);
+      if(!await writeOnce(path.join(p.receipts,args.requestId+".result.json"),refused))
+        return {state:"STARTED_UNCONFIRMED",requestId:args.requestId,replayAuthorized:false};
+      complete=true;
+      return refused;
+    }
     let result;
     try {
       // No arguments derived from GitHub issue text; worker checks BOTH private

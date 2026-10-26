@@ -151,7 +151,7 @@ test("MCP call has a bounded input surface and independent service injection",as
     assert.equal(calls,1);
     const list=await dispatcherRpc({jsonrpc:"2.0",id:"2",method:"tools/list"},
       {authenticated:true,...options});
-    assert.equal(list.result.tools.length,5);
+    assert.equal(list.result.tools.length,6);
     assert.equal(list.result.tools.some(x=>x.name.includes("merge")),false);
   });
 });
@@ -288,5 +288,101 @@ test("damaged prepared receipt never reports a known local commit",async()=>{
     const result=await dispatcherAction("engineering_dispatch_receipt",
       {requestId:id(24)},opts);
     assert.equal(result.state,"STARTED_UNCONFIRMED");
+  });
+});
+
+test("a newly discovered commit can be published only after separate exact-commit grant",async()=>{
+  await harness(async root=>{
+    const commit="f".repeat(40);
+    let prepared=false,publications=0;
+    const opts={...services(root,async()=>{throw Error("combined path not allowed");}),
+      prepare:async({grantId})=>{
+        assert.equal(grantId,id(2));
+        prepared=true;
+        return {state:"LOCAL_COMMIT_PREPARED",
+          code:"SYNTAX_CHECK_PASSED_TESTS_PENDING",grantId,
+          issueNumber:3142,sourceHead:HEAD,commit,
+          branch:"engineering/3142-"+grantId,sourceMutationVerified:true,
+          focusedTestExecuted:false,pullRequestCreated:false,
+          independentVerification:false,automaticMergeAuthorized:false,
+          replayAuthorized:false};
+      },
+      publish:async({grantId,publicationId})=>{
+        publications++;
+        assert.equal(prepared,true);
+        assert.deepEqual({grantId,publicationId},{grantId:id(2),publicationId:id(3)});
+        return {state:"DRAFT_PR_CREATED",prNumber:3315,remoteCommit:"b".repeat(40),
+          localCommit:commit,grantId,publicationId,sourceHead:HEAD,
+          pullRequestCreated:true,engineeringReceiptId:"d".repeat(64),
+          focusedTestExecuted:false,independentVerification:false,
+          automaticMergeAuthorized:false,replayAuthorized:false};
+      }};
+    const selection={requestId:id(31),expectedHead:HEAD,
+      preparedRequestId:id(30),codingGrantId:id(2),
+      localCommit:commit,publicationId:id(3)};
+    const before=await dispatcherAction("engineering_publish_prepared_once",selection,opts);
+    assert.equal(before.code,"PREPARED_REQUEST_UNVERIFIABLE");
+    assert.equal(publications,0);
+    const prep=await dispatcherAction("engineering_prepare_once",
+      {requestId:id(30),expectedHead:HEAD,codingGrantId:id(2)},opts);
+    assert.equal(prep.state,"LOCAL_COMMIT_PREPARED");
+    assert.equal(prep.localCommit,commit);
+    const wrong=await dispatcherAction("engineering_publish_prepared_once",
+      {...selection,localCommit:"e".repeat(40)},opts);
+    assert.equal(wrong.code,"PREPARED_REQUEST_UNVERIFIABLE");
+    const wrongGrant=await dispatcherAction("engineering_publish_prepared_once",
+      {...selection,codingGrantId:id(99)},opts);
+    assert.equal(wrongGrant.code,"PREPARED_REQUEST_UNVERIFIABLE");
+    assert.equal(publications,0);
+    const published=await dispatcherAction("engineering_publish_prepared_once",selection,opts);
+    assert.equal(published.state,"DRAFT_PR_CREATED");
+    assert.equal(published.localCommit,commit);
+    assert.equal(published.preparedRequestId,id(30));
+    assert.equal(published.automaticMergeAuthorized,false);
+    assert.equal(published.independentVerification,false);
+    assert.equal(publications,1);
+    const receipt=await dispatcherAction("engineering_dispatch_receipt",
+      {requestId:id(31)},opts);
+    assert.deepEqual(receipt,published);
+    assert.equal((await dispatcherAction("engineering_publish_prepared_once",
+      selection,opts)).code,"REQUEST_ALREADY_RESERVED_NO_REPLAY");
+    assert.equal(publications,1);
+  });
+});
+
+test("publish-prepared rejects an uncorrelated publisher response without replay",async()=>{
+  await harness(async root=>{
+    let publications=0;
+    const opts={...services(root,async()=>{throw Error("combined must not run");}),
+      prepare:async({grantId})=>({state:"LOCAL_COMMIT_PREPARED",
+        code:"SYNTAX_CHECK_PASSED_TESTS_PENDING",grantId,
+        issueNumber:3142,sourceHead:HEAD,commit:"f".repeat(40),
+        branch:"engineering/3142-"+grantId,sourceMutationVerified:true,
+        focusedTestExecuted:false,pullRequestCreated:false,
+        independentVerification:false,automaticMergeAuthorized:false,
+        replayAuthorized:false}),
+      publish:async({grantId,publicationId})=>{
+        publications++;
+        return {state:"DRAFT_PR_CREATED",prNumber:3315,remoteCommit:"b".repeat(40),
+          localCommit:"e".repeat(40),grantId,publicationId,sourceHead:HEAD,
+          pullRequestCreated:true,engineeringReceiptId:"d".repeat(64),
+          focusedTestExecuted:false,independentVerification:false,
+          automaticMergeAuthorized:false,replayAuthorized:false};
+      }};
+    await dispatcherAction("engineering_prepare_once",
+      {requestId:id(40),expectedHead:HEAD,codingGrantId:id(2)},opts);
+    const selection={requestId:id(41),expectedHead:HEAD,
+      preparedRequestId:id(40),codingGrantId:id(2),
+      localCommit:"f".repeat(40),publicationId:id(3)};
+    const result=await dispatcherAction("engineering_publish_prepared_once",selection,opts);
+    assert.equal(result.code,"ENGINEERING_OR_PUBLICATION_RECEIPT_UNVERIFIED");
+    assert.equal((await dispatcherAction("engineering_dispatch_receipt",
+      {requestId:id(41)},opts)).state,"BLOCKED");
+    assert.equal((await dispatcherAction("engineering_publish_prepared_once",
+      selection,opts)).code,"REQUEST_ALREADY_RESERVED_NO_REPLAY");
+    assert.equal(publications,1);
+    const lock=JSON.parse(await readFile(path.join(root,"engineering-dispatcher",
+      "running.lock"),"utf8"));
+    assert.equal(lock.requestId,id(41));
   });
 });

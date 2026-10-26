@@ -61,6 +61,44 @@ test("one authorized request calls only the fixed worker and returns no merge au
   });
 });
 
+test("combined publication receipts never promote mismatched owner-grant bindings",async()=>{
+  await harness(async root=>{
+    const opts=services(root,async()=>({
+      state:"DRAFT_PR_CREATED",prNumber:3333,remoteCommit:"b".repeat(40),
+      grantId:id(2),publicationId:id(3),sourceHead:HEAD,pullRequestCreated:true,
+      engineeringReceiptId:"d".repeat(64),focusedTestExecuted:false,
+      independentVerification:false,automaticMergeAuthorized:false,
+      replayAuthorized:false
+    }));
+    const published=await dispatcherAction("engineering_execute_once",args,opts);
+    assert.equal(published.state,"DRAFT_PR_CREATED");
+    const file=path.join(root,"engineering-dispatcher","requests",
+      id(1)+".result.json");
+    const original=JSON.parse(await readFile(file,"utf8"));
+    assert.equal(original.codingGrantId,id(2));
+    assert.equal(original.publicationId,id(3));
+    assert.equal(original.sourceHead,HEAD);
+    const corrupt=[
+      {...original,codingGrantId:id(99)},
+      {...original,publicationId:id(99)},
+      {...original,sourceHead:"b".repeat(40)},
+      Object.fromEntries(Object.entries(original).filter(([key])=>
+        key!=="codingGrantId"))
+    ];
+    for(const record of corrupt) {
+      await writeFile(file,JSON.stringify(record)+"\\n");
+      const observed=await dispatcherAction("engineering_dispatch_receipt",
+        {requestId:id(1)},opts);
+      assert.equal(observed.state,"STARTED_UNCONFIRMED");
+      assert.equal(observed.replayAuthorized,false);
+      assert.equal(observed.independentVerification,false);
+    }
+    await writeFile(file,JSON.stringify(original)+"\\n");
+    assert.equal((await dispatcherAction("engineering_dispatch_receipt",
+      {requestId:id(1)},opts)).state,"DRAFT_PR_CREATED");
+  });
+});
+
 test("stale source, disabled and non-Windows always refuse to invoke model",async()=>{
   await harness(async root=>{
     let calls=0;const execute=async()=>{calls++;throw Error("must not run");};

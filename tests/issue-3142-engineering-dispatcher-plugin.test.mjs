@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, lstat } from "node:fs/promises";
+import { mkdtemp, readFile, rm, lstat, mkdir, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { authenticDispatcherToken, dispatcherAction, dispatcherRpc } from
@@ -91,6 +91,31 @@ test("STOP is durable and blocks later admissions; does not claim running tree S
     assert.equal(result.code,"INTENTIONAL_STOP_OR_PAUSE");
     const duplicate=await dispatcherAction("engineering_dispatch_stop",{requestId:id(11)},opts);
     assert.equal(duplicate.state,"STOP_ALREADY_REQUESTED_OR_UNVERIFIABLE");
+  });
+});
+
+test("STOP during source preflight preserves STOP without stranding an unused lock",async()=>{
+  await harness(async root=>{
+    let calls=0;
+    const opts=services(root,async()=>{calls++;throw Error("worker must not run");});
+    const outcome=await dispatcherAction("engineering_execute_once",args,{
+      ...opts,source:async()=>{
+        const dir=path.join(root,"engineering-dispatcher");
+        await mkdir(dir,{recursive:true});
+        await writeFile(path.join(dir,"stop-request.json"),
+          JSON.stringify({state:"STOP_REQUESTED"})+"\\n");
+        return {head:HEAD,channel:"main"};
+      }
+    });
+    assert.equal(outcome.code,"INTENTIONAL_STOP_OR_PAUSE");
+    assert.equal(calls,0);
+    await assert.rejects(()=>lstat(path.join(root,"engineering-dispatcher",
+      "running.lock")),{code:"ENOENT"});
+    const status=await dispatcherAction("engineering_dispatch_status",{},opts);
+    assert.equal(status.stopRequested,true);
+    const receipt=await dispatcherAction("engineering_dispatch_receipt",
+      {requestId:id(1)},opts);
+    assert.equal(receipt.state,"NO_RESERVATION");
   });
 });
 

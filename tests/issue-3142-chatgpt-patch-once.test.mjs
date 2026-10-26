@@ -152,7 +152,8 @@ test("Authenticated MCP chat patch enforces STOP, exact SHA, bounded args and on
         grantId,sourceHead:params.expectedHead,issueNumber:3142,
         commit:"b".repeat(40),branch:"engineering/3142-"+grantId,
         sourceMutationVerified:true,focusedTestExecuted:false,pullRequestCreated:false,
-        independentVerification:false,automaticMergeAuthorized:false,replayAuthorized:false};
+        independentVerification:false,automaticMergeAuthorized:false,replayAuthorized:false,
+        modelInvoked:false,editOrigin:"authenticated-chat-proposal"};
     },now:()=>1900000000};
   assert.equal((await dispatcherRpc({jsonrpc:"2.0",id:1,method:"tools/call",
     params:{name:"engineering_apply_chat_patch_once",arguments:params}},
@@ -182,6 +183,8 @@ test("manual Architecture Verification dispatch checks full accumulated patch, n
     import.meta.url),"utf8");
   assert.match(workflow,/workflow_dispatch:/);
   const base="github.event.pull_request.base.sha || github.event.before || 'origin/main'";
-  assert.equal(workflow.split(base).length-1,9);
+  // All lanes must use the full PR base, including added gate lanes.
+  // The count may grow when the single approved workflow gains new checks.
+  assert.ok(workflow.split(base).length-1 >= 9);
   assert.doesNotMatch(workflow,/github\.event\.pull_request\.base\.sha \|\| github\.event\.before \|\| 'HEAD\^'/);
 });

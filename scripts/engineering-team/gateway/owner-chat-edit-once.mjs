@@ -139,7 +139,8 @@ export async function prepareChatEditOnce({repoRoot,privateRoot,source,grant,pro
     try {
       await git(repoRoot,["-c","core.hooksPath="+path.join(privateRoot,"disabled-hooks"),
         "worktree","add","--detach",stage,source.head]);
-      await git(stage,["switch","-c",branch]);
+      await git(stage,["-c","core.hooksPath="+path.join(privateRoot,"disabled-hooks"),
+        "switch","-c",branch]);
       const target=await safeTarget(stage,grant.targetPath);
       const initial=await safeFile(target);
       if(initial.replace(/\r\n/g,"\n")!==original.replace(/\r\n/g,"\n"))
@@ -155,6 +156,12 @@ export async function prepareChatEditOnce({repoRoot,privateRoot,source,grant,pro
         "commit","-m","fix(#"+grant.issueNumber+"): bounded ChatGPT owner-approved edit"]);
       const commit=String((await git(stage,["rev-parse","HEAD"])).stdout||"").trim();
       if(!SHA.test(commit))throw Error("COMMIT_UNVERIFIABLE");
+      // Evidence cannot claim an isolated success if the live MAIN changed
+      // during the chat-proposed edit, even if the detached commit is valid.
+      const mainAfter=String((await git(repoRoot,["rev-parse","HEAD"])).stdout||"").trim();
+      const mainDirty=String((await git(repoRoot,
+        ["status","--porcelain","--untracked-files=no"])).stdout||"").trim();
+      if(mainAfter!==source.head||mainDirty!=="")throw Error("LIVE_MAIN_CHANGED");
       value={state:"LOCAL_COMMIT_PREPARED",code:"SYNTAX_CHECK_PASSED_TESTS_PENDING",
         grantId:grant.grantId,issueNumber:grant.issueNumber,sourceHead:source.head,
         commit,branch,focusedTest:grant.focusedTest,sourceMutationVerified:true,

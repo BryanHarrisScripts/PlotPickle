@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, lstat, readFile, writeFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { boundedSourceEdit, runAuthorizedCodingOnce, validateCodingGrant } from '../scripts/engineering-team/gateway/authorized-coding-once.mjs';
+import { boundedSourceEdit, runAuthorizedCodingOnce as runCodingNative, validateCodingGrant } from '../scripts/engineering-team/gateway/authorized-coding-once.mjs';
 
 const HEAD = 'a'.repeat(40);
 const COMMIT = 'b'.repeat(40);
@@ -13,6 +13,11 @@ const TARGET = 'scripts/engineering-team/gateway/example.mjs';
 const TEST_FILE = 'tests/issue-3142-authorized-coding-once.test.mjs';
 const digest = s => createHash('sha256').update(s).digest('hex');
 const source = { head: HEAD, channel: 'main' };
+// Disposable fixtures inject disk evidence; production uses native statfs.
+const diskReady = async () => ({ bavail: 20n * 1024n ** 3n, bsize: 1n });
+const runAuthorizedCodingOnce = options => runCodingNative({
+  ...options, checkCapacity: options.checkCapacity || diskReady,
+});
 const makeGrant = at => ({ schemaVersion: 1, kind: 'engineering-edit-once',
   grantId: '1'.repeat(32), issueNumber: 3142, sourceHead: HEAD,
   targetPath: TARGET, targetDigest: digest(ORIGINAL), focusedTest: TEST_FILE,
@@ -120,18 +125,48 @@ test('invalid grant or missing credential has no staging side effects', () =>
     assert.equal(writes, 0);
   }));
 
-test('retained coding worktrees exhaust the three-slot budget without consuming a grant', () =>
+test('seventy retained stages are preserved and do not block resource-backed admission', () =>
   work(async ({ repoRoot, privateRoot }) => {
     const stages = path.join(privateRoot, 'coding-worktrees');
     await mkdir(stages, { recursive: true });
-    for (const id of ['3', '4', '5']) await mkdir(path.join(stages, id.repeat(32)));
+    for (let i = 2; i < 72; i++) await mkdir(path.join(stages, i.toString(16).padStart(32, '0')));
     const at = Date.now();
-    let calls = 0;
+    let edits = 0;
     const result = await runAuthorizedCodingOnce({ repoRoot, privateRoot, source,
       grant: makeGrant(at), credential: 'fake-test-key-not-real-123456', now: () => at,
+      runGit: async (cwd, args) => {
+        if (args[0] === 'worktree') {
+          const stage = args[3];
+          await mkdir(path.dirname(path.join(stage, TARGET)), { recursive: true });
+          await writeFile(path.join(stage, TARGET), ORIGINAL);
+        }
+        if (args[0] === 'diff' && args[1] === '--name-only') return { stdout: TARGET + '\\n' };
+        if (args[0] === 'rev-parse') return { stdout: COMMIT + '\\n' };
+        return { stdout: '' };
+      },
+      checkSyntax: async () => {},
+      requestEdit: async () => { edits++; return { oldText: 'return 1;', newText: 'return 2;' }; } });
+    assert.equal(result.state, 'LOCAL_COMMIT_PREPARED');
+    assert.equal(edits, 1);
+    for (let i = 2; i < 72; i++) assert.equal(
+      (await lstat(path.join(stages, i.toString(16).padStart(32, '0')))).isDirectory(), true);
+    assert.equal((await readFile(path.join(stages, '.reserved-' + '1'.repeat(32) + '.json'), 'utf8')).includes('RESERVED_NO_REPLAY'), true);
+  }));
+
+test('low or unverifiable disk capacity refuses admission before grant reservation or model call', () =>
+  work(async ({ repoRoot, privateRoot }) => {
+    const at = Date.now();
+    let calls = 0;
+    const base = { repoRoot, privateRoot, source, grant: makeGrant(at),
+      credential: 'fake-test-key-not-real-123456', now: () => at,
       runGit: async () => { calls++; throw Error('must not run'); },
-      requestEdit: async () => { calls++; throw Error('must not call model'); } });
-    assert.equal(result.code, 'CODING_STAGE_BUDGET_EXCEEDED');
+      requestEdit: async () => { calls++; throw Error('must not call model'); } };
+    assert.equal((await runAuthorizedCodingOnce({ ...base,
+      checkCapacity: async () => ({ bavail: 1n, bsize: 4096n }) })).code,
+      'CODING_STAGE_RESOURCE_PRESSURE');
+    assert.equal((await runAuthorizedCodingOnce({ ...base,
+      checkCapacity: async () => { throw Error('disk unavailable'); } })).code,
+      'CODING_STAGE_DISK_UNVERIFIABLE');
     assert.equal(calls, 0);
     await assert.rejects(readFile(path.join(privateRoot, 'coding-attempts',
       '1'.repeat(32) + '.reserved.json'), 'utf8'));

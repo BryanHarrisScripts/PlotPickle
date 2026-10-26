@@ -111,6 +111,9 @@ async function receipt(root,id) {
   const result=await safeRecord(path.join(p.receipts,id+".result.json"));
   const validPrepared=result?.requestId===id && result.state==="LOCAL_COMMIT_PREPARED" &&
     (reserved.phase==="PREPARE" || reserved.phase==="CHAT_PATCH") &&
+    (reserved.phase!=="CHAT_PATCH" ||
+      (result.editOrigin==="authenticated-chat-proposal" &&
+        result.modelInvoked===false)) &&
     reserved.codingGrantId===result.codingGrantId &&
     reserved.expectedHead===result.sourceHead &&
     ID.test(result.codingGrantId||"") && SHA.test(result.localCommit||"") &&
@@ -285,6 +288,8 @@ export async function dispatcherAction(name,args={},{
     // Success requires the verified TWO-grant publication and a correlated
     // durable engineering receipt. A PR-like model response is not evidence.
     const prepared=(preparing||chatting) && result?.state==="LOCAL_COMMIT_PREPARED" &&
+      (!chatting || (result.editOrigin==="authenticated-chat-proposal" &&
+        result.modelInvoked===false)) &&
       result.grantId===args.codingGrantId && result.sourceHead===args.expectedHead &&
       result.code==="SYNTAX_CHECK_PASSED_TESTS_PENDING" &&
       Number.isSafeInteger(result.issueNumber) && result.issueNumber>=1 &&
@@ -311,6 +316,7 @@ export async function dispatcherAction(name,args={},{
       state:"LOCAL_COMMIT_PREPARED",requestId:args.requestId,
       codingGrantId:args.codingGrantId,sourceHead:args.expectedHead,
       issueNumber:result.issueNumber,localCommit:result.commit,branch:result.branch,
+      ...(chatting?{editOrigin:"authenticated-chat-proposal",modelInvoked:false}:{}),
       focusedTestExecuted:false,pullRequestCreated:false,replayAuthorized:false,
       independentVerification:false,automaticMergeAuthorized:false
     } : published ? {

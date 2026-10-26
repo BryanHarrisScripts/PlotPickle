@@ -44,9 +44,12 @@ export function engineeringReceiptFor({ requestId, grant, edit, publicationGrant
   const issue = grant.issueNumber, head = grant.sourceHead;
   const branch = 'engineering/' + issue + '-' + requestId;
   if (!Number.isSafeInteger(issue) || issue <= 0 || issue > 9_999_999 ||
-      grant.schemaVersion !== 1 || grant.kind !== 'engineering-edit-once' ||
+      grant.schemaVersion !== 1 ||
+      !((grant.kind === 'engineering-edit-once' &&
+         grant.consent === 'AUTHORIZE_ONE_ENGINEERING_SOURCE_EDIT') ||
+        (grant.kind === 'engineering-chat-edit-once' &&
+         grant.consent === 'AUTHORIZE_ONE_CHATGPT_SOURCE_EDIT')) ||
       grant.grantId !== requestId || grant.maxRequests !== 1 ||
-      grant.consent !== 'AUTHORIZE_ONE_ENGINEERING_SOURCE_EDIT' ||
       !SHA.test(head || '') || !CODE.test(grant.targetPath || '') ||
       !TEST.test(grant.focusedTest || '') ||
       edit.state !== 'LOCAL_COMMIT_PREPARED' ||

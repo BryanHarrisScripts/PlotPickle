@@ -11928,7 +11928,7 @@
       },
       {
         "target": "tests/issue-3142-chatgpt-patch-once.test.mjs",
-        "targetDigest": "0c89cfb51f44e343b3396490a2de3c9b0ade6915d58b1caa6dd846878ec013f2",
+        "targetDigest": "47cc4116e7bea6e347e6ba96224bc340ea8d27683e3f4de7fbcdf3c58d470060",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],

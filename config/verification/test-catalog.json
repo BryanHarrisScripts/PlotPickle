@@ -11899,7 +11899,7 @@
       },
       {
         "target": "tests/issue-3142-owner-windows-acceptance-broker.test.mjs",
-        "targetDigest": "6b84b04df29fc50c2ee4ca57079eddc2fe6156ae06a5a59402b4a5e2a922fd2b",
+        "targetDigest": "5a7175c55764494ce658fae9fec3cf3e4afad912a0ba93a4bec1be5d83e603fb",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11920,7 +11920,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/acceptance/owner-windows-acceptance.mjs",
-            "digest": "2c3d6d0d704c77d181a318d35eace23507f0185cfb44c6ce14e23dcab3d43a4f"
+            "digest": "eb0fcf57510a5664635c942f774a776e6c3d67fefcb50845e1013cbe1acac631"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",

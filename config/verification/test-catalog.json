@@ -7207,7 +7207,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "fb759c0a3bc5030cade2be5a97c8b1368f6c0888acaf63905e770b9777ff28ff"
+            "digest": "740746de789d6f551c696788c678ab38569b98e223b0105c003df1b58df5c55b"
           }
         ]
       },
@@ -8041,7 +8041,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "fb759c0a3bc5030cade2be5a97c8b1368f6c0888acaf63905e770b9777ff28ff"
+            "digest": "740746de789d6f551c696788c678ab38569b98e223b0105c003df1b58df5c55b"
           }
         ]
       },
@@ -10365,7 +10365,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "fb759c0a3bc5030cade2be5a97c8b1368f6c0888acaf63905e770b9777ff28ff"
+            "digest": "740746de789d6f551c696788c678ab38569b98e223b0105c003df1b58df5c55b"
           }
         ],
         "truthRefs": [
@@ -10405,7 +10405,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "fb759c0a3bc5030cade2be5a97c8b1368f6c0888acaf63905e770b9777ff28ff"
+            "digest": "740746de789d6f551c696788c678ab38569b98e223b0105c003df1b58df5c55b"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -11899,7 +11899,7 @@
       },
       {
         "target": "tests/issue-3142-owner-windows-acceptance-broker.test.mjs",
-        "targetDigest": "05368197fa7fdd971f6992ef4518dbf566adaea0d915ae6c01e09d1c3ca26164",
+        "targetDigest": "6b84b04df29fc50c2ee4ca57079eddc2fe6156ae06a5a59402b4a5e2a922fd2b",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11920,7 +11920,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/acceptance/owner-windows-acceptance.mjs",
-            "digest": "a12c36108637fd38566cacd1785140c2e228ccb61ba55ac0cc06fd4c00660317"
+            "digest": "2c3d6d0d704c77d181a318d35eace23507f0185cfb44c6ce14e23dcab3d43a4f"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",

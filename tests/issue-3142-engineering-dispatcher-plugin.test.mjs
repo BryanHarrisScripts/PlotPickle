@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm, lstat, mkdir, writeFile } from "node:fs/promises";
+import { writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { authenticDispatcherToken, dispatcherAction, dispatcherRpc } from
@@ -422,5 +423,32 @@ test("publish-prepared rejects an uncorrelated publisher response without replay
     const lock=JSON.parse(await readFile(path.join(root,"engineering-dispatcher",
       "running.lock"),"utf8"));
     assert.equal(lock.requestId,id(41));
+  });
+});
+
+test("STOP during reservation fsync prevents worker invocation and leaves no replay path",async()=>{
+  await harness(async root=>{
+    let ticks=0,calls=0;
+    const stopFile=path.join(root,"engineering-dispatcher","stop-request.json");
+    const opts={...services(root,async()=>{calls++;throw Error("worker must not run");}),
+      now:()=>{
+        if(++ticks===2)writeFileSync(stopFile,JSON.stringify({state:"STOP_REQUESTED"}));
+        return 1792980000000;
+      }};
+    const result=await dispatcherAction("engineering_execute_once",args,opts);
+    assert.equal(result.state,"BLOCKED");
+    assert.equal(result.code,"INTENTIONAL_STOP_OR_PAUSE");
+    assert.equal(calls,0);
+    assert.equal((await dispatcherAction("engineering_dispatch_receipt",
+      {requestId:id(1)},opts)).code,"INTENTIONAL_STOP_OR_PAUSE");
+    const reserved=JSON.parse(await readFile(path.join(root,"engineering-dispatcher",
+      "requests",id(1)+".reserved.json"),"utf8"));
+    assert.equal(reserved.state,"RESERVED_NO_REPLAY");
+    await assert.rejects(()=>lstat(path.join(root,"engineering-dispatcher","running.lock")),
+      {code:"ENOENT"});
+    assert.equal((await dispatcherAction("engineering_execute_once",args,opts)).code,
+      "INTENTIONAL_STOP_OR_PAUSE");
+    assert.equal(calls,0);
+    assert.equal((await lstat(stopFile)).isFile(),true);
   });
 });

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm, lstat, mkdir, writeFile } from "node:fs/promises";
 import { writeFileSync } from "node:fs";
 import os from "node:os";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { authenticDispatcherToken, dispatcherAction, dispatcherRpc } from
   "../scripts/engineering-team/mcp/dispatcher/engineering-dispatcher-plugin.mjs";
@@ -528,5 +529,48 @@ test("ChatGPT patch cannot promote a model-invoked or unattributed commit",async
     assert.equal((await dispatcherAction("engineering_apply_chat_patch_once",
       {...selection,requestId:id(62)},opts)).code,"ACTIVE_OR_STALE_EXECUTION_LOCK");
     assert.equal(calls,1);
+  });
+});
+
+test("detached plugin source is accepted only when launched from trusted clean MAIN cwd", async()=>{
+  await harness(async root=>{
+    const main=path.join(root,"canonical-main");
+    await mkdir(main);
+    const git=(...args)=>String(execFileSync("git",args,{cwd:main,
+      encoding:"utf8",windowsHide:true,timeout:15000})).trim();
+    git("init","-b","main");
+    git("config","user.name","PlotPickle Fixture");
+    git("config","user.email","fixture@example.invalid");
+    git("remote","add","origin","https://github.com/BryanHarrisScripts/PlotPickle.git");
+    await writeFile(path.join(main,"readme.txt"),"source proof\n","utf8");
+    git("add","readme.txt");
+    git("commit","-m","test fixture clean main");
+    const head=git("rev-parse","HEAD");
+    const originalCwd=process.cwd();
+    let calls=0;
+    try {
+      process.chdir(main);
+      const selection={requestId:id(80),expectedHead:head,codingGrantId:id(81),
+        oldText:"const before = true;",newText:"const after = true;"};
+      const opts={root:path.join(root,"private"),platform:"win32",enabled:true,
+        chatPatch:async()=>{calls++;return {
+          state:"LOCAL_COMMIT_PREPARED",code:"SYNTAX_CHECK_PASSED_TESTS_PENDING",
+          grantId:id(81),sourceHead:head,issueNumber:3142,
+          commit:"b".repeat(40),branch:"engineering/3142-"+id(81),
+          sourceMutationVerified:true,focusedTestExecuted:false,pullRequestCreated:false,
+          independentVerification:false,automaticMergeAuthorized:false,
+          replayAuthorized:false,modelInvoked:false,
+          editOrigin:"authenticated-chat-proposal"
+        };}};
+      const ok=await dispatcherAction("engineering_apply_chat_patch_once",selection,opts);
+      assert.equal(ok.state,"LOCAL_COMMIT_PREPARED");
+      assert.equal(calls,1);
+      // The next call must not inherit the clean result if the canonical MAIN is dirty.
+      await writeFile(path.join(main,"readme.txt"),"modified after proof\n","utf8");
+      const blocked=await dispatcherAction("engineering_apply_chat_patch_once",
+        {...selection,requestId:id(82)},opts);
+      assert.equal(blocked.code,"EXACT_CLEAN_MAIN_REQUIRED");
+      assert.equal(calls,1);
+    } finally {process.chdir(originalCwd);}
   });
 });

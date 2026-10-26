@@ -151,6 +151,9 @@ test("live stop kills only launched UAT child, then observes child exit before c
     launch:()=>childFixture(emitter=>{
       emitter.kill=()=>{killed=true;setImmediate(()=>emitter.emit("exit",null));return true};
     }),
+    // This is a synthetic child with a fake PID. Never invoke real Windows
+    // taskkill against that number; the separate native fixture proves tree STOP.
+    stopOwnedTree: async child=>{child.kill();},
   });
   // A fixed 45ms delay could race worker initialization on loaded native
   // Windows runners. Observe the actual owned-worker heartbeat before STOP;

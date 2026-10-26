@@ -123,9 +123,16 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity) {
   } catch { return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE'); }
   finally {
     if (lock) {
-      await lock.close().catch(() => {});
-      // Failure to release leaves the lock in place and future work blocked.
-      await unlink(lockPath).catch(() => {});
+      // A lost/undeletable admission lock is NOT successful admission. The
+      // stage sentinel may already exist, but no model or Git worker may run
+      // unless this lock's release is observed. Never steal an orphaned lock.
+      let released = false;
+      try {
+        await lock.close();
+        await unlink(lockPath);
+        released = true;
+      } catch {}
+      if (!released) return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
     }
   }
 }

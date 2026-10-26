@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdtemp, mkdir, lstat, readFile, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, lstat, readFile, writeFile, unlink, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { boundedSourceEdit, runAuthorizedCodingOnce as runCodingNative, validateCodingGrant } from '../scripts/engineering-team/gateway/authorized-coding-once.mjs';
@@ -170,6 +170,30 @@ test('low or unverifiable disk capacity refuses admission before grant reservati
     assert.equal(calls, 0);
     await assert.rejects(readFile(path.join(privateRoot, 'coding-attempts',
       '1'.repeat(32) + '.reserved.json'), 'utf8'));
+  }));
+
+test('lost admission lock during disk preflight cannot launch model or consume grant', () =>
+  work(async ({ repoRoot, privateRoot }) => {
+    const at = Date.now();
+    let gitCalls = 0, modelCalls = 0;
+    const lock = path.join(privateRoot, 'coding-attempts', '.coding-stage-budget.lock');
+    const result = await runAuthorizedCodingOnce({ repoRoot, privateRoot, source,
+      grant: makeGrant(at), credential: 'fake-test-key-not-real-123456', now: () => at,
+      checkCapacity: async () => {
+        // Simulate another actor removing the lock while admission is pending.
+        // The stage sentinel may be written, but worker execution must stop.
+        await unlink(lock);
+        return diskReady();
+      },
+      runGit: async () => { gitCalls++; throw Error('must not run Git'); },
+      requestEdit: async () => { modelCalls++; throw Error('must not call model'); } });
+    assert.equal(result.code, 'CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
+    assert.equal(gitCalls, 0);
+    assert.equal(modelCalls, 0);
+    await assert.rejects(readFile(path.join(privateRoot, 'coding-attempts',
+      '1'.repeat(32) + '.reserved.json'), 'utf8'));
+    assert.match(await readFile(path.join(privateRoot, 'coding-worktrees',
+      '.reserved-' + '1'.repeat(32) + '.json'), 'utf8'), /RESERVED_NO_REPLAY/);
   }));
 
 test('orphaned budget lock fails closed without model invocation or replay', () =>

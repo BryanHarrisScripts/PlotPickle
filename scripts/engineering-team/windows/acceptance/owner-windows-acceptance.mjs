@@ -132,6 +132,11 @@ export async function ownerWindowsAcceptanceAction(args, {
   // deliberately no local HTTP listener, MCP registration, queue poll or task.
   if (platform !== "win32" || !interactive || args.consent !== CONSENT)
     return blocked("LOCAL_OPERATOR_CONSENT_REQUIRED");
+  // Defense in depth for direct Node invocation: the owner selected C: as
+  // live source and Factory runtime; G: may contain archives but no stages.
+  if (process.platform === "win32" && [repoRoot, root].some(value =>
+    path.parse(value).root.toLowerCase() !== "c:\\"))
+    return blocked("LIVE_STAGE_MUST_USE_C");
   let running, head;
   try { [head, running] = await Promise.all([source(), supervisor()]); }
   catch { return blocked("OWNER_SOURCE_OR_SUPERVISOR_UNVERIFIABLE"); }

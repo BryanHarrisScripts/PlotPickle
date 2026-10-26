@@ -183,3 +183,14 @@ test("preview broker uses explicitly selected trusted MAIN checkout rather than 
     assert.equal(good.ownerWindowsAcceptance, false);
     assert.equal(good.independentVerification, false);
   }));
+
+test("native Windows direct admission refuses to stage on G archive", () =>
+  useRoot(async root => {
+    if (process.platform !== "win32") return;
+    let calls = 0;
+    const opts = fake(root, async () => { calls++; });
+    const result = await ownerWindowsAcceptanceAction({ ...allowed,
+      mainRoot: "G:\\Archive\\PlotPickle" }, opts);
+    assert.equal(result.code, "LIVE_STAGE_MUST_USE_C");
+    assert.equal(calls, 0);
+  }));

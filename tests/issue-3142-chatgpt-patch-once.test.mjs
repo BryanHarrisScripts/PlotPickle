@@ -176,3 +176,12 @@ test("Authenticated MCP chat patch enforces STOP, exact SHA, bounded args and on
   assert.equal(receipt.localCommit,ok.localCommit);
   assert.equal(receipt.automaticMergeAuthorized,false);
 }));
+
+test("manual Architecture Verification dispatch checks full accumulated patch, never only last commit",async()=>{
+  const workflow=await readFile(new URL("../.github/workflows/architecture-shadow.yml",
+    import.meta.url),"utf8");
+  assert.match(workflow,/workflow_dispatch:/);
+  const base="github.event.pull_request.base.sha || github.event.before || 'origin/main'";
+  assert.equal(workflow.split(base).length-1,9);
+  assert.doesNotMatch(workflow,/github\.event\.pull_request\.base\.sha \|\| github\.event\.before \|\| 'HEAD\^'/);
+});

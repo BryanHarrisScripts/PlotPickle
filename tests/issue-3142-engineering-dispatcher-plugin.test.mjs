@@ -151,7 +151,7 @@ test("MCP call has a bounded input surface and independent service injection",as
     assert.equal(calls,1);
     const list=await dispatcherRpc({jsonrpc:"2.0",id:"2",method:"tools/list"},
       {authenticated:true,...options});
-    assert.equal(list.result.tools.length,4);
+    assert.equal(list.result.tools.length,5);
     assert.equal(list.result.tools.some(x=>x.name.includes("merge")),false);
   });
 });
@@ -200,5 +200,93 @@ test("receipt never promotes damaged reservations or forged draft-PR success",as
       replayAuthorized:false})+"\\n");
     assert.equal((await dispatcherAction("engineering_dispatch_receipt",
       {requestId:id(1)},opts)).state,"STARTED_UNCONFIRMED");
+  });
+});
+
+test("prepare-only phase reveals an initially unknown commit without publication authority",async()=>{
+  await harness(async root=>{
+    const commit="f".repeat(40);
+    let codingCalls=0,publishingCalls=0;
+    const opts={...services(root,async()=>{publishingCalls++;throw Error("must not publish");}),
+      prepare:async({grantId})=>{
+        codingCalls++;
+        assert.equal(grantId,id(2));
+        return {state:"LOCAL_COMMIT_PREPARED",
+          code:"SYNTAX_CHECK_PASSED_TESTS_PENDING",
+          grantId,sourceHead:HEAD,issueNumber:3142,commit,
+          branch:"engineering/3142-"+grantId,sourceMutationVerified:true,
+          focusedTestExecuted:false,pullRequestCreated:false,
+          independentVerification:false,automaticMergeAuthorized:false,
+          replayAuthorized:false};
+      }};
+    const selection={requestId:id(20),expectedHead:HEAD,codingGrantId:id(2)};
+    const result=await dispatcherAction("engineering_prepare_once",selection,opts);
+    assert.equal(result.state,"LOCAL_COMMIT_PREPARED");
+    assert.equal(result.localCommit,commit);
+    assert.equal(result.pullRequestCreated,false);
+    assert.equal(result.independentVerification,false);
+    assert.equal(result.automaticMergeAuthorized,false);
+    assert.equal(codingCalls,1);
+    assert.equal(publishingCalls,0);
+    const receipt=await dispatcherAction("engineering_dispatch_receipt",
+      {requestId:id(20)},opts);
+    assert.deepEqual(receipt,result);
+    assert.equal((await dispatcherAction("engineering_prepare_once",selection,opts)).code,
+      "REQUEST_ALREADY_RESERVED_NO_REPLAY");
+    assert.equal(codingCalls,1);
+    await assert.rejects(()=>lstat(path.join(root,"engineering-dispatcher",
+      "running.lock")),{code:"ENOENT"});
+    const reservation=JSON.parse(await readFile(path.join(root,"engineering-dispatcher",
+      "requests",id(20)+".reserved.json"),"utf8"));
+    assert.equal(reservation.phase,"PREPARE");
+    assert.equal(Object.hasOwn(reservation,"publicationId"),false);
+  });
+});
+
+test("prepare-only rejects invented commits, mismatched grants and publication attempts",async()=>{
+  await harness(async root=>{
+    let calls=0;
+    const opts={...services(root,async()=>{throw Error("publication must not run");}),
+      prepare:async()=>{calls++;return {state:"LOCAL_COMMIT_PREPARED",
+        grantId:id(99),sourceHead:HEAD,issueNumber:3142,commit:"f".repeat(40),
+        branch:"engineering/3142-"+id(99),sourceMutationVerified:true,
+        code:"SYNTAX_CHECK_PASSED_TESTS_PENDING",focusedTestExecuted:false,
+        pullRequestCreated:false,independentVerification:false,
+        automaticMergeAuthorized:false,replayAuthorized:false};}};
+    const selection={requestId:id(21),expectedHead:HEAD,codingGrantId:id(2)};
+    const result=await dispatcherAction("engineering_prepare_once",selection,opts);
+    assert.equal(result.code,"PREPARED_CODING_RECEIPT_UNVERIFIED");
+    assert.equal((await dispatcherAction("engineering_dispatch_receipt",
+      {requestId:id(21)},opts)).state,"BLOCKED");
+    assert.equal(calls,1);
+    const lock=JSON.parse(await readFile(path.join(root,"engineering-dispatcher",
+      "running.lock"),"utf8"));
+    assert.equal(lock.requestId,id(21));
+    assert.equal((await dispatcherAction("engineering_prepare_once",
+      {...selection,requestId:id(22)},opts)).code,"ACTIVE_OR_STALE_EXECUTION_LOCK");
+    assert.equal((await dispatcherAction("engineering_prepare_once",
+      {...selection,requestId:id(23),publicationId:id(3)},opts)).code,
+      "INVALID_EXECUTION_SELECTION");
+  });
+});
+
+test("damaged prepared receipt never reports a known local commit",async()=>{
+  await harness(async root=>{
+    const opts=services(root,async()=>{throw Error("must not run");});
+    const dir=path.join(root,"engineering-dispatcher","requests");
+    await mkdir(dir,{recursive:true});
+    await writeFile(path.join(dir,id(24)+".reserved.json"),JSON.stringify({
+      requestId:id(24),expectedHead:HEAD,codingGrantId:id(2),phase:"PREPARE",
+      state:"RESERVED_NO_REPLAY"})+"\\n");
+    await writeFile(path.join(dir,id(24)+".result.json"),JSON.stringify({
+      requestId:id(24),state:"LOCAL_COMMIT_PREPARED",
+      codingGrantId:id(99),sourceHead:HEAD,issueNumber:3142,
+      localCommit:"f".repeat(40),branch:"engineering/3142-"+id(99),
+      focusedTestExecuted:false,pullRequestCreated:false,
+      independentVerification:false,automaticMergeAuthorized:false,
+      replayAuthorized:false})+"\\n");
+    const result=await dispatcherAction("engineering_dispatch_receipt",
+      {requestId:id(24)},opts);
+    assert.equal(result.state,"STARTED_UNCONFIRMED");
   });
 });

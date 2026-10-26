@@ -4246,7 +4246,8 @@
           "tests/issue-3142-authorized-publish-once.test.mjs",
           "tests/issue-3142-authorized-pr-publish-once.test.mjs",
           "tests/issue-3302-two-receipt-verifier.test.mjs",
-          "tests/issue-3142-engineering-dispatcher-plugin.test.mjs"
+          "tests/issue-3142-engineering-dispatcher-plugin.test.mjs",
+          "tests/issue-3142-chatgpt-patch-once.test.mjs"
         ]
       },
       "cost": "fast",
@@ -7207,7 +7208,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "fb759c0a3bc5030cade2be5a97c8b1368f6c0888acaf63905e770b9777ff28ff"
+            "digest": "b0e5c4b0bb98f88ec851fbb16045777eeec06261cd28c6a7129aa9bafd23e480"
           }
         ]
       },
@@ -8041,7 +8042,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "fb759c0a3bc5030cade2be5a97c8b1368f6c0888acaf63905e770b9777ff28ff"
+            "digest": "b0e5c4b0bb98f88ec851fbb16045777eeec06261cd28c6a7129aa9bafd23e480"
           }
         ]
       },
@@ -10365,7 +10366,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "fb759c0a3bc5030cade2be5a97c8b1368f6c0888acaf63905e770b9777ff28ff"
+            "digest": "b0e5c4b0bb98f88ec851fbb16045777eeec06261cd28c6a7129aa9bafd23e480"
           }
         ],
         "truthRefs": [
@@ -10405,7 +10406,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "fb759c0a3bc5030cade2be5a97c8b1368f6c0888acaf63905e770b9777ff28ff"
+            "digest": "b0e5c4b0bb98f88ec851fbb16045777eeec06261cd28c6a7129aa9bafd23e480"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -11813,7 +11814,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
-            "digest": "a8f5a775bb3ead50d3011e8dc5a4e78002b727d66c0ee81067eeee9f89e92809"
+            "digest": "f5e78c55b4cdf4e35d3979aac427a317fc1682e8199712c02320c7bac020dd7e"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -11849,7 +11850,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
-            "digest": "a8f5a775bb3ead50d3011e8dc5a4e78002b727d66c0ee81067eeee9f89e92809"
+            "digest": "f5e78c55b4cdf4e35d3979aac427a317fc1682e8199712c02320c7bac020dd7e"
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
@@ -11889,7 +11890,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/verification/two-receipt-verifier.mjs",
-            "digest": "2b4f14dd1373e9da1b1a998d20371336cb29a115a9e2c65436f895a448244d4f"
+            "digest": "5928ae73430bb89641a7c408902db031fde81d82fdea69c2c991490a4fe356b7"
           },
           {
             "path": "scripts/engineering-team/gateway/receipts/write-once-json.mjs",
@@ -11921,7 +11922,51 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/dispatcher/engineering-dispatcher-plugin.mjs",
-            "digest": "a36270d48853b1ac35fe142b61c23f7c7b6cf78b3eda0b7c773926823be24db4"
+            "digest": "31ea62c355ecf5ee601450725d413b0ec0f69798383c45bca7992bebdb7ca9fb"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-chatgpt-patch-once.test.mjs",
+        "targetDigest": "7e7b0f2570c50be408dbbb90f399a101285a4c61d745687577ec8b8099fc257b",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-disposable-git"
+        ],
+        "limits": "Only fixed owner-private ChatGPT edit grant and bounded exact text replacement; real local disposable Git worktree/commit in fixture, no actual owner-Windows tool deployment, separate MCP pairing, private grant provisioning, independent owner Windows product proof, credentials, verified source execution, merge or unattended next cycle.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
+            "digest": "f5e78c55b4cdf4e35d3979aac427a317fc1682e8199712c02320c7bac020dd7e"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/verification/two-receipt-verifier.mjs",
+            "digest": "5928ae73430bb89641a7c408902db031fde81d82fdea69c2c991490a4fe356b7"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/owner-chat-edit-once.mjs",
+            "digest": "cb1c677c44536e5939e417f12207f6344c48cb71807b57f543af2553e1595115"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
+            "digest": "d2d56d456883e8cfa89ee4b5a9c24abd4f93526004c6a414bf4c0037b17cb2d6"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/dispatcher/engineering-dispatcher-plugin.mjs",
+            "digest": "31ea62c355ecf5ee601450725d413b0ec0f69798383c45bca7992bebdb7ca9fb"
           }
         ]
       }

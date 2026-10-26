@@ -7208,7 +7208,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "b0e5c4b0bb98f88ec851fbb16045777eeec06261cd28c6a7129aa9bafd23e480"
+            "digest": "65ad83072c84926f99f1bd49cbb757b103a82b0f52324beda596cbeb98fcc586"
           }
         ]
       },
@@ -8042,7 +8042,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "b0e5c4b0bb98f88ec851fbb16045777eeec06261cd28c6a7129aa9bafd23e480"
+            "digest": "65ad83072c84926f99f1bd49cbb757b103a82b0f52324beda596cbeb98fcc586"
           }
         ]
       },
@@ -10366,7 +10366,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "b0e5c4b0bb98f88ec851fbb16045777eeec06261cd28c6a7129aa9bafd23e480"
+            "digest": "65ad83072c84926f99f1bd49cbb757b103a82b0f52324beda596cbeb98fcc586"
           }
         ],
         "truthRefs": [
@@ -10406,7 +10406,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "b0e5c4b0bb98f88ec851fbb16045777eeec06261cd28c6a7129aa9bafd23e480"
+            "digest": "65ad83072c84926f99f1bd49cbb757b103a82b0f52324beda596cbeb98fcc586"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -11928,7 +11928,7 @@
       },
       {
         "target": "tests/issue-3142-chatgpt-patch-once.test.mjs",
-        "targetDigest": "7e7b0f2570c50be408dbbb90f399a101285a4c61d745687577ec8b8099fc257b",
+        "targetDigest": "37872cb1aea3e41c39a9ab6336146b04f7a1b4ce02c25180dc3792245c826f0c",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11967,6 +11967,10 @@
           {
             "path": "scripts/engineering-team/mcp/dispatcher/engineering-dispatcher-plugin.mjs",
             "digest": "0f449ec7bda0d1fdd8e2dc1e0804a13dd30fa275e0c1ba8ac646b4a81b73b5cb"
+          },
+          {
+            "path": ".github/workflows/architecture-shadow.yml",
+            "digest": "65ad83072c84926f99f1bd49cbb757b103a82b0f52324beda596cbeb98fcc586"
           }
         ]
       }

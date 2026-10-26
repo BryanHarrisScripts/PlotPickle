@@ -53,12 +53,15 @@ export function validatePublicationGrant(grant, prepared, codingGrant, source, a
     prepared.grantId === grant.grantId && prepared.issueNumber === grant.issueNumber &&
     prepared.sourceHead === grant.sourceHead && prepared.commit === grant.localCommit &&
     prepared.branch === grant.branch &&
-    codingGrant?.schemaVersion === 1 && codingGrant.kind === 'engineering-edit-once' &&
+    codingGrant?.schemaVersion === 1 &&
+    ((codingGrant.kind === 'engineering-edit-once' &&
+      codingGrant.consent === 'AUTHORIZE_ONE_ENGINEERING_SOURCE_EDIT') ||
+     (codingGrant.kind === 'engineering-chat-edit-once' &&
+      codingGrant.consent === 'AUTHORIZE_ONE_CHATGPT_SOURCE_EDIT')) &&
     codingGrant.grantId === grant.grantId &&
     codingGrant.issueNumber === grant.issueNumber &&
     codingGrant.sourceHead === grant.sourceHead &&
-    codingGrant.targetPath === grant.targetPath &&
-    codingGrant.consent === 'AUTHORIZE_ONE_ENGINEERING_SOURCE_EDIT';
+    codingGrant.targetPath === grant.targetPath;
 }
 
 async function regularJson(filename, limit = 8192) {

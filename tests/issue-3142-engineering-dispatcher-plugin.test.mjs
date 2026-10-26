@@ -491,7 +491,10 @@ test("owner-granted ChatGPT patch prepares only a source-bound commit without mo
     assert.equal(patchCalls,1);
     const resultFile=path.join(root,"engineering-dispatcher","requests",
       id(60)+".result.json");
-    await writeFile(resultFile,JSON.stringify({...receipt,modelInvoked:true})+"\\n");
+    await writeFile(resultFile,JSON.stringify({...receipt,modelInvoked:true})+"\n");
+    assert.equal((await dispatcherAction("engineering_dispatch_receipt",
+      {requestId:id(60)},opts)).state,"STARTED_UNCONFIRMED");
+    await writeFile(resultFile,JSON.stringify({...receipt,editOrigin:"forged"})+"\n");
     assert.equal((await dispatcherAction("engineering_dispatch_receipt",
       {requestId:id(60)},opts)).state,"STARTED_UNCONFIRMED");
   });

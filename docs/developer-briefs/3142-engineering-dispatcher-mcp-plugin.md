@@ -63,3 +63,20 @@ try {
 Do **not** run the command against a guessed path or detached preview as cwd; it is not a deployment shortcut. If private owner storage does not exist/is not verified, the issuer blocks instead of creating arbitrary roots. No ChatGPT or OpenAI API key is required by this ChatGPT grant route.
 
 **Still missing:** an owner-reviewed, independently paired HTTPS-to-loopback proxy which authenticates the actual ChatGPT plugin owner and privately injects `x-plotpickle-engineering-dispatch-token`. The new plugin only binds `127.0.0.1:43116/mcp` and must never be directly published to the public internet, have its token pasted in chat/GitHub or accept caller-controlled forwarding headers. The existing Factory tunnel has not acquired these seven tools. Product acceptance also requires the separate local draft publication grant/token, focused tests on the edited worktree, signed independent Windows witness and an exact-head PR Gate. Both #3311 and #3314 stay draft until proven; after a single accepted issue cycle, STOP.
+
+
+## Pinned Windows Chat bridge preview installer (zero execution)
+
+`scripts/engineering-team/windows/chat-bridge/Prepare-PlotPickle-ChatBridgePreview.ps1` is a standalone, reviewed **static installation** helper in this draft PR. It never runs candidate Node code, starts the MCP listener, creates a token, grants consent, publishes a PR, modifies MAIN, touches STOP or restarts the old Factory.
+
+An owner-run PowerShell 5.1+ invocation must supply FOUR exact values: trusted clean C: MAIN root, its current exact source SHA (equal to origin/main), PR #3311's current pinned head and PR #3314's current pinned head. The operator must first download the helper from that **exact #3314 SHA**, inspect it, and independently confirm its pinned source integrity. Only after that review may the owner explicitly pass `AUTHORIZE_STATIC_CHAT_BRIDGE_PREVIEW_ONLY` in a separate interactive console.
+
+The helper validates both real GitHub PR identities and expected bases, clean C: MAIN and trusted origin, private directory ownership, no preexisting preview path, and checks out only the exact remote pull/3314/head SHA into a separate disabled-hooks, disabled-LFS-smudge detached C: worktree at:
+
+`%LOCALAPPDATA%\PlotPickle\engineering-team\chat-bridge-preview\preview-<exact #3314 SHA>`
+
+It checks tracked cleanliness, four required source/test artifacts and reattests clean MAIN after preview. It refuses existing previews, wrong SHA, symlink/reparse parents or stale remote PRs; an uncertain fetch/worktree must be inspected and must **not** be retried with a new ID or forcibly cleaned. The only successful state is `CHAT_BRIDGE_PREVIEW_CHECKED_OUT_NOT_ACCEPTED` with candidateExecuted=false, tunnelStarted=false, grantIssued=false, codeEdited=false, pullRequestCreated=false, independentVerification=false, automaticMergeAuthorized=false.
+
+Native Windows PowerShell parser and static non-execution guard coverage are bound to `tests/issue-3142-chatgpt-patch-once.test.mjs`. This is only preparation for a later independently authenticated plugin installation and owner-issued grant. The helper neither supplies nor bypasses the required *authenticated HTTPS-to-loopback proxy*; user-managed ChatGPT custom plugin registration and protected owner credential entry remain separate human-controlled operations.
+
+Do not hand an API key or dispatcher bearer token to ChatGPT, GitHub source or any untrusted browser form. A verified preview does not imply deployment, Pairing, Product Gate PASS, safe remote mutation, merge or the right to issue an additional grant.

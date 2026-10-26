@@ -110,12 +110,16 @@ async function receipt(root,id) {
     result.focusedTestExecuted===false && result.pullRequestCreated===false &&
     result.independentVerification===false && result.automaticMergeAuthorized===false &&
     result.replayAuthorized===false;
-  const validPublishBinding=reserved.phase!=="PUBLISH" ||
-    (result?.preparedRequestId===reserved.preparedRequestId &&
-      result?.localCommit===reserved.localCommit &&
-      result?.codingGrantId===reserved.codingGrantId &&
-      result?.publicationId===reserved.publicationId &&
-      result?.sourceHead===reserved.expectedHead);
+  // A read-back receipt must match its immutable reservation in BOTH
+  // combined and separately granted publication paths. Missing bindings
+  // are uncertain, not proof that a remote PR belongs to this request.
+  const validPublishBinding=(reserved.phase==="COMBINED"||reserved.phase==="PUBLISH") &&
+    result?.codingGrantId===reserved.codingGrantId &&
+    result?.publicationId===reserved.publicationId &&
+    result?.sourceHead===reserved.expectedHead &&
+    (reserved.phase!=="PUBLISH" ||
+      (result?.preparedRequestId===reserved.preparedRequestId &&
+        result?.localCommit===reserved.localCommit));
   const validPublished=validPublishBinding && result?.requestId===id &&
     result.state==="DRAFT_PR_CREATED" &&
     Number.isSafeInteger(result.prNumber) && result.prNumber>=1 &&
@@ -281,9 +285,10 @@ export async function dispatcherAction(name,args={},{
       independentVerification:false,automaticMergeAuthorized:false
     } : published ? {
       state:"DRAFT_PR_CREATED",requestId:args.requestId,prNumber:result.prNumber,
+      codingGrantId:args.codingGrantId,publicationId:args.publicationId,
+      sourceHead:args.expectedHead,
       ...(publishing?{preparedRequestId:args.preparedRequestId,
-        localCommit:args.localCommit,codingGrantId:args.codingGrantId,
-        publicationId:args.publicationId,sourceHead:args.expectedHead}:{}),
+        localCommit:args.localCommit}:{}),
       candidateHead:result.remoteCommit,engineeringReceiptId:result.engineeringReceiptId,
       focusedTestExecuted:false,replayAuthorized:false,independentVerification:false,
       automaticMergeAuthorized:false

@@ -86,14 +86,14 @@ test("combined publication receipts never promote mismatched owner-grant binding
         key!=="codingGrantId"))
     ];
     for(const record of corrupt) {
-      await writeFile(file,JSON.stringify(record)+"\\n");
+      await writeFile(file,JSON.stringify(record)+"\n");
       const observed=await dispatcherAction("engineering_dispatch_receipt",
         {requestId:id(1)},opts);
       assert.equal(observed.state,"STARTED_UNCONFIRMED");
       assert.equal(observed.replayAuthorized,false);
       assert.equal(observed.independentVerification,false);
     }
-    await writeFile(file,JSON.stringify(original)+"\\n");
+    await writeFile(file,JSON.stringify(original)+"\n");
     assert.equal((await dispatcherAction("engineering_dispatch_receipt",
       {requestId:id(1)},opts)).state,"DRAFT_PR_CREATED");
   });

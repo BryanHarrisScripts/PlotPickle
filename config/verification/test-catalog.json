@@ -4245,7 +4245,8 @@
           "tests/issue-3142-authorized-coding-once.test.mjs",
           "tests/issue-3142-authorized-publish-once.test.mjs",
           "tests/issue-3142-authorized-pr-publish-once.test.mjs",
-          "tests/issue-3302-two-receipt-verifier.test.mjs"
+          "tests/issue-3302-two-receipt-verifier.test.mjs",
+          "tests/issue-3142-engineering-dispatcher-plugin.test.mjs"
         ]
       },
       "cost": "fast",
@@ -11893,6 +11894,34 @@
           {
             "path": "scripts/engineering-team/gateway/receipts/write-once-json.mjs",
             "digest": "e93a45ace974f9b53544b9544bd4e97eef6c475ec4f01ff77ef947c8d4316131"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-engineering-dispatcher-plugin.test.mjs",
+        "targetDigest": "ff6ec782c84efba4670c07dbbd8f372d8e06f7b309533df18f816b61e90cfbd0",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Injected one-shot owner-authenticated MCP bridge test with disposable file receipts and fake existing worker; no actual plugin installation, trusted tunnel authentication, real paid provider, live GitHub publication, owner Windows process-tree STOP, independent product acceptance or unattended second cycle.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/dispatcher/engineering-dispatcher-plugin.mjs",
+            "digest": "7040204e5d802d6ae1731aea6673f32386b83999abd4457ab467fa9eb22f2bd5"
           }
         ]
       }

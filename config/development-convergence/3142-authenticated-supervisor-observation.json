@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "issue": 3142,
+  "phase": "authenticated-supervisor-observation-plus-owner-approved-resource-aware-stage-admission",
+  "brief": "docs/developer-briefs/3142-authenticated-supervisor-observation.md",
+  "allowedChanges": [
+    "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+    "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3142-authenticated-supervisor-observation.md",
+    "config/development-convergence/3142-authenticated-supervisor-observation.json",
+    "scripts/engineering-team/mcp/factory-named-tests.mjs",
+    "scripts/engineering-team/mcp/storage/factory-stage-budget.mjs",
+    "tests/issue-3241-disk-space-preflight.test.mjs",
+    "tests/issue-3241-stage-growth-budget.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "CANONICAL-SUPERVISOR-READ",
+      "criterion": "Authenticated Factory status reuses canonical supervisorStatus, no duplicate state store.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+          "contains": "import { supervisorStatus } from \"../windows/supervisor/unattended-supervisor.mjs\";"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
+          "contains": "test(\"#3142 authenticated Factory status observes canonical supervisor"
+        }
+      ]
+    },
+    {
+      "id": "AUTHENTICATED-ONLY",
+      "criterion": "Unauthenticated status never reads supervisor or exposes its snapshot.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+          "contains": "readSupervisor:controlAuthenticated?supervisorRead:null"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
+          "contains": "assert.equal(reads,0"
+        }
+      ]
+    },
+    {
+      "id": "SANITIZED-FAIL-CLOSED",
+      "criterion": "Allowlisted state/reason and exact SHA, no private identifiers or raw exceptions.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+          "contains": "export function sanitizeSupervisorObservation"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
+          "contains": "SECRET_PRIVATE_HOST_ID"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
+          "contains": "SECRET_SUPERVISOR"
+        }
+      ]
+    },
+    {
+      "id": "NO-FALSE-LIVENESS",
+      "criterion": "Heartbeat is not owned process, coding, Windows acceptance, replay or merge proof.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+          "contains": "workerProcessVerified:false,autonomousCodingVerified:false"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+          "contains": "startActionAvailable:false,replayAuthorized:false"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
+          "contains": "assert.equal(stale.heartbeatFresh,false)"
+        }
+      ]
+    },
+    {
+      "id": "NO-START-AUTHORITY",
+      "criterion": "Existing MCP catalog stays unchanged and owner-only Start is still outside this slice.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3142-authenticated-supervisor-observation.md",
+          "contains": "does **not** install, enable, start, stop, pause or resume"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
+          "contains": "assert.equal(MCP_CONTROL_TOOLS.length,4)"
+        }
+      ]
+    },
+    {
+      "id": "RETAINED-EVIDENCE-NOT-WORKER-CAP",
+      "criterion": "Seventy historically retained candidate worktrees are preserved and do not consume one active-stage admission slot. No age- or count-based deletion.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/mcp/storage/factory-stage-budget.mjs",
+          "contains": "observedRetainedStages: count"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3241-stage-growth-budget.test.mjs",
+          "contains": "seventy retained stages do not block new work solely by directory count"
+        }
+      ]
+    },
+    {
+      "id": "RESOURCE-AND-STOP-GATE",
+      "criterion": "A single atomic lock serializes staging; a fresh disk measurement checks the 8 GiB floor plus 1 GiB growth margin inside the lock. Unknown capacity, stage references and stale locks fail closed.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
+          "contains": "return await stageBudget({root,base,checkCapacity:"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/mcp/storage/factory-stage-budget.mjs",
+          "contains": "admissionReserveBytes: 1 * 1024 ** 3"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3241-stage-growth-budget.test.mjs",
+          "contains": "admission lock serializes space check and stage creation"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Read-only observation, no new MCP tool, no Task Scheduler operation, no arbitrary shell/PID, no legacy Pi worker or retry.",
+    "No local supervisor consent bypass, no paid model/provider invocation, no automatic merge or user asset mutation.",
+    "Exact-head seven architecture layers, native Windows selection and owner-device lifecycle proof remain independent gates.",
+    "Resource-aware admission is owner-authorized under active #3241, but does not infer that retained worktrees are orphaned, authorize cleanup, or replace real owner-Windows Product Gate."
+  ]
+}

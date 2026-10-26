@@ -12,7 +12,7 @@ import { promisify } from "node:util";
 import process from "node:process";
 import { terminateVerificationProcessTree } from "../../full-verification-process.mjs";
 import { readFactoryDiskSpace, FACTORY_DISK_MIN_FREE_BYTES } from "../queue/factory-disk-space.mjs";
-import { withCandidateStageBudget } from "./storage/factory-stage-budget.mjs";
+import { withCandidateStageBudget, FACTORY_STAGING_POLICY } from "./storage/factory-stage-budget.mjs";
 const exec=promisify(execFile);
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..","..","..");
 const SHA=/^[a-f0-9]{40}$/;
@@ -160,22 +160,14 @@ export async function stageFactoryCandidatePr({
   }catch {
     return Object.freeze({state:"BLOCKED",code:"CANDIDATE_STAGE_PATH_BLOCKED",sourceHead:expectedHead});
   }
-  // #3241: prevent Git fetch/checkout when the owner staging volume is low.
-  let space;
-  try {
-    space = await diskPreflight({
-      locations:[repoRoot,base],
-      requiredBytes:FACTORY_DISK_MIN_FREE_BYTES.candidateStage,
-    });
-  } catch { space = null; }
-  if(space?.state!=="READY"||space?.code!=="DISK_SPACE_SUFFICIENT")
-    return Object.freeze({
-      state:"BLOCKED",
-      code:space?.code==="DISK_SPACE_INSUFFICIENT"
-        ?"DISK_SPACE_INSUFFICIENT":"DISK_SPACE_UNVERIFIED",
-      sourceHead:expectedHead,issueReserved:false,
-    });
-  return await stageBudget({root,base,onStage:async()=>{
+  // #3241: historical worktrees are protected inventory, not concurrent
+  // staging jobs. Acquire the one-stage admission lock BEFORE fresh space
+  // measurement; fail closed on unknown capacity and never delete evidence.
+  return await stageBudget({root,base,checkCapacity:()=>diskPreflight({
+    locations:[repoRoot,base],
+    requiredBytes:FACTORY_DISK_MIN_FREE_BYTES.candidateStage+
+      FACTORY_STAGING_POLICY.admissionReserveBytes,
+  }),onStage:async()=>{
   const read=async(args,cwd=repoRoot,timeout=GIT_OPTIONS.timeout)=>String((await run("git",args,{
     ...GIT_OPTIONS,cwd,timeout,
     env:{

@@ -26,6 +26,8 @@ import { runFactoryDependencyPreflight, checkFactoryDependencyProof,
   publishFactoryDependencyPreflightResult } from "../queue/factory-dependency-preflight.mjs";
 import { inspectFactoryServiceLock } from "../queue/factory-service-lock.mjs";
 import { summarizeFactoryObserver } from "./factory-observer.mjs";
+import { supervisorStatus } from "../windows/supervisor/unattended-supervisor.mjs";
+import { assessCandidateStageCount } from "./storage/factory-stage-budget.mjs";
 import { allowedFactoryTestNames, readFactoryVerificationHead,
   runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr,
   inspectFactorySyncSource,syncFactoryMain,runFactoryStoryUat,
@@ -149,7 +151,78 @@ export async function factoryEvidence({root=privateFactoryRoot(),issueNumber,att
   }};
 }
 
-export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,verifyHead=readFactoryVerificationHead}={}) {
+const SUPERVISOR_OBSERVED_STATES=new Set([
+  "OFF","OFFLINE","RUNNING","BLOCKED","PAUSE_REQUESTED","PAUSED",
+  "RESUME_REQUESTED","STOP_REQUESTED",
+]);
+const SUPERVISOR_OBSERVED_REASONS=new Set([
+  "NOT_ENABLED","LOCAL_KILL_SWITCH","PAUSE_REQUEST_UNVERIFIABLE",
+  "NO_FRESH_OWNED_HEARTBEAT","GITHUB_TRANSPORT_OFFLINE",
+  "STALE_SOURCE_HEAD","PAIRING_CHANGED_OR_DISABLED",
+  "LOCAL_OPERATOR_PAUSED","SUPERVISOR_EXITED",
+]);
+// Only owner-authenticated status may include this sanitized, read-only
+// canonical supervisor snapshot. Its heartbeat does NOT verify a PID tree,
+// coding dispatcher, issue replay authority, Windows acceptance, or merge.
+export function sanitizeSupervisorObservation(raw,now=Date.now()) {
+  const state=SUPERVISOR_OBSERVED_STATES.has(raw?.state)?raw.state:"UNVERIFIED";
+  const checkedAt=Number.isSafeInteger(raw?.checkedAt)&&raw.checkedAt>=0
+    ?raw.checkedAt:null;
+  const age=checkedAt===null?null:now-checkedAt;
+  return Object.freeze({
+    state,sourceHead:safeSha(raw?.exactSha),
+    reason:safeText(raw?.reason,SUPERVISOR_OBSERVED_REASONS),
+    heartbeatFresh:age!==null&&age>=0&&age<=180_000&&
+      ["RUNNING","BLOCKED","PAUSED","RESUME_REQUESTED"].includes(state),
+    pauseAcknowledged:raw?.pauseAcknowledged===true&&state==="PAUSED",
+    workerProcessVerified:false,autonomousCodingVerified:false,
+    independentWindowsAcceptance:false,automaticMergeEnabled:false,
+    startActionAvailable:false,replayAuthorized:false,
+  });
+}
+
+// Private stage capacity is advisory only. It does not certify disk space,
+// source checkout, the stage lock or permission to delete retained worktrees.
+export function sanitizeStageCapacityObservation(raw) {
+  const ready=raw?.state==="READY" && raw?.code==="RETAINED_STAGES_PRESERVED" &&
+    Number.isSafeInteger(raw?.observedRetainedStages) &&
+    raw.observedRetainedStages>=0 && raw.observedRetainedStages<=4096 &&
+    raw?.maxConcurrentStaging===1 &&
+    raw?.retentionReferenceState==="UNVERIFIED" &&
+    raw?.cleanupAuthorized===false;
+  const overflow=raw?.state==="BLOCKED" &&
+    raw?.code==="STAGE_INVENTORY_BUDGET_EXCEEDED" &&
+    Number.isSafeInteger(raw?.observedStagesAtLeast) &&
+    raw.observedStagesAtLeast>=4097;
+  // Inventory READY means only that retained names were inspected; it is
+  // NEVER an admission, process-ownership, disk-space or cleanup receipt.
+  return Object.freeze({
+    state:ready?"READY":overflow?"BLOCKED":"UNVERIFIED",
+    code:ready?"RETAINED_STAGES_PRESERVED":overflow?
+      "STAGE_INVENTORY_BUDGET_EXCEEDED":"STAGE_INVENTORY_UNVERIFIED",
+    observedRetainedStages:ready?raw.observedRetainedStages:null,
+    observedStagesAtLeast:overflow?4097:null,
+    maxConcurrentStaging:1,retentionReferenceState:"UNVERIFIED",
+    stagingAuthorized:false,cleanupAuthorized:false,
+    diskCapacityVerified:false,processOwnershipVerified:false,
+  });
+}
+
+// Only inspect the fixed private lock. Its presence is not process ownership.
+export async function observeCandidateStageLock({root=privateFactoryRoot(),inspect=lstat}={}) {
+  try {
+    const entry=await inspect(path.join(root,".candidate-stage-budget.lock"));
+    return {state:entry?.isDirectory()===true && !entry?.isSymbolicLink()?"HELD":"UNVERIFIED"};
+  } catch (error) {
+    return {state:error?.code==="ENOENT"?"ABSENT":"UNVERIFIED"};
+  }
+}
+export function sanitizeStageLockObservation(raw) {
+  return Object.freeze({state:["HELD","ABSENT"].includes(raw?.state)?raw.state:"UNVERIFIED",
+    stagingAuthorized:false,cleanupAuthorized:false,processOwnershipVerified:false});
+}
+
+export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,verifyHead=readFactoryVerificationHead,readSupervisor=null,readStageBudget=null,readStageLock=null}={}) {
   let raw;
   try { raw=await readFactoryStatus({root,now}); }
   catch { return {state:"UNKNOWN",enabled:null,reason:"PRIVATE_STATE_UNREADABLE",
@@ -171,6 +244,21 @@ export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,veri
   // of adding a fifth public tool that prevents paired tunnel startup.
   result.hostRevision=await factoryHostHead({verify:verifyHead});
   result.application=await observePlotpickleOwnerApp();
+  if(typeof readSupervisor==="function") {
+    let supervisor=null;
+    try {supervisor=await readSupervisor();}catch {supervisor=null;}
+    result.supervisor=sanitizeSupervisorObservation(supervisor,now());
+  }
+  if(typeof readStageBudget==="function") {
+    let stageBudget=null;
+    try {stageBudget=await readStageBudget();}catch {stageBudget=null;}
+    result.stageCapacity=sanitizeStageCapacityObservation(stageBudget);
+  }
+  if(typeof readStageLock==="function") {
+    let observed=null;
+    try {observed=await readStageLock();}catch {observed=null;}
+    result.stageLock=sanitizeStageLockObservation(observed);
+  }
   // Fixed private filename only; never expose npm stderr, cache paths or raw proof payload.
   result.dependencyPreflight=sanitizeDependencyPreflight(
     await privateJson(path.join(root,"dependency-preflight-result.json"),2048));
@@ -302,6 +390,12 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "CANDIDATE_HEAD_VERIFIED","CANDIDATE_SELECTION_INVALID",
   "CANDIDATE_NOT_OPEN","CANDIDATE_HEAD_MISMATCH",
   "CANDIDATE_BASE_MISMATCH","GITHUB_PR_UNAVAILABLE",
+  "DISK_SPACE_INSUFFICIENT","DISK_SPACE_UNVERIFIED",
+  "STAGE_BUDGET_UNVERIFIED","STAGE_BUDGET_EXCEEDED",
+  "STAGE_BUDGET_BUSY","STAGE_BUDGET_LOCK_RELEASE_FAILED",
+  "STAGE_INVENTORY_UNVERIFIED","STAGE_INVENTORY_BUDGET_EXCEEDED",
+  "STAGE_ADMISSION_UNVERIFIED","STAGE_ADMISSION_BUSY",
+  "STAGE_ADMISSION_LOCK_RELEASE_FAILED","BLOCK_RESOURCE_PRESSURE",
   "CANDIDATE_STATIC_STAGED","CANDIDATE_STAGE_UNVERIFIED",
   "CANDIDATE_STAGE_PATH_BLOCKED","CANDIDATE_STAGE_EXISTS",
   "CANDIDATE_FETCH_MISMATCH","CANDIDATE_STAGE_MISMATCH","CANDIDATE_STAGE_DIRTY",
@@ -739,7 +833,8 @@ async function conversationSource(expectedHead) {
 export async function executeMcpRequest(request,{root=privateFactoryRoot(),github,
   now=Date.now,controlAuthenticated=false,controlOps,
   engineeringEnabled=false,gatewayRoot=privateGatewayRoot(),gatewaySource=conversationSource,
-  storageInspect=inspectFactoryStorage}={}) {
+  storageInspect=inspectFactoryStorage,supervisorRead=supervisorStatus,
+  stageBudgetRead=assessCandidateStageCount,stageLockRead=observeCandidateStageLock}={}) {
   if(!request || request.jsonrpc!=="2.0" || typeof request.method!=="string")
     return {error:{code:-32600,message:"Invalid JSON-RPC request"}};
   switch(request.method) {
@@ -781,7 +876,12 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
       if(!isControl&&!isConversation&&!isStorage&&name!=="factory_evidence" && keys.length)
         return {error:invalidParams()};
       let value;
-      if(name==="factory_status")value=await factoryStatus({root,now});
+      if(name==="factory_status")value=await factoryStatus({
+        root,now,readSupervisor:controlAuthenticated?supervisorRead:null,
+        readStageBudget:controlAuthenticated
+          ?()=>stageBudgetRead({base:path.join(root,"chat-candidate-stages")}):null,
+        readStageLock:controlAuthenticated?()=>stageLockRead({root}):null,
+      });
       else if(name==="factory_observer")value=await factoryObserver({root,now});
       else if(name==="factory_evidence"){
         if(keys.some(k=>!["issueNumber","attempt"].includes(k)) ||

@@ -12,10 +12,11 @@ param(
     [switch]$Status,
     [switch]$Stop,
     [switch]$Uninstall,
+    [switch]$RepairSettings,
     [string]$Consent = ''
 )
 $ErrorActionPreference = 'Stop'
-$selected = @(@($Install, $Start, $Status, $Stop, $Uninstall) | Where-Object { $_ })
+$selected = @(@($Install, $Start, $Status, $Stop, $Uninstall, $RepairSettings) | Where-Object { $_ })
 if ($selected.Count -ne 1) {
     throw 'EXACTLY_ONE_SUPERVISOR_OPERATION_REQUIRED'
 }
@@ -24,7 +25,7 @@ if ($env:OS -ne 'Windows_NT') {
 }
 
 $requiredConsent = 'ENABLE_INDEPENDENT_WINDOWS_SUPERVISOR'
-if (($Install -or $Start -or $Uninstall) -and $Consent -cne $requiredConsent) {
+if (($Install -or $Start -or $Uninstall -or $RepairSettings) -and $Consent -cne $requiredConsent) {
     throw 'LOCAL_WINDOWS_CONSENT_REQUIRED'
 }
 if (($Status -or $Stop) -and $Consent -ne '') {
@@ -44,6 +45,28 @@ $arguments = ('"{0}" --serve --consent {1}' -f $scriptPath, $requiredConsent)
 function Get-TaskByName([string]$name) {
     return @(Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue)
 }
+function Test-TaskPrincipalIsCurrentUser([string]$taskUserId) {
+    if ([string]::IsNullOrWhiteSpace($taskUserId)) { return $false }
+    # Task Scheduler may normalize DOMAIN\user to user. Require SID equality.
+    $current = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+    if ($taskUserId -eq $current.User.Value) { return $true }
+    try {
+        $resolved = (New-Object System.Security.Principal.NTAccount($taskUserId)).Translate(
+            [System.Security.Principal.SecurityIdentifier])
+        if ($resolved.Value -eq $current.User.Value) { return $true }
+    } catch {
+        # A bare local username can fail NTAccount translation on some hosts.
+    }
+    # Resolve the unqualified name explicitly against this machine only.
+    if ($taskUserId -match '^[^\\]+$') {
+        try {
+            $local = (New-Object System.Security.Principal.NTAccount($env:COMPUTERNAME, $taskUserId)).Translate(
+                [System.Security.Principal.SecurityIdentifier])
+            return $local.Value -eq $current.User.Value
+        } catch { return $false }
+    }
+    return $false
+}
 function Read-OwnedTask {
     $matching = @(Get-TaskByName $taskName)
     if ($matching.Count -eq 0) { return $null }
@@ -52,7 +75,7 @@ function Read-OwnedTask {
     $actions = @($task.Actions)
     if ($actions.Count -ne 1 -or
         $task.TaskPath -ne '\' -or
-        $task.Principal.UserId -ne $identity -or
+        -not (Test-TaskPrincipalIsCurrentUser ([string]$task.Principal.UserId)) -or
         $actions[0].Execute -ne $node -or
         $actions[0].Arguments -ne $arguments -or
         $actions[0].WorkingDirectory -ne $repo) {
@@ -97,6 +120,8 @@ if ($Status) {
         workerProcessVerified = $false
         autonomousCodingVerified = $false
         automaticMergeEnabled = $false
+        recoveryPolicyVerified = ($null -ne $task -and $task.Settings.RestartCount -eq 3 -and $task.Settings.RestartInterval -eq 'PT5M' -and $task.Settings.StartWhenAvailable -eq $true)
+        startupScope = 'AT_LOGON_AFTER_SIGN_IN'
     } | ConvertTo-Json -Compress
     return
 }
@@ -125,7 +150,9 @@ if ($Install) {
     $action = New-ScheduledTaskAction -Execute $node -Argument $arguments -WorkingDirectory $repo
     $trigger = New-ScheduledTaskTrigger -AtLogOn -User $identity
     $principal = New-ScheduledTaskPrincipal -UserId $identity -LogonType Interactive -RunLevel Limited
-    $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero)
+    # Bounded Task Scheduler retry on abnormal process failure; intentional STOP remains governed by the local disable marker.
+    # AtLogOn/Interactive cannot guarantee startup before a user signs in.
+    $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 5) -StartWhenAvailable
     Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings | Out-Null
     [pscustomobject]@{
         state = 'INSTALLED_NOT_STARTED'
@@ -133,6 +160,44 @@ if ($Install) {
         automaticCodingEnabled = $false
         operatorStartRequiredNow = $true
         processOwnershipVerified = $false
+    } | ConvertTo-Json -Compress
+    return
+}
+if ($RepairSettings) {
+    # Repair only the retry settings of the existing, exactly owned, stopped
+    # supervisor task. No task replacement, credential access, source migration
+    # or process start. The owner must explicitly authorize this operation.
+    if (@(Get-TaskByName $legacyTask).Count -ne 0) {
+        throw 'LEGACY_PI_FACTORY_TASK_PRESENT_DISABLE_SEPARATELY'
+    }
+    $task = Read-OwnedTask
+    if ($null -eq $task) { throw 'SUPERVISOR_TASK_NOT_INSTALLED' }
+    if ([string]$task.State -ne 'Ready') {
+        throw 'SUPERVISOR_TASK_NOT_READY_OR_ALREADY_RUNNING'
+    }
+    $null = Assert-ExactBoundWorker
+    # Preserve the owner's existing task settings. Rebuilding a SettingsSet
+    # would silently reset unrelated settings such as Hidden or battery policy.
+    $settings = $task.Settings
+    $settings.RestartCount = 3
+    $settings.RestartInterval = 'PT5M'
+    $settings.StartWhenAvailable = $true
+    Set-ScheduledTask -TaskName $taskName -Settings $settings -ErrorAction Stop | Out-Null
+    $verified = Read-OwnedTask
+    if ($null -eq $verified -or
+        $verified.Settings.RestartCount -ne 3 -or
+        $verified.Settings.RestartInterval -ne 'PT5M' -or
+        -not $verified.Settings.StartWhenAvailable) {
+        throw 'SUPERVISOR_RECOVERY_SETTINGS_UNVERIFIED'
+    }
+    [pscustomobject]@{
+        state = 'RECOVERY_SETTINGS_UPDATED_NOT_RUNNING'
+        restartCount = 3
+        restartIntervalMinutes = 5
+        startWhenAvailable = $true
+        startupScope = 'AT_LOGON_AFTER_SIGN_IN'
+        workerProcessVerified = $false
+        automaticMergeEnabled = $false
     } | ConvertTo-Json -Compress
     return
 }

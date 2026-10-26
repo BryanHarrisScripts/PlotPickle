@@ -6,7 +6,7 @@ import { mkdtemp, mkdir, readFile, writeFile, symlink, rm } from "node:fs/promis
 import os from "node:os";
 import path from "node:path";
 import {
-  privateFactoryRoot, sanitizeReceipt, sanitizeDependencyPreflight, factoryStatus, factoryEvidence,
+  privateFactoryRoot, sanitizeReceipt, sanitizeDependencyPreflight, sanitizeSupervisorObservation, factoryStatus, sanitizeStageCapacityObservation, observeCandidateStageLock, sanitizeStageLockObservation, factoryEvidence,
   factoryIssuePreview, factoryObserver, factoryHostHead, executeMcpRequest, handleRpc, MCP_TOOLS,
   createLocalMcpHttpServer, runStdio, controlTokenMatches,
   MCP_CONTROL_TOOLS, factoryControlReceipt,
@@ -178,6 +178,159 @@ test("factory status provides exact verified local Git SHA within stable launche
   assert.deepEqual(MCP_TOOLS.map(t=>t.name),["factory_status","factory_observer","factory_evidence","factory_issue_preview"]);
   assert.equal(MCP_CONTROL_TOOLS.length,4);
 }));
+test("#3142 authenticated Factory status observes canonical supervisor without starting worker",()=>sandbox(async root=>{
+  await seed(root);
+  const request={jsonrpc:"2.0",id:42,method:"tools/call",
+    params:{name:"factory_status",arguments:{}}};
+  let reads=0;
+  const supervisorRead=async()=>{
+    reads++;
+    return {state:"RUNNING",exactSha:OLD,checkedAt:3900,
+      reason:"SECRET_PRIVATE_HOST_ID",hostId:"SECRET_PRIVATE_HOST_ID",
+      autonomousPrLifecycleProven:true,agentExecutionProven:true};
+  };
+  const guest=await handleRpc(request,{root,now:()=>4000,
+    controlAuthenticated:false,supervisorRead});
+  assert.equal(reads,0,"unauthenticated clients cannot inspect supervisor state");
+  assert.equal(Object.hasOwn(guest.result.structuredContent,"supervisor"),false);
+  const owner=await handleRpc(request,{root,now:()=>4000,
+    controlAuthenticated:true,supervisorRead});
+  assert.equal(reads,1);
+  assert.deepEqual(owner.result.structuredContent.supervisor,{
+    state:"RUNNING",sourceHead:OLD,reason:null,heartbeatFresh:true,
+    pauseAcknowledged:false,workerProcessVerified:false,
+    autonomousCodingVerified:false,independentWindowsAcceptance:false,
+    automaticMergeEnabled:false,startActionAvailable:false,replayAuthorized:false,
+  });
+  assert.doesNotMatch(JSON.stringify(owner),/SECRET_PRIVATE_HOST_ID/);
+  const stale=sanitizeSupervisorObservation({state:"RUNNING",exactSha:OLD,
+    checkedAt:100,reason:"NO_FRESH_OWNED_HEARTBEAT"},200_000);
+  assert.equal(stale.heartbeatFresh,false);
+  const paused=sanitizeSupervisorObservation({state:"PAUSED",exactSha:OLD,
+    checkedAt:4000,pauseAcknowledged:true,reason:"LOCAL_OPERATOR_PAUSED"},4000);
+  assert.equal(paused.pauseAcknowledged,true);
+  assert.equal(paused.workerProcessVerified,false);
+  const untrusted=sanitizeSupervisorObservation({state:"RUNNING;execute",exactSha:"../secret",
+    checkedAt:4000,reason:"SECRET"},4000);
+  assert.equal(untrusted.state,"UNVERIFIED");
+  assert.equal(untrusted.sourceHead,null);
+  assert.equal(untrusted.heartbeatFresh,false);
+  const failed=await handleRpc(request,{root,now:()=>4000,
+    controlAuthenticated:true,supervisorRead:async()=>{throw Error("SECRET_SUPERVISOR");}});
+  assert.equal(failed.result.structuredContent.supervisor.state,"UNVERIFIED");
+  assert.equal(failed.result.structuredContent.supervisor.workerProcessVerified,false);
+  assert.doesNotMatch(JSON.stringify(failed),/SECRET_SUPERVISOR/);
+}));
+
+test("#3241 authenticated status shows 70 retained stages without granting cleanup or admission",()=>sandbox(async root=>{
+  await seed(root);
+  const request={jsonrpc:"2.0",id:43,method:"tools/call",
+    params:{name:"factory_status",arguments:{}}};
+  let reads=0;
+  const stageBudgetRead=async()=>{reads++;return {
+    state:"READY",code:"RETAINED_STAGES_PRESERVED",
+    observedRetainedStages:70,maxConcurrentStaging:1,
+    retentionReferenceState:"UNVERIFIED",cleanupAuthorized:false,
+    privatePath:"SECRET_STAGE_PATH",
+  };};
+  const guest=await handleRpc(request,{root,now:()=>4000,
+    controlAuthenticated:false,stageBudgetRead});
+  assert.equal(reads,0);
+  assert.equal(Object.hasOwn(guest.result.structuredContent,"stageCapacity"),false);
+  const owner=await handleRpc(request,{root,now:()=>4000,
+    controlAuthenticated:true,stageBudgetRead});
+  assert.equal(reads,1);
+  assert.deepEqual(owner.result.structuredContent.stageCapacity,{
+    state:"READY",code:"RETAINED_STAGES_PRESERVED",
+    observedRetainedStages:70,observedStagesAtLeast:null,
+    maxConcurrentStaging:1,retentionReferenceState:"UNVERIFIED",
+    stagingAuthorized:false,cleanupAuthorized:false,
+    diskCapacityVerified:false,processOwnershipVerified:false,
+  });
+  assert.doesNotMatch(JSON.stringify(owner),/SECRET_STAGE_PATH/);
+  const exceeded=sanitizeStageCapacityObservation({
+    state:"BLOCKED",code:"STAGE_INVENTORY_BUDGET_EXCEEDED",
+    observedStagesAtLeast:4097,privatePath:"SECRET_STAGE_PATH",
+  });
+  assert.equal(exceeded.state,"BLOCKED");
+  assert.equal(exceeded.observedStagesAtLeast,4097);
+  assert.equal(exceeded.stagingAuthorized,false);
+  const malformed=sanitizeStageCapacityObservation({
+    state:"READY",code:"RETAINED_STAGES_PRESERVED",
+    observedRetainedStages:9999,maxConcurrentStaging:1,
+    retentionReferenceState:"UNVERIFIED",cleanupAuthorized:false,
+    privatePath:"SECRET_STAGE_PATH",
+  });
+  assert.equal(malformed.state,"UNVERIFIED");
+  assert.equal(malformed.observedRetainedStages,null);
+  const thrown=await handleRpc(request,{root,now:()=>4000,
+    controlAuthenticated:true,
+    stageBudgetRead:async()=>{throw Error("SECRET_STAGE_PATH");}});
+  assert.equal(thrown.result.structuredContent.stageCapacity.code,"STAGE_INVENTORY_UNVERIFIED");
+  assert.doesNotMatch(JSON.stringify(thrown),/SECRET_STAGE_PATH/);
+}));
+
+test("#3241 seventy retained candidate stages remain visible but are not active workers",()=>sandbox(async root=>{
+  await seed(root);
+  const base=path.join(root,"chat-candidate-stages");
+  await mkdir(base);
+  for(let i=0;i<70;i++)
+    await mkdir(path.join(base,i.toString(16).padStart(32,"0")));
+  const request={jsonrpc:"2.0",id:45,method:"tools/call",
+    params:{name:"factory_status",arguments:{}}};
+  const guest=await handleRpc(request,{root,controlAuthenticated:false});
+  assert.equal(Object.hasOwn(guest.result.structuredContent,"stageCapacity"),false);
+  assert.equal(Object.hasOwn(guest.result.structuredContent,"stageLock"),false);
+  const owner=await handleRpc(request,{root,controlAuthenticated:true,
+    supervisorRead:async()=>({state:"OFF"})});
+  const status=owner.result.structuredContent;
+  assert.deepEqual(status.stageCapacity,{
+    state:"READY",code:"RETAINED_STAGES_PRESERVED",
+    observedRetainedStages:70,observedStagesAtLeast:null,
+    maxConcurrentStaging:1,retentionReferenceState:"UNVERIFIED",
+    stagingAuthorized:false,cleanupAuthorized:false,
+    diskCapacityVerified:false,processOwnershipVerified:false,
+  });
+  assert.deepEqual(status.stageLock,{
+    state:"ABSENT",stagingAuthorized:false,cleanupAuthorized:false,
+    processOwnershipVerified:false,
+  });
+  const remaining=await (await import("node:fs/promises")).readdir(base);
+  assert.equal(remaining.length,70,"read-only observation cannot remove retained stages");
+}));
+
+test("#3142 staging lock observation is authenticated, read-only and fails closed",()=>sandbox(async root=>{
+  await seed(root);
+  const request={jsonrpc:"2.0",id:44,method:"tools/call",
+    params:{name:"factory_status",arguments:{}}};
+  let reads=0;
+  const stageLockRead=async()=>{reads++;return {state:"HELD",privatePath:"NONPUBLIC_LOCK_PATH"};};
+  const guest=await handleRpc(request,{root,controlAuthenticated:false,stageLockRead});
+  assert.equal(reads,0);
+  assert.equal(Object.hasOwn(guest.result.structuredContent,"stageLock"),false);
+  const owner=await handleRpc(request,{root,controlAuthenticated:true,stageLockRead});
+  assert.equal(reads,1);
+  assert.deepEqual(owner.result.structuredContent.stageLock,{
+    state:"HELD",stagingAuthorized:false,cleanupAuthorized:false,
+    processOwnershipVerified:false,
+  });
+  assert.doesNotMatch(JSON.stringify(owner),/NONPUBLIC_LOCK_PATH/);
+  assert.equal((await observeCandidateStageLock({root})).state,"ABSENT");
+  const lock=path.join(root,".candidate-stage-budget.lock");
+  await mkdir(lock);
+  assert.equal((await observeCandidateStageLock({root})).state,"HELD");
+  await rm(lock,{recursive:true});
+  await writeFile(lock,"not-a-directory");
+  assert.equal((await observeCandidateStageLock({root})).state,"UNVERIFIED");
+  const malformed=sanitizeStageLockObservation({state:"HELD;remove"});
+  assert.equal(malformed.state,"UNVERIFIED");
+  assert.equal(malformed.cleanupAuthorized,false);
+  const thrown=await handleRpc(request,{root,controlAuthenticated:true,
+    stageLockRead:async()=>{throw Error("NONPUBLIC_LOCK_PATH");}});
+  assert.equal(thrown.result.structuredContent.stageLock.state,"UNVERIFIED");
+  assert.doesNotMatch(JSON.stringify(thrown),/NONPUBLIC_LOCK_PATH/);
+}));
+
 test("protocol initialization, tool schemas, denylist and malformed args fail closed",()=>sandbox(async root=>{
   await seed(root);
   const init=await executeMcpRequest({jsonrpc:"2.0",method:"initialize",id:1});
@@ -454,6 +607,32 @@ test("MCP control denies stale head and held worker without consuming a request 
  assert.equal((await factoryControlReceipt({root,requestId:args.requestId})).state,"STARTED_UNCONFIRMED");
  const retry=await stale.factoryControlAction("factory_run_dependency_preflight",args,{root,github,ops});
  assert.equal(retry.state,"DUPLICATE_OR_UNVERIFIABLE_REQUEST");
+}));
+
+test("PR stage disk-space and stage-budget denials are preserved in immutable authenticated receipts",()=>sandbox(async root=>{
+ await seed(root);
+ const source=await import("../scripts/engineering-team/mcp/factory-readonly-server.mjs");
+ const github={exactHead:async()=>OLD};
+ for(const [index,code] of ["DISK_SPACE_INSUFFICIENT","DISK_SPACE_UNVERIFIED",
+   "STAGE_BUDGET_UNVERIFIED","STAGE_BUDGET_EXCEEDED",
+   "STAGE_BUDGET_BUSY","STAGE_BUDGET_LOCK_RELEASE_FAILED",
+   "STAGE_INVENTORY_UNVERIFIED","STAGE_INVENTORY_BUDGET_EXCEEDED",
+   "STAGE_ADMISSION_UNVERIFIED","STAGE_ADMISSION_BUSY",
+   "STAGE_ADMISSION_LOCK_RELEASE_FAILED","BLOCK_RESOURCE_PRESSURE"].entries()){
+   const requestId=(index+1).toString(16).padStart(32,"0");
+   const args={requestId,expectedHead:OLD,suite:"factory-pr-stage",
+     candidatePrNumber:3310,candidateHead:NEW};
+   const ops={testHead:async()=>OLD,
+     stagePr:async()=>({state:"BLOCKED",code,sourceHead:OLD})};
+   const result=await source.factoryControlAction("factory_run_named_test",args,
+     {root,github,ops});
+   assert.equal(result.state,"BLOCKED");
+   assert.equal(result.code,code);
+   const receipt=await factoryControlReceipt({root,requestId});
+   assert.equal(receipt.state,"BLOCKED");
+   assert.equal(receipt.code,code);
+   assert.equal(receipt.replayAuthorized,false);
+ }
 }));
 
 test("Factory Observer reports queue evidence without invoking Pi or certifying ChatGPT",()=>sandbox(async root=>{

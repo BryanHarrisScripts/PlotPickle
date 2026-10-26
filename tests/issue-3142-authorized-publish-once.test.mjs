@@ -26,6 +26,7 @@ const codingGrant = { schemaVersion: 1, kind: 'engineering-edit-once',
 const prepared = { state: 'LOCAL_COMMIT_PREPARED', code: 'SYNTAX_CHECK_PASSED_TESTS_PENDING',
   sourceMutationVerified: true, focusedTestExecuted: false,
   pullRequestCreated: false, independentVerification: false,
+  automaticMergeAuthorized: false,
   grantId: GRANT_ID, issueNumber: 3142, sourceHead: MAIN,
   commit: COMMIT, branch: BRANCH };
 
@@ -95,6 +96,8 @@ test('separate owner grant is exact, scoped and short-lived', () => {
     assert.equal(validatePublicationGrant({ ...grant, ...change },
       prepared, codingGrant, source, at), false);
   assert.equal(validatePublicationGrant(grant, { ...prepared, focusedTestExecuted: true },
+    codingGrant, source, at), false);
+  assert.equal(validatePublicationGrant(grant, { ...prepared, automaticMergeAuthorized: true },
     codingGrant, source, at), false);
 });
 

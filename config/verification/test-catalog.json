@@ -11899,7 +11899,7 @@
       },
       {
         "target": "tests/issue-3142-engineering-dispatcher-plugin.test.mjs",
-        "targetDigest": "ae24c130620a49adccd5861bd61cedc885ad07316dff3e56bf8dc1d7592fce8e",
+        "targetDigest": "a27c1ba017c7d991a9411c26b259ab831f6c2501d3738c807fb5ed27fd0bfc2e",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11921,7 +11921,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/dispatcher/engineering-dispatcher-plugin.mjs",
-            "digest": "52e94a42ae56cf46219187df832626c6da7dcf97acdf05dcbf341411ab5aefce"
+            "digest": "4c5adb5af1d822ca790f65a0cb6e1e4ec69ba99fea86012cbbc645d042055c64"
           }
         ]
       }

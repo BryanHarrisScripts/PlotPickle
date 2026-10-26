@@ -143,12 +143,27 @@ export async function dispatcherAction(name,args={},{
       // grants independently, and cannot perform automatic merge.
       result=await execute({grantId:args.codingGrantId,publicationId:args.publicationId});
     }catch{return {state:"STARTED_UNCONFIRMED",requestId:args.requestId,replayAuthorized:false};}
-    const value=result?.state==="DRAFT_PR_CREATED" ? {
-      state:"DRAFT_PR_CREATED",requestId:args.requestId,prNumber:result.prNumber??null,
-      candidateHead:result.remoteCommit??null,engineeringReceiptId:result.engineeringReceiptId??null,
+    // Success requires the verified TWO-grant publication and a correlated
+    // durable engineering receipt. A PR-like model response is not evidence.
+    const published=result?.state==="DRAFT_PR_CREATED" &&
+      result.grantId===args.codingGrantId &&
+      result.publicationId===args.publicationId &&
+      result.sourceHead===args.expectedHead &&
+      Number.isSafeInteger(result.prNumber) &&
+      result.prNumber>=1 && result.prNumber<=9_999_999 &&
+      SHA.test(result.remoteCommit||"") &&
+      /^[a-f0-9]{64}$/.test(result.engineeringReceiptId||"") &&
+      result.pullRequestCreated===true &&
+      result.focusedTestExecuted===false &&
+      result.independentVerification===false &&
+      result.automaticMergeAuthorized===false &&
+      result.replayAuthorized===false;
+    const value=published ? {
+      state:"DRAFT_PR_CREATED",requestId:args.requestId,prNumber:result.prNumber,
+      candidateHead:result.remoteCommit,engineeringReceiptId:result.engineeringReceiptId,
       focusedTestExecuted:false,replayAuthorized:false,independentVerification:false,
       automaticMergeAuthorized:false
-    } : blocked(result?.code||"WORKER_OUTCOME_NOT_VERIFIED",args.requestId);
+    } : blocked("ENGINEERING_OR_PUBLICATION_RECEIPT_UNVERIFIED",args.requestId);
     if(!await writeOnce(path.join(p.receipts,args.requestId+".result.json"),value))
       return {state:"STARTED_UNCONFIRMED",requestId:args.requestId,replayAuthorized:false};
     complete=value.state==="DRAFT_PR_CREATED";

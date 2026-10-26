@@ -140,8 +140,8 @@ test('seventy retained stages are preserved and do not block resource-backed adm
           await mkdir(path.dirname(path.join(stage, TARGET)), { recursive: true });
           await writeFile(path.join(stage, TARGET), ORIGINAL);
         }
-        if (args[0] === 'diff' && args[1] === '--name-only') return { stdout: TARGET + '\\n' };
-        if (args[0] === 'rev-parse') return { stdout: COMMIT + '\\n' };
+        if (args[0] === 'diff' && args[1] === '--name-only') return { stdout: TARGET + '\n' };
+        if (args[0] === 'rev-parse') return { stdout: COMMIT + '\n' };
         return { stdout: '' };
       },
       checkSyntax: async () => {},

@@ -76,11 +76,30 @@ async function stopped(p) {
 }
 async function receipt(root,id) {
   if(!ID.test(id||""))return blocked("INVALID_REQUEST_ID");
-  const p=locations(root), reserved=await safeRecord(path.join(p.receipts,id+".reserved.json"));
-  if(reserved?.requestId!==id)return {state:"NO_RESERVATION",requestId:id,replayAuthorized:false};
+  const p=locations(root), reservationFile=path.join(p.receipts,id+".reserved.json");
+  const reserved=await safeRecord(reservationFile);
+  if(reserved?.requestId!==id) {
+    // A missing reservation is different from an unreadable/corrupted one.
+    // The latter may represent real work; never report it as never started.
+    if(await exists(reservationFile))return {state:"STARTED_UNCONFIRMED",
+      requestId:id,replayAuthorized:false,independentVerification:false,
+      automaticMergeAuthorized:false};
+    return {state:"NO_RESERVATION",requestId:id,replayAuthorized:false};
+  }
   const result=await safeRecord(path.join(p.receipts,id+".result.json"));
-  if(result?.requestId===id&&["DRAFT_PR_CREATED","BLOCKED"].includes(result.state))
-    return {...result,replayAuthorized:false,independentVerification:false,automaticMergeAuthorized:false};
+  const validPublished=result?.requestId===id && result.state==="DRAFT_PR_CREATED" &&
+    Number.isSafeInteger(result.prNumber) && result.prNumber>=1 &&
+    result.prNumber<=9_999_999 && SHA.test(result.candidateHead||"") &&
+    /^[a-f0-9]{64}$/.test(result.engineeringReceiptId||"") &&
+    result.focusedTestExecuted===false && result.replayAuthorized===false &&
+    result.independentVerification===false && result.automaticMergeAuthorized===false;
+  const validBlocked=result?.requestId===id && result.state==="BLOCKED" &&
+    typeof result.code==="string" && /^[A-Z0-9_]{3,100}$/.test(result.code) &&
+    result.replayAuthorized===false && result.independentVerification===false &&
+    result.automaticMergeAuthorized===false;
+  if(validPublished||validBlocked)
+    return {...result,replayAuthorized:false,independentVerification:false,
+      automaticMergeAuthorized:false};
   return {state:"STARTED_UNCONFIRMED",requestId:id,replayAuthorized:false,
     independentVerification:false,automaticMergeAuthorized:false};
 }

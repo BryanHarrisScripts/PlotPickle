@@ -7208,7 +7208,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "65ad83072c84926f99f1bd49cbb757b103a82b0f52324beda596cbeb98fcc586"
+            "digest": "a76c0a29f82cf8a2e4203cfab4d4b190c713b9c063d795318397f00b8e921dc2"
           }
         ]
       },
@@ -8042,7 +8042,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "65ad83072c84926f99f1bd49cbb757b103a82b0f52324beda596cbeb98fcc586"
+            "digest": "a76c0a29f82cf8a2e4203cfab4d4b190c713b9c063d795318397f00b8e921dc2"
           }
         ]
       },
@@ -10366,7 +10366,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "65ad83072c84926f99f1bd49cbb757b103a82b0f52324beda596cbeb98fcc586"
+            "digest": "a76c0a29f82cf8a2e4203cfab4d4b190c713b9c063d795318397f00b8e921dc2"
           }
         ],
         "truthRefs": [
@@ -10406,7 +10406,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "65ad83072c84926f99f1bd49cbb757b103a82b0f52324beda596cbeb98fcc586"
+            "digest": "a76c0a29f82cf8a2e4203cfab4d4b190c713b9c063d795318397f00b8e921dc2"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -11922,13 +11922,13 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/dispatcher/engineering-dispatcher-plugin.mjs",
-            "digest": "0f449ec7bda0d1fdd8e2dc1e0804a13dd30fa275e0c1ba8ac646b4a81b73b5cb"
+            "digest": "6ceb5c4d342e9731ec07d78e7fd0d6e1e1db52b2d3550533ea468e2d0d2ec3ba"
           }
         ]
       },
       {
         "target": "tests/issue-3142-chatgpt-patch-once.test.mjs",
-        "targetDigest": "37872cb1aea3e41c39a9ab6336146b04f7a1b4ce02c25180dc3792245c826f0c",
+        "targetDigest": "0c89cfb51f44e343b3396490a2de3c9b0ade6915d58b1caa6dd846878ec013f2",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11944,7 +11944,7 @@
         ],
         "scopes": [
           "unit-fixture",
-          "real-disposable-git"
+          "real-boundary"
         ],
         "limits": "Only fixed owner-private ChatGPT edit grant and bounded exact text replacement; real local disposable Git worktree/commit in fixture, no actual owner-Windows tool deployment, separate MCP pairing, private grant provisioning, independent owner Windows product proof, credentials, verified source execution, merge or unattended next cycle.",
         "inputs": [
@@ -11957,8 +11957,8 @@
             "digest": "5928ae73430bb89641a7c408902db031fde81d82fdea69c2c991490a4fe356b7"
           },
           {
-            "path": "scripts/engineering-team/gateway/owner-chat-edit-once.mjs",
-            "digest": "6bf7e8493390a8c387edbb2a3aa238a16a8a81464723d2c4ee343f3bd0d2a785"
+            "path": "scripts/engineering-team/gateway/chat/owner-chat-edit-once.mjs",
+            "digest": "f6066d3c0c7c58df7c37744cb2b71374f69a1c52292e0e6aa61ed5b5b6127ebd"
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
@@ -11966,11 +11966,11 @@
           },
           {
             "path": "scripts/engineering-team/mcp/dispatcher/engineering-dispatcher-plugin.mjs",
-            "digest": "0f449ec7bda0d1fdd8e2dc1e0804a13dd30fa275e0c1ba8ac646b4a81b73b5cb"
+            "digest": "6ceb5c4d342e9731ec07d78e7fd0d6e1e1db52b2d3550533ea468e2d0d2ec3ba"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "65ad83072c84926f99f1bd49cbb757b103a82b0f52324beda596cbeb98fcc586"
+            "digest": "a76c0a29f82cf8a2e4203cfab4d4b190c713b9c063d795318397f00b8e921dc2"
           }
         ]
       }

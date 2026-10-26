@@ -6,7 +6,7 @@
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { lstat, mkdir, open, readdir, readFile, unlink, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, open, readdir, readFile, statfs, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gatewayAppSource, privateGatewayRoot } from './gateway-host.mjs';
@@ -21,6 +21,10 @@ const SOURCE = /^scripts\/engineering-team\/(?:[a-z0-9-]+\/)*[a-z0-9-]+\.mjs$/;
 const TEST = /^tests\/issue-[0-9]+-[a-z0-9-]+\.test\.mjs$/;
 const CONSENT = 'AUTHORIZE_ONE_ENGINEERING_SOURCE_EDIT';
 const ENDPOINT = 'https://api.openai.com/v1/responses';
+// Retained evidence does not consume a concurrent worker slot. Reserve disk
+// headroom for one new worktree and leave every historical stage untouched.
+const MIN_CODING_STAGE_FREE_BYTES = 9n * 1024n ** 3n;
+const MAX_CODING_STAGE_INVENTORY = 4096;
 const hash = value => createHash('sha256').update(value, 'utf8').digest('hex');
 const exact = (v, keys) => v && typeof v === 'object' && !Array.isArray(v) &&
   Object.getPrototypeOf(v) === Object.prototype && Object.keys(v).length === keys.length &&
@@ -76,10 +80,11 @@ async function safePath(root, relative) {
 }
 /**
  * A crash-retained stage is evidence, not garbage. Serialize admission and
- * cap retained coding stages before consuming a grant or calling a model.
+ * check actual disk headroom before consuming a grant or calling a model.
+ * Retained stages are evidence, not a three-stage admission quota.
  * An abandoned lock requires owner inspection; never steal it by age.
  */
-async function reserveCodingStage(stages, receipts, grant, at) {
+async function reserveCodingStage(stages, receipts, grant, at, checkCapacity) {
   const lockPath = path.join(receipts, '.coding-stage-budget.lock');
   let lock;
   try {
@@ -95,9 +100,21 @@ async function reserveCodingStage(stages, receipts, grant, at) {
         ids.add(entry.name);
       else return block('CODING_STAGE_CONTENT_UNVERIFIABLE');
     }
-    if (ids.size >= 3) return block('CODING_STAGE_BUDGET_EXCEEDED');
-    // Persistent sentinel counts the slot even if Git has not created the
-    // worktree yet. It is never removed automatically after an uncertain run.
+    if (ids.size > MAX_CODING_STAGE_INVENTORY)
+      return block('CODING_STAGE_INVENTORY_UNVERIFIABLE');
+    // Measure capacity while holding the exclusive admission lock. A failed
+    // probe must not consume the owner grant or create a stage sentinel.
+    let space;
+    try {
+      space = await checkCapacity(stages, { bigint: true });
+      const available = BigInt(space.bavail) * BigInt(space.bsize);
+      if (BigInt(space.bavail) < 0n || BigInt(space.bsize) <= 0n)
+        return block('CODING_STAGE_DISK_UNVERIFIABLE');
+      if (available < MIN_CODING_STAGE_FREE_BYTES)
+        return block('CODING_STAGE_RESOURCE_PRESSURE');
+    } catch { return block('CODING_STAGE_DISK_UNVERIFIABLE'); }
+    // Persistent sentinel protects the attempt even if Git has not created
+    // the worktree yet. It is never removed after an uncertain run.
     const saved = await onceJson(path.join(stages, '.reserved-' + grant.grantId + '.json'),
       { schemaVersion: 1, grantId: grant.grantId, reservedAt: at,
         state: 'RESERVED_NO_REPLAY' });
@@ -156,7 +173,7 @@ async function modelEdit({ grant, original, credential, fetchImpl }) {
 /** Injection seams enable disposable fixture verification without paid calls. */
 export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, grant,
   credential, fetchImpl = globalThis.fetch, runGit = null, checkSyntax = null,
-  requestEdit = modelEdit, now = Date.now } = {}) {
+  requestEdit = modelEdit, checkCapacity = statfs, now = Date.now } = {}) {
   const at = now();
   if (!validateCodingGrant(grant, source, at)) return block('CODING_OWNER_GRANT_REQUIRED');
   if (!path.isAbsolute(repoRoot || '') || !path.isAbsolute(privateRoot || '') ||
@@ -192,7 +209,7 @@ export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, g
   catch (error) {
     if (error?.code !== 'ENOENT') return block('CODING_ALREADY_RESERVED_OR_UNVERIFIABLE');
   }
-  const stageBudget = await reserveCodingStage(stages, receipts, grant, at);
+  const stageBudget = await reserveCodingStage(stages, receipts, grant, at, checkCapacity);
   if (stageBudget) return stageBudget;
   if (!await onceJson(reservation, { schemaVersion: 1, grantId: grant.grantId,
     issueNumber: grant.issueNumber, sourceHead: source.head, reservedAt: at,

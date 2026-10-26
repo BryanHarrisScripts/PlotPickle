@@ -68,7 +68,7 @@ jobs:
         if: matrix.id == 'verification'
         run: >-
           node scripts/run-ben-code-quality.mjs
-          --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}"
+          --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}"
 
       - name: Install locked compiler and executable contract dependencies
         if: matrix.id == 'experience-contract' || matrix.id == 'story-canon' || matrix.id == 'agent-runtime' || matrix.id == 'provider-runtime' || matrix.id == 'production-harness'
@@ -77,7 +77,7 @@ jobs:
       - name: Run architecture verification
         run: >-
           node scripts/verification-shadow.mjs "${{ matrix.id }}"
-          --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}"
+          --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}"
           --commit-sha "${{ github.event.pull_request.head.sha || github.sha }}"
           --platform linux
           --allow-network "${{ matrix.allow_network }}"
@@ -85,7 +85,7 @@ jobs:
       - name: Prove changed screenplay conversion in the existing PR gate
         if: matrix.id == 'story-canon'
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}
         run: |
           if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(lib/projects/screenplay/|modules/library/import/rich-ppf-to-library-project\\.ts$|build/library-ppf-import-gateway\\.ts$|tests/issue-(2948-library-fdx-conversion|2954-fdx-title-identity)\\.test\\.mjs$)'; then
             node --test tests/issue-2948-library-fdx-conversion.test.mjs tests/issue-2954-fdx-title-identity.test.mjs
@@ -97,7 +97,7 @@ jobs:
       - name: Prove changed in-Matrix Write build in the existing PR gate
         if: matrix.id == 'story-canon'
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}
         run: |
           if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(modules/write/(model/|ui/block-native-write-workspace\.tsx$)|app/skin-v1/(dashboard-menu-registry|dashboard-bbs-review-host)\.tsx?$|tests/issue-2953-write-matrix-continuity\.test\.mjs$)'; then
             node --test tests/issue-2953-write-matrix-continuity.test.mjs
@@ -109,7 +109,7 @@ jobs:
       - name: Prove first-image reject/revise/regenerate truth and build
         if: matrix.id == 'story-canon'
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}
         run: |
           if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(modules/visual/model/block-visual-candidates\.|app/skin-v1/block-visual-journey-workspace\.|core/project/apply-command\.ts$|tests/issue-2957-first-image-review-retry\.test\.mjs$)'; then
             node --test tests/issue-2957-first-image-review-retry.test.mjs tests/issue-2360-block-visual-journey.test.mjs
@@ -121,7 +121,7 @@ jobs:
       - name: Prove Sage malformed-key safety and installed build
         if: matrix.id == 'story-canon'
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}
         run: |
           if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(app/global-sage-overlay\.tsx$|modules/creative-room/sage-keyboard-shortcut\.|tests/issue-2959-sage-shortcut-guard\.test\.mjs$)'; then
             node --test tests/issue-2959-sage-shortcut-guard.test.mjs
@@ -134,7 +134,7 @@ jobs:
         if: matrix.id == 'verification'
         run: >-
           node scripts/run-development-convergence.mjs --changed
-          --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}"
+          --base-ref "${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}"
 
       - name: Upload architecture evidence
         if: always()
@@ -178,7 +178,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - id: scope
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}
         run: |
           changed="$(git diff --name-only "$BASE_SHA" HEAD)"
           printf 'Changed files:\n%s\n' "$changed"
@@ -411,7 +411,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - id: scope
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || 'origin/main' }}
         run: |
           if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(config/portless-runtime\.json$|core/runtime/portless-adapter\.mjs$|scripts/run-portless-windows-acceptance\.mjs$|tests/issue-115[46]-.*\.test\.mjs$|\.github/workflows/portless-adapter-proof\.yml$)'; then
             echo 'required=true' >> "$GITHUB_OUTPUT"

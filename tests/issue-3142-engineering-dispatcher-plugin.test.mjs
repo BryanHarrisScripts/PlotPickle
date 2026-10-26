@@ -37,7 +37,10 @@ test("one authorized request calls only the fixed worker and returns no merge au
       calls++;
       assert.deepEqual(selection,{grantId:id(2),publicationId:id(3)});
       return {state:"DRAFT_PR_CREATED",prNumber:3333,remoteCommit:"b".repeat(40),
-        engineeringReceiptId:"r"+id(4)};
+        grantId:id(2),publicationId:id(3),sourceHead:HEAD,pullRequestCreated:true,
+        engineeringReceiptId:"d".repeat(64),focusedTestExecuted:false,
+        independentVerification:false,automaticMergeAuthorized:false,
+        replayAuthorized:false};
     });
     const out=await dispatcherAction("engineering_execute_once",args,options);
     assert.equal(out.state,"DRAFT_PR_CREATED");
@@ -110,7 +113,11 @@ test("uncertain execution is never retried and retains lock for owner review",as
 test("MCP call has a bounded input surface and independent service injection",async()=>{
   await harness(async root=>{
     let calls=0;const options=services(root,async()=>{
-      calls++;return {state:"DRAFT_PR_CREATED",prNumber:3,remoteCommit:"b".repeat(40)};
+      calls++;return {state:"DRAFT_PR_CREATED",prNumber:3,remoteCommit:"b".repeat(40),
+        grantId:id(2),publicationId:id(3),sourceHead:HEAD,pullRequestCreated:true,
+        engineeringReceiptId:"d".repeat(64),focusedTestExecuted:false,
+        independentVerification:false,automaticMergeAuthorized:false,
+        replayAuthorized:false};
     });
     const call=await dispatcherRpc({jsonrpc:"2.0",id:"1",method:"tools/call",
       params:{name:"engineering_execute_once",arguments:args}},
@@ -121,5 +128,24 @@ test("MCP call has a bounded input surface and independent service injection",as
       {authenticated:true,...options});
     assert.equal(list.result.tools.length,4);
     assert.equal(list.result.tools.some(x=>x.name.includes("merge")),false);
+  });
+});
+
+test("a draft PR-like result without a correlated engineering receipt is never success",async()=>{
+  await harness(async root=>{
+    const opts=services(root,async()=>({state:"DRAFT_PR_CREATED",
+      prNumber:123,remoteCommit:"b".repeat(40),engineeringReceiptId:null}));
+    const result=await dispatcherAction("engineering_execute_once",args,opts);
+    assert.equal(result.state,"BLOCKED");
+    assert.equal(result.code,"ENGINEERING_OR_PUBLICATION_RECEIPT_UNVERIFIED");
+    const saved=await dispatcherAction("engineering_dispatch_receipt",{requestId:id(1)},opts);
+    assert.equal(saved.state,"BLOCKED");
+    assert.equal(saved.independentVerification,false);
+    assert.equal((await dispatcherAction("engineering_execute_once",args,opts)).code,
+      "REQUEST_ALREADY_RESERVED_NO_REPLAY");
+    // An uncertain remote PR must retain the exclusion for reconciliation.
+    const lock=JSON.parse(await readFile(path.join(root,"engineering-dispatcher",
+      "running.lock"),"utf8"));
+    assert.equal(lock.requestId,id(1));
   });
 });

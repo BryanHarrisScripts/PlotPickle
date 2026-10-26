@@ -7,7 +7,7 @@ import { mkdtemp, mkdir, readFile, writeFile, rm, lstat } from "node:fs/promises
 import os from "node:os";
 import path from "node:path";
 import { validateChatEditGrant, prepareChatEditOnce } from
-  "../scripts/engineering-team/gateway/owner-chat-edit-once.mjs";
+  "../scripts/engineering-team/gateway/chat/owner-chat-edit-once.mjs";
 import { validateCodingGrant } from
   "../scripts/engineering-team/gateway/authorized-coding-once.mjs";
 import { validatePublicationGrant } from

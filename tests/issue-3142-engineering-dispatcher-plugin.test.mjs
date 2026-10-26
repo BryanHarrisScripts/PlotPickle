@@ -174,3 +174,31 @@ test("a draft PR-like result without a correlated engineering receipt is never s
     assert.equal(lock.requestId,id(1));
   });
 });
+
+test("receipt never promotes damaged reservations or forged draft-PR success",async()=>{
+  await harness(async root=>{
+    const opts=services(root,async()=>{throw Error("must not invoke");});
+    const dir=path.join(root,"engineering-dispatcher","requests");
+    await mkdir(dir,{recursive:true});
+    const reservation=path.join(dir,id(1)+".reserved.json");
+    const result=path.join(dir,id(1)+".result.json");
+    assert.equal((await dispatcherAction("engineering_dispatch_receipt",
+      {requestId:id(1)},opts)).state,"NO_RESERVATION");
+    await writeFile(reservation,"{broken json\\n");
+    assert.equal((await dispatcherAction("engineering_dispatch_receipt",
+      {requestId:id(1)},opts)).state,"STARTED_UNCONFIRMED");
+    await writeFile(reservation,JSON.stringify({requestId:id(1),
+      state:"RESERVED_NO_REPLAY"})+"\\n");
+    await writeFile(result,JSON.stringify({requestId:id(1),
+      state:"DRAFT_PR_CREATED",prNumber:44})+"\\n");
+    assert.equal((await dispatcherAction("engineering_dispatch_receipt",
+      {requestId:id(1)},opts)).state,"STARTED_UNCONFIRMED");
+    await writeFile(result,JSON.stringify({requestId:id(1),
+      state:"DRAFT_PR_CREATED",prNumber:44,candidateHead:"b".repeat(40),
+      engineeringReceiptId:"d".repeat(64),focusedTestExecuted:false,
+      independentVerification:true,automaticMergeAuthorized:false,
+      replayAuthorized:false})+"\\n");
+    assert.equal((await dispatcherAction("engineering_dispatch_receipt",
+      {requestId:id(1)},opts)).state,"STARTED_UNCONFIRMED");
+  });
+});

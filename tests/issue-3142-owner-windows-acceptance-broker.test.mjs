@@ -161,3 +161,25 @@ test("foreign broker receipt parent fails closed before candidate staging", () =
     assert.equal(result.code, "RECEIPT_DIRECTORY_UNVERIFIABLE");
     assert.equal(called, 0);
   }));
+
+test("preview broker uses explicitly selected trusted MAIN checkout rather than code checkout", () =>
+  useRoot(async root => {
+    const main = path.join(root, "owner-clean-main");
+    let calls = 0;
+    const opts = fake(root, async args => {
+      calls++;
+      assert.equal(args.repoRoot, main);
+      return { state: "TEST_PASSED", code: "CANDIDATE_STATIC_STAGED",
+        sourceHead: MAIN, candidateHead: HEAD, candidatePrNumber: 3311,
+        stageId: ID, changedFileCount: 4 };
+    });
+    const bad = await ownerWindowsAcceptanceAction({ ...allowed,
+      mainRoot: "relative/path" }, opts);
+    assert.equal(bad.code, "TRUSTED_MAIN_PATH_INVALID");
+    assert.equal(calls, 0);
+    const good = await ownerWindowsAcceptanceAction({ ...allowed, mainRoot: main }, opts);
+    assert.equal(good.state, "STAGED_NOT_ACCEPTED");
+    assert.equal(calls, 1);
+    assert.equal(good.ownerWindowsAcceptance, false);
+    assert.equal(good.independentVerification, false);
+  }));

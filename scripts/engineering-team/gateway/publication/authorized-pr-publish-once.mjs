@@ -49,7 +49,7 @@ export function validatePublicationGrant(grant, prepared, codingGrant, source, a
     prepared.sourceMutationVerified === true &&
     prepared.focusedTestExecuted === false && prepared.pullRequestCreated === false &&
     prepared.independentVerification === false &&
-    prepared.autonomousMergeAuthorized !== true &&
+    prepared.automaticMergeAuthorized === false &&
     prepared.grantId === grant.grantId && prepared.issueNumber === grant.issueNumber &&
     prepared.sourceHead === grant.sourceHead && prepared.commit === grant.localCommit &&
     prepared.branch === grant.branch &&

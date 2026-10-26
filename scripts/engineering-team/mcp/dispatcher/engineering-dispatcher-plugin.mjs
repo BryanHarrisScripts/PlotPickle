@@ -14,7 +14,11 @@ import { gatewayAppSource, privateGatewayRoot } from "../../gateway/gateway-host
 import { runOwnerCodingOnce, runOwnerCodingAndPublishOnce } from "../../gateway/authorized-coding-once.mjs";
 import { runOwnerChatEditOnce } from "../../gateway/owner-chat-edit-once.mjs";
 
-const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
+// The owner launches the candidate-side MCP bridge WITH cwd pinned to
+// the separately trusted, exact-clean MAIN checkout. Deriving MAIN from this
+// file's path instead would bind to the unaccepted detached PR preview.
+// gatewayAppSource independently verifies origin, branch, tracked-clean state.
+const ownerMainRoot = () => process.cwd();
 const ID = /^[a-f0-9]{32}$/;
 const SHA = /^[a-f0-9]{40}$/;
 const MAX_BODY = 8192;
@@ -178,7 +182,7 @@ async function publishPreviouslyPreparedOnce({grantId,publicationId}) {
 export async function dispatcherAction(name,args={},{
   root=privateGatewayRoot(),platform=process.platform,
   enabled=process.env.PLOTPICKLE_ENGINEERING_DISPATCH_ENABLED==="1",
-  source=()=>gatewayAppSource({repoRoot:REPO}),
+  source=()=>gatewayAppSource({repoRoot:ownerMainRoot()}),
   execute=runOwnerCodingAndPublishOnce,prepare=runOwnerCodingOnce,
   chatPatch=runOwnerChatEditOnce,publish=publishPreviouslyPreparedOnce,now=Date.now,
 }={}) {

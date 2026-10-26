@@ -288,9 +288,15 @@ jobs:
         run: |
           $tokens = $null
           $parseErrors = $null
-          $script = Join-Path $PWD 'scripts/engineering-team/windows/acceptance/Invoke-PlotPickle-WindowsAcceptance.ps1'
-          [System.Management.Automation.Language.Parser]::ParseFile($script, [ref]$tokens, [ref]$parseErrors) | Out-Null
-          if (@($parseErrors).Count -ne 0) { throw 'OWNER_ACCEPTANCE_LAUNCHER_SYNTAX_INVALID' }
+          foreach ($script in @(
+            (Join-Path $PWD 'scripts/engineering-team/windows/acceptance/Invoke-PlotPickle-WindowsAcceptance.ps1'),
+            (Join-Path $PWD 'scripts/engineering-team/windows/acceptance/Prepare-PlotPickle-AcceptancePreview.ps1')
+          )) {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($script, [ref]$tokens, [ref]$parseErrors) | Out-Null
+            if (@($parseErrors).Count -ne 0) { throw 'OWNER_ACCEPTANCE_LAUNCHER_SYNTAX_INVALID' }
+          }
       - name: Verify authenticated headless gateway acceptance route on native Windows
         shell: pwsh
         env:

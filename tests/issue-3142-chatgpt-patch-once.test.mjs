@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { execFile } from "node:child_process";
+import { execFile, spawnSync } from "node:child_process";
 import { promisify } from "node:util";
 import { mkdtemp, mkdir, readFile, writeFile, rm, lstat } from "node:fs/promises";
 import os from "node:os";
@@ -257,3 +257,38 @@ test("Owner ChatGPT grant refuses non-console, wrong consent, stale MAIN and int
   await assert.rejects(()=>lstat(path.join(privateRoot,"owner-coding-grants",
     id+".json")),{code:"ENOENT"});
 }));
+
+
+test("Owner C-drive bridge preview bootstrap is static-only, source-pinned and never touches Factory STOP",async()=>{
+  const file=new URL("../scripts/engineering-team/windows/chat-bridge/Prepare-PlotPickle-ChatBridgePreview.ps1",import.meta.url);
+  const src=await readFile(file,"utf8");
+  for(const required of [
+    "AUTHORIZE_STATIC_CHAT_BRIDGE_PREVIEW_ONLY",
+    "PARENT_PR_PIN_MISMATCH","BRIDGE_PR_PIN_MISMATCH",
+    "OWNER_EXACT_CLEAN_MAIN_REQUIRED","LIVE_CODE_MUST_REMAIN_ON_C",
+    "PREVIEW_EXISTS_NO_OVERWRITE","CHAT_BRIDGE_PREVIEW_CHECKED_OUT_NOT_ACCEPTED",
+    "PINNED_BRIDGE_FETCH_HEAD_CHANGED","OWNER_MAIN_CHANGED_DURING_PREVIEW",
+    "refs/pull/3314/head","core.hooksPath=",
+    "no-recurse-submodules","GIT_LFS_SKIP_SMUDGE"
+  ])assert.ok(src.includes(required.replace("PREVIEW_EXISTS_NO_OVERWRITE",
+    "CHAT_BRIDGE_PREVIEW_EXISTS_NO_OVERWRITE")),required);
+  assert.match(src,/worktree add --detach/);
+  assert.match(src,/gh pr view 3311/);
+  assert.match(src,/gh pr view 3314/);
+  assert.doesNotMatch(src,/\b(?:Invoke-Expression|Start-Process|Invoke-RestMethod|New-PSSession|Unblock-File|Remove-Item|git\s+push|gh\s+pr\s+merge)\b/i);
+  assert.match(src,/tunnelStarted = \$false/);
+  assert.match(src,/codeEdited = \$false/);
+  assert.match(src,/independentVerification = \$false/);
+  assert.match(src,/automaticMergeAuthorized = \$false/);
+  if(process.platform==="win32"){
+    const path=new URL(file).pathname; // use native path via URL utility below
+    const literal=decodeURIComponent(path).replace(/^\//,"").replaceAll("/","\\").replaceAll("'","''");
+    const command="$tokens=$null;$errors=$null;"+
+      "[System.Management.Automation.Language.Parser]::ParseFile('"+
+      literal+"',[ref]$tokens,[ref]$errors)|Out-Null;"+
+      "if($errors.Count -ne 0){$errors|Out-String|Write-Output;exit 1}";
+    const result=spawnSync("powershell.exe",["-NoProfile","-NonInteractive",
+      "-Command",command],{encoding:"utf8",timeout:15000,windowsHide:true});
+    assert.equal(result.status,0,result.stderr||result.stdout);
+  }
+});

@@ -11754,7 +11754,7 @@
       },
       {
         "target": "tests/issue-3142-authorized-coding-once.test.mjs",
-        "targetDigest": "bf7e82325aa92e9671cbcf80a52380d0fb3fe9b8dc58922b690d87250ee57c97",
+        "targetDigest": "99369de5c4e578c1a06b394053967de5f3cf4fdb184daeb7e3aaf386fc26a5b7",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11776,7 +11776,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "d2d56d456883e8cfa89ee4b5a9c24abd4f93526004c6a414bf4c0037b17cb2d6"
+            "digest": "3393b2bcab8fda33e753c85ed59c30082e656d4c89a6a049fd62745257e5cb4c"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -11852,7 +11852,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "d2d56d456883e8cfa89ee4b5a9c24abd4f93526004c6a414bf4c0037b17cb2d6"
+            "digest": "3393b2bcab8fda33e753c85ed59c30082e656d4c89a6a049fd62745257e5cb4c"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",

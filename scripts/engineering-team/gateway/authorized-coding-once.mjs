@@ -91,7 +91,7 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
   // Neither a new worker nor recovery is allowed to discard this guard by age.
   const guardPath = path.join(receipts, '.coding-stage-owner.lock');
   let lock, identity, guardCreated = false;
-  let releaseSafe = true, executionStarted = false;
+  let releaseSafe = true, executionStarted = false, completed = null;
   const same = (stat, owned) => stat.isFile() && !stat.isSymbolicLink() &&
     stat.dev === owned.dev && stat.ino === owned.ino;
   const matches = async filename => {
@@ -144,6 +144,7 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
     executionStarted = true;
     const outcome = await execute(owns);
     if (!await owns()) return block('CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE');
+    completed = outcome;
     return outcome;
   } catch {
     return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
@@ -166,6 +167,19 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
         } catch { releaseSafe = false; }
       }
       try { await lock.close(); } catch { releaseSafe = false; }
+      // The prepared-result JSON is NOT a safe publication credential until
+      // the independent release witness confirms this attempt dropped its own
+      // lifetime guard; uncertain release is permanently non-replayable.
+      if (releaseSafe && completed?.state === 'LOCAL_COMMIT_PREPARED') {
+        try {
+          const released = await onceJson(path.join(receipts, grant.grantId + '.released.json'),
+            { schemaVersion: 1, kind: 'coding-resource-release',
+              grantId: grant.grantId, sourceHead: grant.sourceHead,
+              localCommit: completed.commit, branch: completed.branch,
+              state: 'RELEASED_AFTER_DURABLE_RESULT' });
+          if (!released) releaseSafe = false;
+        } catch { releaseSafe = false; }
+      }
       if (!releaseSafe) return block(executionStarted
         ? 'CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE'
         : 'CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');

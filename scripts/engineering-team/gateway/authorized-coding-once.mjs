@@ -114,11 +114,24 @@ async function priorCodingAttemptsReconciled(receipts, currentNonce, epoch) {
       if (owner.schemaVersion !== 1 || !ID.test(owner.grantId || '') ||
           owner.ownerNonce !== nonce || owner.ownershipEpoch !== epoch ||
           owner.state !== 'NONREPLAYABLE_OWNER_EVIDENCE') return false;
-      const releasePath = path.join(receipts, owner.grantId + '.released.json');
-      const released = await lstat(releasePath);
-      if (!released.isFile() || released.isSymbolicLink() ||
-          released.size > 4096) return false;
-      const release = JSON.parse(await readFile(releasePath, 'utf8'));
+      // Preflight denials get nonce-keyed terminal evidence because the
+      // owner grant was not consumed; they may be attempted again safely.
+      // Executed successes get grant-keyed receipts for the publisher.
+      let release;
+      try {
+        const preflight = path.join(receipts, '.coding-attempt-' + nonce + '.released.json');
+        const stat = await lstat(preflight);
+        if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 4096) return false;
+        release = JSON.parse(await readFile(preflight, 'utf8'));
+        if (release.state !== 'RELEASED_WITHOUT_EXECUTION') return false;
+      } catch (error) {
+        if (error?.code !== 'ENOENT') return false;
+        const releasePath = path.join(receipts, owner.grantId + '.released.json');
+        const stat = await lstat(releasePath);
+        if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 4096) return false;
+        release = JSON.parse(await readFile(releasePath, 'utf8'));
+        if (release.state !== 'RELEASED_AFTER_DURABLE_RESULT') return false;
+      }
       if (release.schemaVersion !== 1 ||
           release.kind !== 'coding-resource-release' ||
           !['RELEASED_AFTER_DURABLE_RESULT', 'RELEASED_WITHOUT_EXECUTION']
@@ -238,7 +251,10 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
       // attempt never gets a release witness or automatic replay.
       if (safeRelease && guardCreated && outcomeSettled) {
         try {
-          const saved = await onceJson(path.join(receipts, grant.grantId + '.released.json'),
+          const releasePath = executionStarted
+            ? path.join(receipts, grant.grantId + '.released.json')
+            : path.join(receipts, '.coding-attempt-' + ownership.nonce + '.released.json');
+          const saved = await onceJson(releasePath,
             { schemaVersion: 1, kind: 'coding-resource-release',
               grantId: grant.grantId, sourceHead: grant.sourceHead,
               ...(executionStarted ? {

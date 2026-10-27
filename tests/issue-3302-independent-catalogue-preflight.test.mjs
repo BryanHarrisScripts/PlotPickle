@@ -31,3 +31,34 @@ test('even exact source editions cannot self-admit protected catalogue',async()=
   assert.ok(r.mismatches.some(x=>x.code==='BINDING_CARDINALITY'));
  } finally {await rm(root,{recursive:true,force:true});}
 });
+
+test('structured WHITE-PAPER-V3 truth refs and stale input hashes are checked',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'pp-qa-'));
+ try {
+  const bindings=Object.keys(EDITION.targets).map(target=>({
+   target,targetDigest:EDITION.targets[target],
+   truthRefs:[{truthId:'WHITE-PAPER-V3',obligationId:'W8'},{truthId:'WHITE-PAPER-V3',obligationId:'W9'}],
+   catalogueIds:['agent.autonomous-factory-queue-3110'],scopes:['unit-fixture'],inputs:[]
+  }));
+  await mkdir(join(root,'config/verification'),{recursive:true});
+  await writeFile(join(root,'config/verification/test-catalog.json'),JSON.stringify({truthGovernance:{bindings}}));
+  const r=await inspectEdition({root,head:EDITION.head});
+  assert.equal(r.status,'BLOCKED');
+  assert.ok(r.mismatches.some(x=>x.code==='INPUT_DIGEST_STALE'));
+  assert.ok(!r.mismatches.some(x=>x.code==='TRUTH_REFS_MISSING'));
+ } finally {await rm(root,{recursive:true,force:true});}
+});
+test('missing W9 truth obligation is explicitly rejected',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'pp-qa-'));
+ try {
+  const bindings=Object.keys(EDITION.targets).map(target=>({
+   target,targetDigest:EDITION.targets[target],
+   truthRefs:[{truthId:'WHITE-PAPER-V3',obligationId:'W8'}],
+   catalogueIds:['agent.autonomous-factory-queue-3110'],scopes:['unit-fixture'],inputs:[]
+  }));
+  await mkdir(join(root,'config/verification'),{recursive:true});
+  await writeFile(join(root,'config/verification/test-catalog.json'),JSON.stringify({truthGovernance:{bindings}}));
+  const r=await inspectEdition({root,head:EDITION.head});
+  assert.ok(r.mismatches.some(x=>x.code==='TRUTH_REFS_MISSING'));
+ } finally {await rm(root,{recursive:true,force:true});}
+});

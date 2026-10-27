@@ -91,7 +91,7 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
   // Neither a new worker nor recovery is allowed to discard this guard by age.
   const guardPath = path.join(receipts, '.coding-stage-owner.lock');
   let lock, identity, guardCreated = false;
-  let releaseSafe = true;
+  let releaseSafe = true, executionStarted = false;
   const same = (stat, owned) => stat.isFile() && !stat.isSymbolicLink() &&
     stat.dev === owned.dev && stat.ino === owned.ino;
   const matches = async filename => {
@@ -141,6 +141,7 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
     if (!saved) return block('CODING_STAGE_RESERVATION_UNVERIFIABLE');
     if (!await owns()) return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
     // The callback must check ownership before and after irreversible effects.
+    executionStarted = true;
     const outcome = await execute(owns);
     if (!await owns()) return block('CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE');
     return outcome;
@@ -165,7 +166,9 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
         } catch { releaseSafe = false; }
       }
       try { await lock.close(); } catch { releaseSafe = false; }
-      if (!releaseSafe) return block('CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE');
+      if (!releaseSafe) return block(executionStarted
+        ? 'CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE'
+        : 'CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
     }
   }
 }

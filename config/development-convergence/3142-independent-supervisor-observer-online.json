@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "issue": 3142,
+  "phase": "independent-supervisor-observer-online-and-windows-operations",
+  "brief": "docs/developer-briefs/3142-one-tunnel-supervisor-operations.md",
+  "allowedChanges": [
+    "config/development-convergence/3142-independent-supervisor-observer-online.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3142-one-tunnel-supervisor-operations.md",
+    "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+    "tests/issue-3154-chatgpt-factory-mcp.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "SEPARATE-INDEPENDENT-ONLINE",
+      "criterion": "Authenticated observer reports independent Windows Supervisor ONLINE with fresh canonical RUNNING heartbeat while preserving legacy Pi Factory OFFLINE.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+          "contains": "state:online?\"ONLINE\":observed.state===\"RUNNING\"?\"OFFLINE\":observed.state"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
+          "contains": "assert.equal(record.independentSupervisor.state,\"ONLINE\")"
+        }
+      ]
+    },
+    {
+      "id": "NO-GUEST-LEAK",
+      "criterion": "Guest observer response never reads or exposes owner supervisor status, while stale/failed reads cannot show ONLINE.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+          "contains": "readSupervisor:controlAuthenticated?supervisorRead:null"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
+          "contains": "assert.equal(reads,0)"
+        }
+      ]
+    },
+    {
+      "id": "NO-CODING-CLAIM",
+      "criterion": "Observer ONLINE remains read-only heartbeat status, never coding, PID-tree process ownership, autonomous merge or product gate.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
+          "contains": "assert.equal(record.independentSupervisor.autonomousCodingVerified,false)"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3142-one-tunnel-supervisor-operations.md",
+          "contains": "does **not** attest process-tree ownership"
+        }
+      ]
+    },
+    {
+      "id": "WINDOWS-APP-INDEPENDENT-OPERATIONS",
+      "criterion": "Operator runbook specifies separate tunnel and supervisor startup, Windows Task Scheduler checks and no PlotPickle app dependency.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3142-one-tunnel-supervisor-operations.md",
+          "contains": "Task Scheduler"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Preserve original public MCP tool names and schemas; no new Factory controls, no arbitrary shell, no Pi agent launch or model invocation.",
+    "Only authenticated observer can read sanitized Independent Supervisor state; no user secrets, local paths or PID leak through MCP.",
+    "Legacy Factory queue remains OFFLINE with immutable blocked receipts until its true state changes; do not replay or change source-authority gates.",
+    "No app launch, no scheduled task modification, no automatic merging or source mutation authority from observer output. Owner Windows acceptance remains separate."
+  ]
+}

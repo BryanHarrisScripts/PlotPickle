@@ -55,7 +55,7 @@ function openVerifiedDatabase(receipts, readOnly) {
       let fd;
       try {
         fd = openSync(markerPath, 'wx', 0o600);
-        writeSync(fd, JSON.stringify({ schemaVersion: 1, epoch }) + '\\n');
+        writeSync(fd, JSON.stringify({ schemaVersion: 1, epoch }) + '\n');
         fsyncSync(fd);
       } catch (creationError) {
         if (creationError?.code !== 'EEXIST') throw creationError;

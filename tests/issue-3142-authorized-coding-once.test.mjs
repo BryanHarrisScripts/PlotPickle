@@ -567,3 +567,33 @@ test('a separate OS process cannot claim or replay a crash-retained atomic codin
     assert.throws(() => claimCodingOwnership(receipts, '3'.repeat(32), Date.now()),
       'crash must retain a non-replayable resource claim');
   }));
+
+test('uncertain model outcome retains the SQLite resource owner and cannot schedule another grant', () =>
+  work(async ({ repoRoot, privateRoot }) => {
+    const at = Date.now();
+    const runGit = async (cwd, args) => {
+      if (args[0] === 'worktree') {
+        const stage = args[3];
+        await mkdir(path.dirname(path.join(stage, TARGET)), { recursive: true });
+        await writeFile(path.join(stage, TARGET), ORIGINAL);
+      }
+      return { stdout: '' };
+    };
+    const first = await runAuthorizedCodingOnce({
+      repoRoot, privateRoot, source, grant: makeGrant(at),
+      credential: 'fake-test-key-not-real-123456', now: () => at,
+      runGit, checkSyntax: async () => {},
+      requestEdit: async () => { throw Error('fixture provider reply unknown'); },
+    });
+    assert.equal(first.code, 'CODING_OUTCOME_UNCERTAIN_RECONCILIATION_REQUIRED');
+    assert.equal(first.replayAuthorized, false);
+    const receipts = path.join(privateRoot, 'coding-attempts');
+    assert.throws(() => claimCodingOwnership(receipts, '2'.repeat(32), at),
+      'a fresh grant must not bypass an unresolved model request');
+    await assert.rejects(readFile(path.join(receipts,
+      '1'.repeat(32) + '.released.json'), 'utf8'));
+    const saved = JSON.parse(await readFile(path.join(receipts,
+      '1'.repeat(32) + '.result.json'), 'utf8'));
+    assert.equal(saved.code, 'CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE');
+    assert.equal(saved.replayAuthorized, false);
+  }));

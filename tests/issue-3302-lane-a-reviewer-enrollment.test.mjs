@@ -48,7 +48,7 @@ test('wrong or revoked registrar identity is refused',()=>{
 });
 test('altering reviewer identity, scope or key material after registrar signature is rejected',()=>{
  const original=signed();
- assert.equal(verifyReviewerEnrollment({...original,reviewerPrincipal:'AnotherReviewer'},options).code,'REGISTRAR_SIGNATURE_INVALID');
+ assert.equal(verifyReviewerEnrollment({...original,reviewerPrincipal:'AnotherReviewer'},options).code,'REVIEWER_PRINCIPAL_MISMATCH');
  assert.equal(verifyReviewerEnrollment({...original,capabilities:['catalogue-admission-review-only','repo-write']},options).code,'SCOPE_INVALID');
  assert.equal(verifyReviewerEnrollment({...original,publicKeyPem:pem(generateKeyPairSync('ed25519').publicKey)},options).code,'REGISTRAR_SIGNATURE_INVALID');
 });

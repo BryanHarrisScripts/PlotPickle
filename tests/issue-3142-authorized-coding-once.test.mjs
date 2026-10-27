@@ -371,3 +371,107 @@ test('distinct owner grants cannot overlap model execution or consume a second r
       requestEdit: async () => ({ oldText: 'return 1;', newText: 'return 2;' }) });
     assert.equal(third.state, 'LOCAL_COMMIT_PREPARED');
   }));
+
+
+test('replaced primary lock during active model leaves another owner untouched and blocks replay', () =>
+  work(async ({ repoRoot, privateRoot }) => {
+    const at = Date.now();
+    const credentials = 'fake-test-key-not-real-123456';
+    const lock = path.join(privateRoot, 'coding-attempts', '.coding-stage-budget.lock');
+    const guard = path.join(privateRoot, 'coding-attempts', '.coding-stage-owner.lock');
+    let modelEntered, releaseModel;
+    const entered = new Promise(resolve => { modelEntered = resolve; });
+    const held = new Promise(resolve => { releaseModel = resolve; });
+    let modelCalls = 0;
+    const git = async (cwd, args) => {
+      if (args[0] === 'worktree') {
+        const stage = args[3];
+        await mkdir(path.dirname(path.join(stage, TARGET)), { recursive: true });
+        await writeFile(path.join(stage, TARGET), ORIGINAL);
+      }
+      if (args[0] === 'diff' && args[1] === '--name-only')
+        return { stdout: TARGET + '\n' };
+      if (args[0] === 'rev-parse') return { stdout: COMMIT + '\n' };
+      return { stdout: '' };
+    };
+    const base = { repoRoot, privateRoot, source, credential: credentials,
+      now: () => at, runGit: git, checkSyntax: async () => {} };
+    const first = runAuthorizedCodingOnce({ ...base, grant: makeGrant(at),
+      requestEdit: async () => {
+        modelCalls++;
+        modelEntered();
+        await held;
+        return { oldText: 'return 1;', newText: 'return 2;' };
+      } });
+    try {
+      await entered;
+      assert.equal((await lstat(guard)).isFile(), true);
+      await unlink(lock);
+      await writeFile(lock, 'other-attempt-owner-must-survive');
+      const second = await runAuthorizedCodingOnce({
+        ...base, grant: { ...makeGrant(at), grantId: '2'.repeat(32) },
+        requestEdit: async () => { modelCalls++; throw Error('overlap forbidden'); } });
+      assert.equal(second.code, 'CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
+      assert.equal(modelCalls, 1);
+      await assert.rejects(readFile(path.join(privateRoot, 'coding-attempts',
+        '2'.repeat(32) + '.reserved.json'), 'utf8'));
+    } finally {
+      releaseModel();
+    }
+    const outcome = await first;
+    assert.equal(outcome.code, 'CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE');
+    assert.equal(outcome.sourceMutationVerified, false);
+    assert.equal(outcome.replayAuthorized, false);
+    assert.equal(await readFile(lock, 'utf8'), 'other-attempt-owner-must-survive');
+    assert.equal((await lstat(guard)).isFile(), true);
+    await assert.rejects(readFile(path.join(privateRoot, 'coding-attempts',
+      '1'.repeat(32) + '.result.json'), 'utf8'));
+    const third = await runAuthorizedCodingOnce({
+      ...base, grant: { ...makeGrant(at), grantId: '3'.repeat(32) },
+      requestEdit: async () => { modelCalls++; throw Error('replay forbidden'); } });
+    assert.equal(third.code, 'CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
+    assert.equal(modelCalls, 1);
+  }));
+
+test('removed primary lock without replacement still cannot admit a distinct grant', () =>
+  work(async ({ repoRoot, privateRoot }) => {
+    const at = Date.now();
+    const lock = path.join(privateRoot, 'coding-attempts', '.coding-stage-budget.lock');
+    let enteredResolve, completeResolve, modelCalls = 0;
+    const entered = new Promise(resolve => { enteredResolve = resolve; });
+    const held = new Promise(resolve => { completeResolve = resolve; });
+    const base = { repoRoot, privateRoot, source,
+      credential: 'fake-test-key-not-real-123456', now: () => at,
+      runGit: async (cwd, args) => {
+        if (args[0] === 'worktree') {
+          const stage = args[3];
+          await mkdir(path.dirname(path.join(stage, TARGET)), { recursive: true });
+          await writeFile(path.join(stage, TARGET), ORIGINAL);
+        }
+        return { stdout: '' };
+      }, checkSyntax: async () => {} };
+    const first = runAuthorizedCodingOnce({ ...base, grant: makeGrant(at),
+      requestEdit: async () => {
+        modelCalls++;
+        enteredResolve();
+        await held;
+        return { oldText: 'return 1;', newText: 'return 2;' };
+      } });
+    try {
+      await entered;
+      await unlink(lock);
+      const second = await runAuthorizedCodingOnce({
+        ...base, grant: { ...makeGrant(at), grantId: '2'.repeat(32) },
+        requestEdit: async () => { modelCalls++; throw Error('overlap forbidden'); } });
+      assert.equal(second.code, 'CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
+      assert.equal(modelCalls, 1);
+      await assert.rejects(readFile(path.join(privateRoot, 'coding-attempts',
+        '2'.repeat(32) + '.reserved.json'), 'utf8'));
+    } finally {
+      completeResolve();
+    }
+    const outcome = await first;
+    assert.equal(outcome.code, 'CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE');
+    assert.equal((await lstat(path.join(privateRoot, 'coding-attempts',
+      '.coding-stage-owner.lock'))).isFile(), true);
+  }));

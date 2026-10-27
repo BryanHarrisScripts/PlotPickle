@@ -58,7 +58,7 @@ The same environment can also help improve itself. If the storyboard workflow fa
 
 The developing **four-Factory ecosystem** joins **Software**, **Learning & Evolution**, **Story Builder** and **Game — STORY: The Unwritten**, coordinated for creative work by the **Semantic Story Coordinator**. Software repairs the tools; Learning improves the methods; Story Builder produces reviewable screen and sound assets; STORY governs playable experiences. None of these replaces the Human's accepted PPF canon. Evidence-backed handoffs let each contribute without silently promoting proposals or rewriting story history. This shared experience is **[Living Story Worlds](#living-story-worlds-the-shared-humanai-creative-experience)**; the detailed [roadmap](#roadmap-four-factories-and-one-semantic-story-coordinator) defines separate responsibilities and current delivery truth.
 
-**How the Factory works as an organization:** [PlotPickle Organization Chart](PlotPickleOrganizationChart.md) maps the Owner, Factory Director, engineering foundation, three creative/product factories, specialist roles, independent QA, Release Management, and durable operating controls—then follows an issue from intake to verified delivery.
+**How the Factory works as an organization:** [PlotPickle Organization Chart](docs/PlotPickleOrganizationChart.md) maps the Owner, Factory Director, engineering foundation, three creative/product factories, specialist roles, independent QA, Release Management, and durable operating controls—then follows an issue from intake to verified delivery.
 
 ### Living Story Worlds: the shared Human–AI creative experience
 
@@ -262,7 +262,7 @@ That means:
 
 ## Roadmap: four Factories and one Semantic Story Coordinator
 
-For the traditional management/reporting hierarchy, departmental responsibilities, authority gates, real work-order flow and two-cycle autonomous Factory acceptance criteria, see **[PlotPickle Organization Chart](PlotPickleOrganizationChart.md)**. This operating guide supplements the roadmap without creating additional runtimes or changing accepted Human/PPF authority.
+For the traditional management/reporting hierarchy, departmental responsibilities, authority gates, real work-order flow and two-cycle autonomous Factory acceptance criteria, see **[PlotPickle Organization Chart](docs/PlotPickleOrganizationChart.md)**. This operating guide supplements the roadmap without creating additional runtimes or changing accepted Human/PPF authority.
 
 **North star:** PlotPickle helps people learn storytelling, shape meaningful stories, make visual films and build playable worlds, while improving its own tools and teaching. The long-term experience is intent-centred: **the Human defines purpose and retains meaningful authority; the system coordinates actual work and provides inspectable evidence.** This is a development roadmap, not a claim of unattended production, autonomous software repair, automatic story improvement or a completed creator-facing game factory.
 

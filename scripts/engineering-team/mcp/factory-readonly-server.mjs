@@ -306,7 +306,7 @@ export function sanitizeFactoryMonitor(record,now=Date.now()) {
 }
 
 /** Bounded local observer: zero model calls, shell commands, reservations or edits. */
-export async function factoryObserver({root=privateFactoryRoot(),now=Date.now}={}) {
+export async function factoryObserver({root=privateFactoryRoot(),now=Date.now,readSupervisor=null}={}) {
   const status=await factoryStatus({root,now});
   const config=await privateJson(path.join(root,"config.json"),32768);
   const approvedIssues=Array.isArray(config?.issues)?config.issues.slice(0,80):[];
@@ -318,7 +318,22 @@ export async function factoryObserver({root=privateFactoryRoot(),now=Date.now}={
   const monitor=sanitizeFactoryMonitor(monitorRecord,observedAt)||
     {state:"NOT_OBSERVED",heartbeatFresh:false,processOwnershipVerified:false,
       mode:"MONITOR_ONLY",issueAdmitted:false,modelInvoked:false};
-  return Object.freeze({...summarizeFactoryObserver({status,approvedIssues,evidence,now:observedAt}),monitor});
+  const snapshot=summarizeFactoryObserver({status,approvedIssues,evidence,now:observedAt});
+  // The legacy Pi queue and the independent Windows supervisor are separate.
+  // Guest observer responses preserve the original public contract.
+  if(typeof readSupervisor!=="function")return Object.freeze({...snapshot,monitor});
+  let rawSupervisor=null;
+  try {rawSupervisor=await readSupervisor();}catch {rawSupervisor=null;}
+  const observed=sanitizeSupervisorObservation(rawSupervisor,observedAt);
+  // ONLINE is only a fresh canonical RUNNING heartbeat. It is not proof of
+  // PID ownership, source mutation, autonomous coding, Windows UAT or merging.
+  const online=observed.state==="RUNNING"&&observed.heartbeatFresh;
+  return Object.freeze({...snapshot,monitor,
+    independentSupervisor:Object.freeze({...observed,
+      state:online?"ONLINE":observed.state==="RUNNING"?"OFFLINE":observed.state,
+      canonicalState:observed.state,
+    }),
+  });
 }
 
 export async function factoryIssuePreview({root=privateFactoryRoot(),
@@ -777,7 +792,7 @@ export const MCP_TOOLS=Object.freeze([
     description:"Read local Factory status and owned PlotPickle app state; heartbeat and browser HTTP alone never prove product acceptance.",
     inputSchema:{type:"object",properties:{},additionalProperties:false}},
   {name:"factory_observer",title:"Read deterministic Factory Observer snapshot",
-    description:"Read bounded Windows Factory queue, heartbeat and immutable issue receipts. Reports the Pi legacy dispatcher and ChatGPT-MCP engineering as NOT READY. Does not run, admit, modify or retry work.",
+    description:"Read the legacy Factory queue and immutable receipts; authenticated owners also see separate independent supervisor heartbeat state. Does not start coding, retry, or merge.",
     inputSchema:{type:"object",properties:{},additionalProperties:false}},
   {name:"factory_evidence",title:"Read bounded issue attempt evidence",
     description:"Read one already-recorded attempt by numeric issue and attempt; never launches or retries the agent.",
@@ -882,7 +897,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
           ?()=>stageBudgetRead({base:path.join(root,"chat-candidate-stages")}):null,
         readStageLock:controlAuthenticated?()=>stageLockRead({root}):null,
       });
-      else if(name==="factory_observer")value=await factoryObserver({root,now});
+      else if(name==="factory_observer")value=await factoryObserver({root,now,readSupervisor:controlAuthenticated?supervisorRead:null});
       else if(name==="factory_evidence"){
         if(keys.some(k=>!["issueNumber","attempt"].includes(k)) ||
            !validIssue(args.issueNumber) ||

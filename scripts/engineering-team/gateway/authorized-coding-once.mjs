@@ -168,6 +168,10 @@ async function modelEdit({ grant, original, credential, fetchImpl }) {
     headers: { Authorization: 'Bearer ' + credential, 'Content-Type': 'application/json' },
     body: JSON.stringify({ model: grant.model, store: false,
       max_output_tokens: grant.maxOutputTokens,
+      text: { format: { type: 'json_schema', name: 'bounded_source_edit', strict: true,
+        schema: { type: 'object', additionalProperties: false,
+          properties: { oldText: { type: 'string' }, newText: { type: 'string' } },
+          required: ['oldText', 'newText'] } } },
       input: [
         { role: 'developer', content: 'Return JSON only: {"oldText":"...","newText":"..."}. Replace one unique exact substring. No markdown, tools, shell, network, unrelated edits, or claims of testing.' },
         { role: 'user', content: `Issue #${grant.issueNumber}. Owner objective: ${grant.objective}\\nModify only ${grant.targetPath}. Current source:\\n${original}` },
@@ -224,23 +228,37 @@ export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, g
   const stage = path.join(stages, grant.grantId);
   const branch = `engineering/${grant.issueNumber}-${grant.grantId}`;
   let result = block('CODING_OUTCOME_UNCERTAIN');
+  // A fixed phase from this allowlist is safe to retain; never copy exception
+  // messages, model text, stderr, credentials or host paths into receipts.
+  let phase = 'CREATE_WORKTREE';
   try {
     await git(repoRoot, ['worktree', 'add', '--detach', stage, source.head]);
+    phase = 'CREATE_BRANCH';
     await git(stage, ['switch', '-c', branch]);
+    phase = 'VERIFY_STAGE_SOURCE';
     const stageFile = await safePath(stage, grant.targetPath);
     if ((await regularFile(stageFile, 16_384)).replace(/\r\n/g, '\n') !== original.replace(/\r\n/g, '\n'))
       throw Error('STAGED_SOURCE_DIFFERENT');
+    phase = 'REQUEST_MODEL';
     const proposal = await requestEdit({ grant, original, credential, fetchImpl });
+    phase = 'VALIDATE_MODEL_EDIT';
     const updated = boundedSourceEdit(original, proposal);
     if (!updated || updated.length > 16_384) throw Error('MODEL_EDIT_UNVERIFIABLE');
+    phase = 'WRITE_STAGE_EDIT';
     await writeFile(stageFile, updated, 'utf8');
+    phase = 'CHECK_STAGE_DIFF';
     await git(stage, ['diff', '--check']);
+    phase = 'CHECK_STAGE_SYNTAX';
     await syntax(stage, stageFile);
+    phase = 'VERIFY_CHANGE_SCOPE';
     const changed = String((await git(stage, ['diff', '--name-only'])).stdout || '').trim();
     if (changed !== grant.targetPath) throw Error('UNEXPECTED_CHANGED_FILES');
+    phase = 'ADD_STAGE_EDIT';
     await git(stage, ['add', '--', grant.targetPath]);
+    phase = 'COMMIT_STAGE_EDIT';
     await git(stage, ['-c', 'commit.gpgSign=false', '-c', `core.hooksPath=${path.join(privateRoot, 'disabled-hooks')}`,
       'commit', '-m', `fix(#${grant.issueNumber}): bounded owner-authorized coding edit`]);
+    phase = 'VERIFY_COMMIT_SHA';
     const commit = String((await git(stage, ['rev-parse', 'HEAD'])).stdout || '').trim();
     if (!SHA.test(commit)) throw Error('COMMIT_UNVERIFIABLE');
     result = Object.freeze({ state: 'LOCAL_COMMIT_PREPARED', code: 'SYNTAX_CHECK_PASSED_TESTS_PENDING',
@@ -250,7 +268,7 @@ export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, g
       independentVerification: false, pullRequestCreated: false,
       automaticMergeAuthorized: false, replayAuthorized: false });
   } catch {
-    result = block('CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE');
+    result = Object.freeze({ ...block('CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE'), phase });
   }
   if (!await onceJson(path.join(receipts, grant.grantId + '.result.json'), result))
     return block('CODING_RESULT_RECEIPT_UNVERIFIABLE');

@@ -8,7 +8,8 @@
     "config/oss-radar/adaptive-intelligence.json",
     "docs/developer-briefs/oss-radar-secondary-rate-limit-2026-10-27.md",
     "lib/verification/oss-radar/discover-github.mjs",
-    "tests/issue-2034-oss-radar-discovery-recall.test.mjs"
+    "tests/issue-2034-oss-radar-discovery-recall.test.mjs",
+    "config/verification/test-catalog.json"
   ],
   "acceptance": [
     {
@@ -67,6 +68,17 @@
           "type": "file-contains",
           "path": "config/oss-radar/adaptive-intelligence.json",
           "contains": "\"searchMinIntervalMs\": 3500"
+        }
+      ]
+    },
+    {
+      "id": "VERIFICATION-TRUTH-BINDINGS",
+      "criterion": "The focused throttling regression is separately registered with exact source digests, scopes, limits and White Paper W8/W9 truth references.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "Synthetic GitHub search 403/429 responses, missing Retry-After headers, rate-limit reset and bounded backoff."
         }
       ]
     }

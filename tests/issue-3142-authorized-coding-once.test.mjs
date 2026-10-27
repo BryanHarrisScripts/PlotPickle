@@ -159,8 +159,8 @@ test('coding worker requests strict structured JSON edits from the Responses API
         await writeFile(path.join(stage, TARGET), ORIGINAL);
       }
       if (args[0] === 'diff' && args[1] === '--name-only')
-        return { stdout: TARGET + '\\n' };
-      if (args[0] === 'rev-parse') return { stdout: COMMIT + '\\n' };
+        return { stdout: TARGET + '\n' };
+      if (args[0] === 'rev-parse') return { stdout: COMMIT + '\n' };
       return { stdout: '' };
     };
     let called = 0;

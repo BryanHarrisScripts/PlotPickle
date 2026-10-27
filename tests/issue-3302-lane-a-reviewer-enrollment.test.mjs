@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {generateKeyPairSync,sign} from 'node:crypto';
 import {enrollmentPayload,possessionPayload,verifyReviewerEnrollment} from '../scripts/engineering-team/verification/lane-a-reviewer-enrollment.mjs';
+import {inspectLaneAAdmissionChain} from '../scripts/engineering-team/verification/lane-a-admission-chain.mjs';
+import {canonicalPayload} from '../scripts/engineering-team/verification/lane-a-admission-receipt.mjs';
 
 const registrar=generateKeyPairSync('ed25519'),reviewer=generateKeyPairSync('ed25519');
 const pem=key=>key.export({format:'pem',type:'spki'});
@@ -81,4 +83,38 @@ test('reviewer must be distinct from the coding Windows SID with trusted identit
  assert.equal(verifyReviewerEnrollment(signed(),{...options,expectedCodingSid:undefined}).code,'CODING_IDENTITY_UNATTESTED');
  assert.equal(verifyReviewerEnrollment(signed(),{...options,expectedReviewerPrincipal:'Coder'}).code,'REVIEWER_PRINCIPAL_MISMATCH');
  assert.equal(verifyReviewerEnrollment(signed(),{...options,alreadyUsedChallenges:undefined}).code,'CHALLENGE_LEDGER_UNAVAILABLE');
+});
+
+test('signed enrollment plus signed admission verdict is a verifiable but non-operational chain',()=>{
+ const receipt={
+  schemaVersion:'PP-TEST-ADMISSION-V1',reviewId:'review-run-1',
+  reviewerPrincipal:'WindowsReviewer01',authorPrincipal:'CoderWindows01',
+  credentialKeyId:'reviewer-key-1',candidateHead:'a'.repeat(40),
+  testDigests:{'tests/review.test.mjs':'b'.repeat(64)},
+  inputDigests:{'scripts/review.mjs':'c'.repeat(64)},
+  truthRefs:['WHITE-PAPER-V3/W8'],findings:['Exact negative assertion inspected'],
+  disposition:'ADMIT',evidence:['review-evidence-sha256:abc'],
+  timestampUtc:'2026-10-27T23:20:00Z'
+ };
+ receipt.signatureBase64=sign(null,canonicalPayload(receipt),reviewer.privateKey).toString('base64');
+ const arg={
+  enrollment:signed(),receipt,registrationAuthority:options,
+  receiptExpectations:{
+   expectedAuthorPrincipal:'CoderWindows01',expectedHead:receipt.candidateHead,
+   expectedTestDigests:receipt.testDigests,expectedInputDigests:receipt.inputDigests,
+   allowedTruthRefs:['WHITE-PAPER-V3/W8']
+  }
+ };
+ const outcome=inspectLaneAAdmissionChain(arg);
+ assert.equal(outcome.status,'CRYPTOGRAPHIC_DRY_RUN');
+ assert.equal(outcome.simulated,true);
+ assert.equal(outcome.mayAdmit,false);
+ assert.equal(outcome.mayEditCatalogue,false);
+ assert.equal(outcome.mayStartLaneB,false);
+ assert.equal(outcome.mayCode,false);
+ assert.equal(outcome.mayMerge,false);
+ const swapped={...receipt,credentialKeyId:'imposter-key-1'};
+ assert.equal(inspectLaneAAdmissionChain({...arg,receipt:swapped}).code,'RECEIPT_KEY_IDENTITY_MISMATCH');
+ const untrusted=inspectLaneAAdmissionChain({...arg,registrationAuthority:{...options,trustedRegistrars:{}}});
+ assert.equal(untrusted.code,'REVIEWER_IDENTITY_REGISTRAR_NOT_TRUSTED');
 });

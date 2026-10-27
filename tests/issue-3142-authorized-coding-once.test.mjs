@@ -324,6 +324,11 @@ test('native Git creates a real isolated commit without modifying clean main', (
       grant.grantId + '.result.json'), 'utf8'));
     assert.equal(saved.state, 'LOCAL_COMMIT_PREPARED');
     assert.equal(saved.independentVerification, false);
+    const release = JSON.parse(await readFile(path.join(privateRoot, 'coding-attempts',
+      grant.grantId + '.released.json'), 'utf8'));
+    assert.equal(release.kind, 'coding-resource-release');
+    assert.equal(release.state, 'RELEASED_AFTER_DURABLE_RESULT');
+    assert.equal(release.localCommit, result.commit);
   }));
 
 test('distinct owner grants cannot overlap model execution or consume a second reservation', () =>
@@ -426,6 +431,8 @@ test('replaced primary lock during active model leaves another owner untouched a
     assert.equal((await lstat(guard)).isFile(), true);
     await assert.rejects(readFile(path.join(privateRoot, 'coding-attempts',
       '1'.repeat(32) + '.result.json'), 'utf8'));
+    await assert.rejects(readFile(path.join(privateRoot, 'coding-attempts',
+      '1'.repeat(32) + '.released.json'), 'utf8'));
     const third = await runAuthorizedCodingOnce({
       ...base, grant: { ...makeGrant(at), grantId: '3'.repeat(32) },
       requestEdit: async () => { modelCalls++; throw Error('replay forbidden'); } });

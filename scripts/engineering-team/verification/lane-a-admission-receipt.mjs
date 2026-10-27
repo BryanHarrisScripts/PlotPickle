@@ -1,6 +1,7 @@
 /** #3302 Lane A: verify signed admission receipts. No signing key, review or admission power here. */
 import {createHash,createPublicKey,verify} from 'node:crypto';
 const hex=/^[a-f0-9]{64}$/;
+const commit=/^[a-f0-9]{40}$/;
 const id=/^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/;
 const verdicts=new Set(['ADMIT','FIX','REJECT','UNPROVEN']);
 export function canonicalPayload(receipt){
@@ -16,7 +17,7 @@ export function verifyAdmissionReceipt(receipt,{trustedReviewers,expectedHead,ex
  if(receipt.reviewerPrincipal===receipt.authorPrincipal)return deny('SELF_REVIEW');
  if(!id.test(expectedAuthorPrincipal||'')||receipt.authorPrincipal!==expectedAuthorPrincipal)return deny('AUTHOR_NOT_ATTESTED');
  if(!verdicts.has(receipt.disposition))return deny('DISPOSITION_INVALID');
- if(!hex.test(receipt.candidateHead||'')||receipt.candidateHead!==expectedHead)return deny('HEAD_MISMATCH');
+ if(!commit.test(receipt.candidateHead||'')||receipt.candidateHead!==expectedHead)return deny('HEAD_MISMATCH');
  const equalDigests=(actual,expected)=>actual&&expected&&typeof actual==='object'&&!Array.isArray(actual)&&!Array.isArray(expected)&&Object.keys(expected).length>0&&Object.keys(actual).length===Object.keys(expected).length&&Object.entries(expected).every(([k,v])=>hex.test(v)&&actual[k]===v);
  if(!equalDigests(receipt.testDigests,expectedTestDigests)||!equalDigests(receipt.inputDigests,expectedInputDigests))return deny('EDITION_MISMATCH');
  if(!Array.isArray(receipt.truthRefs)||!receipt.truthRefs.length||!Array.isArray(allowedTruthRefs)||!receipt.truthRefs.every(x=>typeof x==='string'&&allowedTruthRefs.includes(x)))return deny('TRUTH_REF_UNAPPROVED');

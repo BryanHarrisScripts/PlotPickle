@@ -26,51 +26,51 @@ The [October 27 Organization Chart](../PlotPickleOrganizationChart.md) and curre
 
 | Namespace | Permanent meaning | Typical responsibilities |
 | --- | --- | --- |
-| \`PP-F00\` | Central/shared governance, **not a fifth Factory** | Human authority interfaces, independent Windows Supervisor, independent Quality, release governance, shared audit |
-| \`PP-F01\` | Software Factory | Intake, architecture, authorized coding, test/build, integration, review, dispatcher |
-| \`PP-F02\` | Learning & Evolution Factory | Research, education, skills evaluation and proposals |
-| \`PP-F03\` | Story Builder Factory | Source-grounded writing, visual production, motion, audio and finishing |
-| \`PP-F04\` | Game Factory — STORY: The Unwritten | World/rules creation, deterministic play, game QA |
+| `PP-F00` | Central/shared governance, **not a fifth Factory** | Human authority interfaces, independent Windows Supervisor, independent Quality, release governance, shared audit |
+| `PP-F01` | Software Factory | Intake, architecture, authorized coding, test/build, integration, review, dispatcher |
+| `PP-F02` | Learning & Evolution Factory | Research, education, skills evaluation and proposals |
+| `PP-F03` | Story Builder Factory | Source-grounded writing, visual production, motion, audio and finishing |
+| `PP-F04` | Game Factory — STORY: The Unwritten | World/rules creation, deterministic play, game QA |
  
-**Proposed immutable registry key:** \`PP-Fxx-Dyy-Knnnn\`. \`Fxx\` is the stable factory/shared namespace; \`Dyy\` is a registered department *within* that namespace; \`K\` is an actor kind (\`H\` Human, \`W\` authorized worker, \`S\` service, \`A\` automation, \`X\` external adapter); \`nnnn\` is a unique, never-reassigned actor number within that factory/department/type. E.g. \`PP-F01-D03-W0001\` is a proposed Software coding worker identity. Identity is **not a permission or a claim of independently running processes**.
+**Proposed immutable registry key:** `PP-Fxx-Dyy-Knnnn`. `Fxx` is the stable factory/shared namespace; `Dyy` is a registered department *within* that namespace; `K` is an actor kind (`H` Human, `W` authorized worker, `S` service, `A` automation, `X` external adapter); `nnnn` is a unique, never-reassigned actor number within that factory/department/type. E.g. `PP-F01-D03-W0001` is a proposed Software coding worker identity. Identity is **not a permission or a claim of independently running processes**.
 
 **Suggested initial department registry, to ratify before operational use:**
 
-- \`F00-D01\` Plant Operations / Independent Supervisor; \`F00-D02\` Independent Quality / Windows Product Gate; \`F00-D03\` Release Management; \`F00-D04\` Human governance and truth administration.
-- \`F01-D01\` Engineering Management / intake; \`F01-D02\` Architecture / scout; \`F01-D03\` Coding workshop; \`F01-D04\` Build / focused test; \`F01-D05\` Integration; \`F01-D06\` Engineering review; \`F01-D07\` Dispatcher.
+- `F00-D01` Plant Operations / Independent Supervisor; `F00-D02` Independent Quality / Windows Product Gate; `F00-D03` Release Management; `F00-D04` Human governance and truth administration.
+- `F01-D01` Engineering Management / intake; `F01-D02` Architecture / scout; `F01-D03` Coding workshop; `F01-D04` Build / focused test; `F01-D05` Integration; `F01-D06` Engineering review; `F01-D07` Dispatcher.
 - Define F02/F03/F04 department numbers against their **existing** org-chart role owners when that factory is integrated, not speculatively populated with phantom agents.
 
-Version this registry and preserve historical aliases for renames. A worker's canonical \`actorId\` persists through restarts; a separate \`executionId\`, \`attemptId\`, actual process-owner/signer reference and credential-bound principal identify *this* execution. One actor may take different assigned roles only through distinct authorized role claims. Provider adapters, model invokers, token readers, event writers, issuer services, supervisors, independent verifiers, automated schedulers and Human approvers must be attributable; map external systems through registered service/adapters, not fabricated identities. A read-only token inspection can be audited separately from the handoff chain and must not advance work-order state.
+Version this registry and preserve historical aliases for renames. A worker's canonical `actorId` persists through restarts; a separate `executionId`, `attemptId`, actual process-owner/signer reference and credential-bound principal identify *this* execution. One actor may take different assigned roles only through distinct authorized role claims. Provider adapters, model invokers, token readers, event writers, issuer services, supervisors, independent verifiers, automated schedulers and Human approvers must be attributable; map external systems through registered service/adapters, not fabricated identities. A read-only token inspection can be audited separately from the handoff chain and must not advance work-order state.
 
 ### 3. Stable token identity; growing metadata without history rewriting
 
-A token is a **non-bearer locator** (\`shtRef\`) for a stable \`workOrderId\`. A readable label such as \`PP-SHT-WO-000042\` may be shown in UI; the durable identity is a unique opaque ID scoped in the authoritative existing ledger. A token is **not** an API key, lease, delegation envelope, executable grant, approval signature or access-control shortcut.
+A token is a **non-bearer locator** (`shtRef`) for a stable `workOrderId`. A readable label such as `PP-SHT-WO-000042` may be shown in UI; the durable identity is a unique opaque ID scoped in the authoritative existing ledger. A token is **not** an API key, lease, delegation envelope, executable grant, approval signature or access-control shortcut.
 
 Metadata grows as **append-only, content-addressed handoff events**, never by mutating past cards or earlier handoffs:
 
-\`work order + SHT reference → event 1 → event 2 → ... → inspection 1 → corrective work order → event ... → inspection 2\`
+`work order + SHT reference → event 1 → event 2 → ... → inspection 1 → corrective work order → event ... → inspection 2`
 
 The canonical event contract (schema proposal, **not deployed**) includes:
 
 | Group | Required fields / meaning |
 | --- | --- |
-| Provenance | \`schemaVersion\`, \`registryVersion\`, \`eventId\`, \`workOrderId\`, \`shtRef\`, \`inspectionCycleId\`, \`eventType\` |
-| Integrity and ordering | \`sequence\`, \`previousEventDigest\`, \`eventDigest\`, canonical serialization and issuer/signer evidence reference; append is an atomic compare-and-set/transaction, not a read-then-write race |
-| Time | \`recordedAtUtc\` in ISO 8601 with timezone, independently observed \`startedAtUtc\` / \`finishedAtUtc\` if known, source clock/provenance, monotonic elapsed duration where measurable. Never trust wall clock to order conflicting writes |
-| Organizations | \`fromActorId\`, \`toActorId\`, \`factoryId\`, \`fromDepartmentId\`, \`toDepartmentId\`, actor type, authenticated runtime/actual process identity refs; never infer independence from role names |
-| Scope | \`issueRef\`, \`attemptId\`, \`executionId\`, queue claim/resource and fencing reference, exact approved scope, Human intent/permission **references** and spend ceilings; no bearer secrets |
+| Provenance | `schemaVersion`, `registryVersion`, `eventId`, `workOrderId`, `shtRef`, `inspectionCycleId`, `eventType` |
+| Integrity and ordering | `sequence`, `previousEventDigest`, `eventDigest`, canonical serialization and issuer/signer evidence reference; append is an atomic compare-and-set/transaction, not a read-then-write race |
+| Time | `recordedAtUtc` in ISO 8601 with timezone, independently observed `startedAtUtc` / `finishedAtUtc` if known, source clock/provenance, monotonic elapsed duration where measurable. Never trust wall clock to order conflicting writes |
+| Organizations | `fromActorId`, `toActorId`, `factoryId`, `fromDepartmentId`, `toDepartmentId`, actor type, authenticated runtime/actual process identity refs; never infer independence from role names |
+| Scope | `issueRef`, `attemptId`, `executionId`, queue claim/resource and fencing reference, exact approved scope, Human intent/permission **references** and spend ceilings; no bearer secrets |
 | Source and output | Immutable source revision (Git commit/PPF project + revision/game state), candidate revision, PR, digest/URI of sanitized artifacts and durable engineering receipt |
-| Quality | Versioned Human-approved criterion IDs, expected/actual outcomes, \`PASS\` / \`FAIL\` / \`BLOCKED\` / \`UNPROVEN\` / \`NOT_APPLICABLE\`, source and independent verifier evidence refs |
-| Transition | \`SUBMITTED\`, \`CLAIMED\`, \`EXECUTED\`, \`HANDOFF_PROPOSED\`, \`HANDOFF_ACCEPTED\`, \`HANDOFF_REJECTED\`, \`INSPECTED\`, \`REWORK_QUEUED\`, \`STOPPED\`, \`BLOCKED\`, etc.; separated from existing Development Run ledger states |
-| Next step | Named next department/actor *or* \`UNASSIGNED\`, preconditions, owner-visible blocker, evidence freshness, STOP/replay status and permitted next-action class |
+| Quality | Versioned Human-approved criterion IDs, expected/actual outcomes, `PASS` / `FAIL` / `BLOCKED` / `UNPROVEN` / `NOT_APPLICABLE`, source and independent verifier evidence refs |
+| Transition | `SUBMITTED`, `CLAIMED`, `EXECUTED`, `HANDOFF_PROPOSED`, `HANDOFF_ACCEPTED`, `HANDOFF_REJECTED`, `INSPECTED`, `REWORK_QUEUED`, `STOPPED`, `BLOCKED`, etc.; separated from existing Development Run ledger states |
+| Next step | Named next department/actor *or* `UNASSIGNED`, preconditions, owner-visible blocker, evidence freshness, STOP/replay status and permitted next-action class |
 
-**SHT projection:** derive \`lastAcceptedHandoffEventId\`, latest inspection/card ID, latest verified candidate source, \`currentResponsibleActorId\`, \`lastDepartmentId\`, last accepted UTC time, \`nextDepartmentId\`, unmet criteria and truthful status from immutable records. An unaccepted/failed transfer remains inspectable but must **not** replace the last accepted handoff. Append collisions, same request with different payload, missing predecessor, bad digest, stale registry, denied permission or ambiguous ownership fail closed. An idempotent retransmission of the *same* authorized event may return the prior recorded result; it may never execute the external side effect again.
+**SHT projection:** derive `lastAcceptedHandoffEventId`, latest inspection/card ID, latest verified candidate source, `currentResponsibleActorId`, `lastDepartmentId`, last accepted UTC time, `nextDepartmentId`, unmet criteria and truthful status from immutable records. An unaccepted/failed transfer remains inspectable but must **not** replace the last accepted handoff. Append collisions, same request with different payload, missing predecessor, bad digest, stale registry, denied permission or ambiguous ownership fail closed. An idempotent retransmission of the *same* authorized event may return the prior recorded result; it may never execute the external side effect again.
 
 **Privacy:** store identity and minimal sanitized metadata, evidence links/hashes and permission references. Do not put real credentials, arbitrary local paths, private story text, model prompts/responses, hidden reasoning, identifiable personal details, unreleased media or publisher tokens in public GitHub telemetry.
 
 ### 4. End-to-end Software Factory protocol
 
-\`\`\`text
+```text
 Human-approved issue and success criteria
     → existing eligible work queue / STOP and capability check
     → atomic per-job + per-resource claim (single approved coding worker first)
@@ -84,9 +84,9 @@ Human-approved issue and success criteria
         │                      → NEW grant/attempt when eligible → new inspection
         └─ BLOCKED         → preserve evidence and hold pending missing proof,
                                STOP, eligibility, consent or reconciliation
-\`\`\`
+```
 
-**One request, two separately evidenced replies (#3302):** engineering/execution receipt is not the verifier receipt. Verifier must be independently credentialed and gather real exact-head results; it must not be the same worker certifying its own assertions. A coding result can be \`EXECUTED\` and still have inspection status \`BLOCKED\`.
+**One request, two separately evidenced replies (#3302):** engineering/execution receipt is not the verifier receipt. Verifier must be independently credentialed and gather real exact-head results; it must not be the same worker certifying its own assertions. A coding result can be `EXECUTED` and still have inspection status `BLOCKED`.
 
 **First production milestone:** prove **two distinct, consecutive genuine issues**, one authorized coding worker, real model invocation and isolated change, actual tests, independently verified exact-head PR, permitted merge and automatic start of the second issue from the existing durable queue. No manual second prompt; no replay of the first attempt. A closed browser/ChatGPT turn is not proof of an unattended agent. Confirm running, supervised worker/process, genuine credentials and supported unattended invocation. Keep old reserved Pi jobs and private stages intact.
 
@@ -94,17 +94,17 @@ Human-approved issue and success criteria
 
 One card **per inspection cycle**, content-addressed and signed by the appropriately independent verifier, refers to the entire SHT history and immutable evidence. Required fields:
 
-- \`inspectionId\`, \`workOrderId\`, \`shtRef\`, \`inspectionCycleId\`, \`previousInspectionDigest\` where applicable; \`createdAtUtc\`, \`inspectorActorId\`, authenticated verifier/runner/signature references.
+- `inspectionId`, `workOrderId`, `shtRef`, `inspectionCycleId`, `previousInspectionDigest` where applicable; `createdAtUtc`, `inspectorActorId`, authenticated verifier/runner/signature references.
 - Original intent and **version-locked success criteria**, authoritative W8/W9 truth edition and admitted digest references. Do not redefine criteria after looking at the implementation. Explain legitimate exceptions and Human-approved amendments explicitly.
 - Exact original source/base, candidate commit/PPF revision, current PR head, branch and committed diff/artifact digests; source provenance and inspected scope.
-- Criterion-by-criterion **observed** outcome, independently verifiable links and timestamps, result provenance, actual native Windows/browser/product outcomes where required, and evidence limitations. A status of \`SKIPPED\`, stale, cancelled, timed out, unknown, absent or synthetic cannot become \`PASS\`.
+- Criterion-by-criterion **observed** outcome, independently verifiable links and timestamps, result provenance, actual native Windows/browser/product outcomes where required, and evidence limitations. A status of `SKIPPED`, stale, cancelled, timed out, unknown, absent or synthetic cannot become `PASS`.
 - Defect fingerprint(s), severity, steps to reproduce, owning department, whether safely actionable, unresolved dependencies, failed/uncertain irreversible operations, and links to prior or resulting corrective work orders.
-- Explicit disposition: \`ACCEPTED\`, \`REWORK_REQUIRED\` or \`BLOCKED\`. \`ACCEPTED\` means *inspection criteria* satisfied, **not merged**, creative canon approved, approved to spend, released or distributed.
+- Explicit disposition: `ACCEPTED`, `REWORK_REQUIRED` or `BLOCKED`. `ACCEPTED` means *inspection criteria* satisfied, **not merged**, creative canon approved, approved to spend, released or distributed.
 - Next authorized action, fresh review requirement, STOP and replay flags, responsible role, resource/lease reconciliation and release-gate eligibility **separate from inspection disposition**.
 
 **Example illustrative projection (not a real acceptance receipt):**
 
-\`\`\`json
+```json
 {
   "workOrderId": "PP-WO-000042",
   "shtRef": "PP-SHT-WO-000042",
@@ -121,22 +121,22 @@ One card **per inspection cycle**, content-addressed and signed by the appropria
   "mergeEligible": false,
   "nextAction": "Obtain independently signed owner-Windows Product Gate"
 }
-\`\`\`
+```
 
-The final release controller may derive \`READY_TO_MERGE\` only after **fresh** exact-head PR/CI checks, verified admission, independently signed applicable Product Gate, other reviews and the standing bounded Human merge policy. GitHub must confirm the actual merge SHA. A card must never authorize itself.
+The final release controller may derive `READY_TO_MERGE` only after **fresh** exact-head PR/CI checks, verified admission, independently signed applicable Product Gate, other reviews and the standing bounded Human merge policy. GitHub must confirm the actual merge SHA. A card must never authorize itself.
 
 ### 6. Reinspection and corrective queue, without replay
 
 When inspection finds a real, reproducible defect:
 
-1. Log a sanitized, source-bound \`FAIL\` with criterion ID, evidence and stable defect fingerprint, preserving the original card and all failed handoffs.
+1. Log a sanitized, source-bound `FAIL` with criterion ID, evidence and stable defect fingerprint, preserving the original card and all failed handoffs.
 2. Produce or reuse **one** linked correction issue/work order in the **existing** backlog (search/dedupe before creation); carry original work order/card and relevant independent evidence references, not an executable token or copy of a private prompt.
-3. Evaluate eligibility, work authorization, dependency holds, STOP, available budget and resource claim. The queue can mark \`WAITING\`/\`BLOCKED\` rather than automatically executing.
-4. For an eligible repair, assign a **new** unique \`attemptId\` and grant. Never replay the earlier paid call, Git mutation, publication or one-use ID—even if an old lease expired or a crash left uncertain outcome.
-5. After actual repair, obtain a **new** independent inspection against a pinned new head/revision, with \`previousInspectionDigest\` chaining the original. Historic failures cannot be edited into successes.
-6. For newly discovered defects *after* \`ACCEPTED\`, create a linked follow-up and new inspection cycle instead of silently mutating the accepted historical card.
+3. Evaluate eligibility, work authorization, dependency holds, STOP, available budget and resource claim. The queue can mark `WAITING`/`BLOCKED` rather than automatically executing.
+4. For an eligible repair, assign a **new** unique `attemptId` and grant. Never replay the earlier paid call, Git mutation, publication or one-use ID—even if an old lease expired or a crash left uncertain outcome.
+5. After actual repair, obtain a **new** independent inspection against a pinned new head/revision, with `previousInspectionDigest` chaining the original. Historic failures cannot be edited into successes.
+6. For newly discovered defects *after* `ACCEPTED`, create a linked follow-up and new inspection cycle instead of silently mutating the accepted historical card.
 
-A \`BLOCKED\` card (unproven provider request, missing independent verifier, uncertain result, STOP, no authority, unreconciled resources) **must not auto-requeue executable work**. Waiting and review are legitimate outcomes.
+A `BLOCKED` card (unproven provider request, missing independent verifier, uncertain result, STOP, no authority, unreconciled resources) **must not auto-requeue executable work**. Waiting and review are legitimate outcomes.
 
 ### 7. W8/W9 coding-resource and failure guarantees — mandatory before #3311 release
 
@@ -147,13 +147,13 @@ Owner-confirmed guarantees (quoted in operational terms; see linked Human record
 3. Crash/stop/timeout leave inspectable durable state. An uncertain one-use grant is **non-replayable**; neither expiry nor a new process can silently reclaim it.
 4. The next fresh grant proceeds **only** after the previous release and ownership state have been genuinely established; no guessing from stale heartbeat or elapsed lease.
 
-**Known #3311 defect:** \`scripts/engineering-team/gateway/authorized-coding-once.mjs\` verifies a lock's file identity before awaiting execution but then unconditionally unlinks its pathname in cleanup. Another process could remove/replace the file during the long-running model/Git phase; a naive extra pre-unlink \`lstat\` still leaves a check/unlink race. Require a **single authoritative, enforceable claim/fencing-and-release mechanism** with atomic claim/compare-and-release semantics or a proven OS-exclusive ownership primitive, and active ownership checks/fencing at irreversible operation boundaries. On lost ownership: stop further side effects when safely possible, never certify completion, preserve uncertain receipts and require reconciliation. Do not delete historical stages, locks or active worktrees as an expedient repair. Verify exact Windows semantics and STOP/process descendants independently.
+**Known #3311 defect:** `scripts/engineering-team/gateway/authorized-coding-once.mjs` verifies a lock's file identity before awaiting execution but then unconditionally unlinks its pathname in cleanup. Another process could remove/replace the file during the long-running model/Git phase; a naive extra pre-unlink `lstat` still leaves a check/unlink race. Require a **single authoritative, enforceable claim/fencing-and-release mechanism** with atomic claim/compare-and-release semantics or a proven OS-exclusive ownership primitive, and active ownership checks/fencing at irreversible operation boundaries. On lost ownership: stop further side effects when safely possible, never certify completion, preserve uncertain receipts and require reconciliation. Do not delete historical stages, locks or active worktrees as an expedient repair. Verify exact Windows semantics and STOP/process descendants independently.
 
-**Truth admission rule:** The current #3311 modified test/source digests are **not approved** merely because the Human approved the behavior. [Original proposed packet](https://github.com/BryanHarrisScripts/PlotPickle/pull/3311#issuecomment-6448631062) became stale after the discovered active-execution replacement race. Fix code and prepare new deterministic overlap/lost-owner/crash cases, then submit a **separate trusted-base, independently Human-reviewed WHITE-PAPER-V3 W8/W9 amendment** with actual new UTF-8 LF SHA-256 digests and oracle limitations. Only run changed governed tests **after** admission through \`config/verification/test-catalog.json#truthGovernance\`; exact-head CI and owner-Windows Product Gate remain separate.
+**Truth admission rule:** The current #3311 modified test/source digests are **not approved** merely because the Human approved the behavior. [Original proposed packet](https://github.com/BryanHarrisScripts/PlotPickle/pull/3311#issuecomment-6448631062) became stale after the discovered active-execution replacement race. Fix code and prepare new deterministic overlap/lost-owner/crash cases, then submit a **separate trusted-base, independently Human-reviewed WHITE-PAPER-V3 W8/W9 amendment** with actual new UTF-8 LF SHA-256 digests and oracle limitations. Only run changed governed tests **after** admission through `config/verification/test-catalog.json#truthGovernance`; exact-head CI and owner-Windows Product Gate remain separate.
 
 ### 8. Asynchronous scheduling and Pi Durable: reuse, do not duplicate
 
-Reuse \`scripts/engineering-team/windows/autonomous-queue.mjs\`, existing authenticated MCP/Windows Supervisor, established Git worktree receipts, \`scripts/engineering-team/durable-checkpoint.mjs\`, and the Pi Durable adapter. Pi Durable 1.3.0 provides useful **bounded checkpoint/recovery plumbing**, not authorization, atomic multi-worker locks, a ChatGPT wake-up, independent verification, source of truth or permission to re-run uncertain calls. In the current ChatGPT-led Software Factory route, **do not activate the older Pi coding dispatcher or replay its five historical blocked issue attempts**. Consider using Pi Durable as a checkpoint-only internal component after the single-worker proof and adapter boundary have been verified.
+Reuse `scripts/engineering-team/windows/autonomous-queue.mjs`, existing authenticated MCP/Windows Supervisor, established Git worktree receipts, `scripts/engineering-team/durable-checkpoint.mjs`, and the Pi Durable adapter. Pi Durable 1.3.0 provides useful **bounded checkpoint/recovery plumbing**, not authorization, atomic multi-worker locks, a ChatGPT wake-up, independent verification, source of truth or permission to re-run uncertain calls. In the current ChatGPT-led Software Factory route, **do not activate the older Pi coding dispatcher or replay its five historical blocked issue attempts**. Consider using Pi Durable as a checkpoint-only internal component after the single-worker proof and adapter boundary have been verified.
 
 To add capacity after two real cycles, replace the lifetime **global** resource lock with independently tested, **per-job and per-resource** claims (issue, worktree path, branch, provider quota, Git remote update, verifier hardware and merge serialization). Claims need atomic admission, fencing, crash reconciliation, precise lock identity, independent Windows process owner, bounded leases/heartbeats and STOP; there must be no bypass under clock skew, duplicate delivery, expired lease, lock deletion, process failure, resource conflicts or network partition. Enable **two truly independent coding workers** only after deterministic competing-claim tests, controlled Windows crash/recovery and resource-conflict tests. Increase capacity only on measured sustained throughput, available disk/RAM/GPU/provider quota and correct resource isolation. Distinct actor labels or simultaneous callbacks are not proof of independent workers.
 
@@ -204,7 +204,7 @@ Track first-pass independent acceptance rate; defect recurrence by fingerprint/d
 - [Human-approved four W8/W9 behaviors](https://github.com/BryanHarrisScripts/PlotPickle/issues/3142#issuecomment-6449639057).
 - [Identity and accumulating SHT metadata decision](https://github.com/BryanHarrisScripts/PlotPickle/issues/3142#issuecomment-6449765406).
 - [Final Inspection Card + correction-loop decision](https://github.com/BryanHarrisScripts/PlotPickle/issues/3142#issuecomment-6449831802).
-- [Current #3311 review of lock unlink/replacement flaw](https://github.com/BryanHarrisScripts/PlotPickle/pull/3311) (review ID \`5671721522\`).
+- [Current #3311 review of lock unlink/replacement flaw](https://github.com/BryanHarrisScripts/PlotPickle/pull/3311) (review ID `5671721522`).
 - [Original proposed but **not** approved test-truth digest packet](https://github.com/BryanHarrisScripts/PlotPickle/pull/3311#issuecomment-6448631062).
 - [Earlier asynchronous Semantic Handoff scheduling agreement](https://github.com/BryanHarrisScripts/PlotPickle/issues/3142#issuecomment-6448727959).
 - [Existing independent verifier contract #3302](https://github.com/BryanHarrisScripts/PlotPickle/issues/3302).

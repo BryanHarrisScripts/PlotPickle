@@ -85,6 +85,51 @@ async function safePath(root, relative) {
  * Retained stages are evidence, not a three-stage admission quota.
  * An abandoned lock requires owner inspection; never steal it by age.
  */
+async function priorCodingAttemptsReconciled(receipts, currentNonce, epoch) {
+  // The SQLite row alone is not enough if a corrupted/replaced database was
+  // reset externally. Never admit new model work over unresolved prior
+  // per-attempt evidence, even when the row appears unoccupied.
+  try {
+    const entries = await readdir(receipts, { withFileTypes: true });
+    if (entries.length > 8192) return false;
+    const locks = new Map(), guards = new Set();
+    const pattern = /^\\.coding-attempt-([a-f0-9-]{36})\\.(lock|guard)$/;
+    for (const item of entries) {
+      if (!item.name.startsWith('.coding-attempt-')) continue;
+      const match = pattern.exec(item.name);
+      if (!match || !item.isFile() || item.isSymbolicLink()) return false;
+      if (match[2] === 'lock') locks.set(match[1], item.name);
+      else guards.add(match[1]);
+    }
+    if (locks.size !== guards.size) return false;
+    for (const [nonce, filename] of locks) {
+      if (!guards.has(nonce) || nonce === currentNonce) return false;
+      const lockPath = path.join(receipts, filename);
+      const guardPath = path.join(receipts, '.coding-attempt-' + nonce + '.guard');
+      const a = await lstat(lockPath), b = await lstat(guardPath);
+      if (!a.isFile() || !b.isFile() || a.isSymbolicLink() ||
+          b.isSymbolicLink() || a.dev !== b.dev || a.ino !== b.ino ||
+          a.size > 1024) return false;
+      const owner = JSON.parse(await readFile(lockPath, 'utf8'));
+      if (owner.schemaVersion !== 1 || !ID.test(owner.grantId || '') ||
+          owner.ownerNonce !== nonce || owner.ownershipEpoch !== epoch ||
+          owner.state !== 'NONREPLAYABLE_OWNER_EVIDENCE') return false;
+      const releasePath = path.join(receipts, owner.grantId + '.released.json');
+      const released = await lstat(releasePath);
+      if (!released.isFile() || released.isSymbolicLink() ||
+          released.size > 4096) return false;
+      const release = JSON.parse(await readFile(releasePath, 'utf8'));
+      if (release.schemaVersion !== 1 ||
+          release.kind !== 'coding-resource-release' ||
+          release.state !== 'RELEASED_AFTER_DURABLE_RESULT' ||
+          release.ownershipNonce !== nonce ||
+          release.ownershipEpoch !== epoch || release.grantId !== owner.grantId)
+        return false;
+    }
+    return true;
+  } catch { return false; }
+}
+
 async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, execute) {
   // The SQLite resource row is the atomic admission/release authority.
   // Per-attempt evidence names are never reused or unlinked by the Factory.
@@ -115,6 +160,8 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
           return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
       }
     }
+    if (!await priorCodingAttemptsReconciled(receipts, ownership.nonce, ownership.epoch))
+      return block('CODING_PREVIOUS_ATTEMPT_RECONCILIATION_REQUIRED');
     lockPath = path.join(receipts, '.coding-attempt-' + ownership.nonce + '.lock');
     guardPath = path.join(receipts, '.coding-attempt-' + ownership.nonce + '.guard');
     lock = await open(lockPath, 'wx', 0o600);

@@ -144,3 +144,31 @@ test("STOP, disable or unreadable authority after durable reservation prevents s
     assert.doesNotMatch(JSON.stringify(first), /private credential/);
   }
 });
+
+test("overlapping watchdog ticks share one durable launch reservation", async () => {
+  let entered, release;
+  const reservationEntered = new Promise(resolve => { entered = resolve; });
+  const reservationGate = new Promise(resolve => { release = resolve; });
+  let reservations = 0, launches = 0;
+  const f = fixture({
+    reserveLaunch: async () => {
+      reservations++;
+      entered();
+      await reservationGate;
+      return true;
+    },
+    startOwned: async () => { launches++; return child(); },
+  });
+  const first = f.watchdog.tick();
+  await reservationEntered;
+  const second = f.watchdog.tick();
+  const third = f.watchdog.tick();
+  release();
+  const results = await Promise.all([first, second, third]);
+  assert.deepEqual(results.map(result => result.state),
+    ["OWNED_LAUNCH_REQUESTED", "OWNED_LAUNCH_REQUESTED", "OWNED_LAUNCH_REQUESTED"]);
+  assert.equal(reservations, 1, "overlap must not reserve multiple launches");
+  assert.equal(launches, 1, "overlap must not spawn multiple owned children");
+  assert.equal((await f.watchdog.tick()).state, "OWNED_LAUNCH_STARTING",
+    "a completed decision must permit a later fresh observation");
+});

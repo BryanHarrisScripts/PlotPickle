@@ -33,7 +33,7 @@ export function createUnifiedServiceRegistry(sidecarConfig,managedManifest){
   !Array.isArray(managedManifest.components))throw Error('MANAGED_MANIFEST_INVALID');
  const entries=[],seen=new Set();
  const add=(entry)=>{
-  if(!ID.test(entry.id)||seen.has(entry.id))throw Error('UNIFIED_SERVICE_ID_INVALID_OR_DUPLICATE');
+  if(typeof entry.id!=='string'||!ID.test(entry.id)||seen.has(entry.id))throw Error('UNIFIED_SERVICE_ID_INVALID_OR_DUPLICATE');
   if(typeof entry.label!=='string'||!entry.label.trim())throw Error('UNIFIED_SERVICE_LABEL_MISSING');
   seen.add(entry.id);entries.push(configured(entry));
  };
@@ -101,7 +101,8 @@ export function projectUnifiedServiceInventory({
    result.observedState=supervisorState;
    result.observationSource=supervisorState?'supervisor-heartbeat':null;
    result.evidenceCode=supervisorFresh?'HEARTBEAT_IS_NOT_PROCESS_OWNERSHIP':'SUPERVISOR_HEAD_OR_HEARTBEAT_UNVERIFIED';
-   if(supervisorSnapshot&&!supervisorFresh)result.state='STALE';
+   if(supervisorSnapshot&&(supervisorSnapshot.heartbeatFresh!==true||
+    (SHA.test(expectedHead||'')&&supervisorSnapshot.sourceHead!==expectedHead)))result.state='STALE';
    // Never take supervisor's self-reported "workerProcessVerified" as independent proof.
   }
   if(service.id==='factory-mcp-tunnel'){

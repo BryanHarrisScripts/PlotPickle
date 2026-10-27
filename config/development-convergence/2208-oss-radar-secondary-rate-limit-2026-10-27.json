@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "issue": 2208,
+  "phase": "secondary-rate-limit-header-backoff-repair",
+  "brief": "docs/developer-briefs/oss-radar-secondary-rate-limit-2026-10-27.md",
+  "allowedChanges": [
+    "config/development-convergence/2208-oss-radar-secondary-rate-limit-2026-10-27.json",
+    "config/oss-radar/adaptive-intelligence.json",
+    "docs/developer-briefs/oss-radar-secondary-rate-limit-2026-10-27.md",
+    "lib/verification/oss-radar/discover-github.mjs",
+    "tests/issue-2034-oss-radar-discovery-recall.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "MISSING-HEADER-DOES-NOT-RETRY-IMMEDIATELY",
+      "criterion": "Absent Retry-After and reset headers on secondary 403 use bounded >=60-second production backoff.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/oss-radar/discover-github.mjs",
+          "contains": "const firstWait = Math.max(60_000, fallbackWaitMs)"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2034-oss-radar-discovery-recall.test.mjs",
+          "contains": "assert.deepEqual(waits, [65000,90000])"
+        }
+      ]
+    },
+    {
+      "id": "GITHUB-RETRY-AFTER-NOT-SHORTENED",
+      "criterion": "Retry-After longer than maximum job wait does not cause an early retry.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/oss-radar/discover-github.mjs",
+          "contains": "return wait <= maxWaitMs ? wait : null;"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2034-oss-radar-discovery-recall.test.mjs",
+          "contains": "assert.equal(calls, 1)"
+        }
+      ]
+    },
+    {
+      "id": "SECONDARY-VS-PRIMARY",
+      "criterion": "GitHub reset header is only used when primary remaining quota is zero.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/oss-radar/discover-github.mjs",
+          "contains": "String(remaining).trim() === \"0\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2034-oss-radar-discovery-recall.test.mjs",
+          "contains": "secondary 403"
+        }
+      ]
+    },
+    {
+      "id": "ADAPTIVE-SEARCH-PACING",
+      "criterion": "Adaptive 42-query Radar search remains operational and uses a more conservative interval.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/oss-radar/adaptive-intelligence.json",
+          "contains": "\"searchMinIntervalMs\": 3500"
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    "Preserve existing GitHub permissions and daily schedule.",
+    "Do not suppress real rate-limit errors or fabricate complete reports.",
+    "Do not auto-retry a live blocked run while the secondary limit may still be active.",
+    "No credential rotation, unrelated Factory/Windows process actions or external candidate execution.",
+    "Tests are synthetic and CI; live rate-limit recovery requires a later real workflow receipt."
+  ]
+}

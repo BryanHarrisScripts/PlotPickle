@@ -340,8 +340,8 @@ test('distinct owner grants cannot overlap model execution or consume a second r
         await writeFile(path.join(stage, TARGET), ORIGINAL);
       }
       if (args[0] === 'diff' && args[1] === '--name-only')
-        return { stdout: TARGET + '\\n' };
-      if (args[0] === 'rev-parse') return { stdout: COMMIT + '\\n' };
+        return { stdout: TARGET + '\n' };
+      if (args[0] === 'rev-parse') return { stdout: COMMIT + '\n' };
       return { stdout: '' };
     };
     const base = { repoRoot, privateRoot, source, credential: 'fake-test-key-not-real-123456',

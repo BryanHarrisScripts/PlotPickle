@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { spawn } from 'node:child_process';
 import { mkdtemp, mkdir, lstat, readdir, readFile, writeFile, unlink, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -524,4 +525,45 @@ test('an unreconciled ownership row is non-replayable even after the original co
     assert.throws(() => claimCodingOwnership(receipts, '2'.repeat(32), Date.now()));
     assert.equal(codingReleaseIsReconciled(receipts, {
       grantId: '1'.repeat(32), ownershipEpoch: epoch }), false);
+  }));
+
+
+test('a separate OS process cannot claim or replay a crash-retained atomic coding slot', () =>
+  work(async ({ privateRoot }) => {
+    const receipts = path.join(privateRoot, 'coding-attempts');
+    await mkdir(receipts, { recursive: true });
+    const moduleUrl = new URL('../scripts/engineering-team/gateway/receipts/atomic-coding-ownership.mjs',
+      import.meta.url).href;
+    const childScript = [
+      "import { claimCodingOwnership } from " + JSON.stringify(moduleUrl) + ";",
+      "claimCodingOwnership(process.argv[1], '1'.repeat(32), Date.now());",
+      "process.stdout.write('CLAIMED\\n');",
+      "setInterval(() => {}, 1000);",
+    ].join('\n');
+    const child = spawn(process.execPath, ['--input-type=module', '-e', childScript, receipts],
+      { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
+    try {
+      await new Promise((resolve, reject) => {
+        let data = '';
+        const timeout = setTimeout(() => reject(Error('CLAIM_TIMEOUT')), 10_000);
+        child.stdout.on('data', chunk => {
+          data += chunk.toString();
+          if (data.includes('CLAIMED\n')) { clearTimeout(timeout); resolve(); }
+        });
+        child.once('exit', code => {
+          clearTimeout(timeout);
+          reject(Error('CLAIM_EXIT_' + code));
+        });
+        child.once('error', error => { clearTimeout(timeout); reject(error); });
+      });
+      assert.throws(() => claimCodingOwnership(receipts, '2'.repeat(32), Date.now()));
+    } finally {
+      child.kill();
+      await new Promise(resolve => {
+        if (child.exitCode !== null || child.signalCode !== null) return resolve();
+        child.once('exit', () => resolve());
+      });
+    }
+    assert.throws(() => claimCodingOwnership(receipts, '3'.repeat(32), Date.now()),
+      'crash must retain a non-replayable resource claim');
   }));

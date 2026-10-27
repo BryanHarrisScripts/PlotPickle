@@ -121,10 +121,28 @@ export function codingReleaseIsReconciled(receipts, release) {
   let handle;
   try {
     handle = openVerifiedDatabase(receipts, true);
-    if (handle.epoch !== release.ownershipEpoch || !handle.fileValid()) return false;
+    if (handle.epoch !== release.ownershipEpoch || !handle.fileValid() ||
+        !/^[a-f0-9]{32}$/.test(release.grantId || '') ||
+        !/^[a-f0-9-]{36}$/.test(release.ownershipNonce || '')) return false;
+    // A claimed release must still match the original two immutable
+    // hardlinks. An invented receipt or a reused nonce is not proof.
+    const stem = '.coding-attempt-' + release.ownershipNonce;
+    const ownerFile = path.join(receipts, stem + '.lock');
+    const guardFile = path.join(receipts, stem + '.guard');
+    const lockStat = lstatSync(ownerFile), guardStat = lstatSync(guardFile);
+    if (!same(lockStat, guardStat) || lockStat.size > 1024) return false;
+    const owner = JSON.parse(readFileSync(ownerFile, 'utf8'));
+    if (owner.schemaVersion !== 1 ||
+        owner.grantId !== release.grantId ||
+        owner.ownerNonce !== release.ownershipNonce ||
+        owner.ownershipEpoch !== release.ownershipEpoch ||
+        owner.state !== 'NONREPLAYABLE_OWNER_EVIDENCE') return false;
     const row = handle.db.prepare('SELECT grant_id FROM coding_resource_owner WHERE resource = ?')
       .get(RESOURCE);
-    return row?.grant_id !== release.grantId && handle.fileValid();
+    return row?.grant_id !== release.grantId &&
+      same(lstatSync(ownerFile), lockStat) &&
+      same(lstatSync(guardFile), guardStat) &&
+      handle.fileValid();
   } catch { return false; }
   finally { try { handle?.db.close(); } catch {} }
 }

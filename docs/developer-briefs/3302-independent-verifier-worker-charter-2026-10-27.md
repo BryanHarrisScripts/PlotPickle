@@ -46,3 +46,16 @@ Verify three existing `config/verification/test-catalog.json#truthGovernance.bin
 
 ## Activation gate
 Do not report this worker hired, trained, running or independent PASS until actual identity, process, credential separation, controlled training assessment, queue claim, immutable receipt and owner-Windows proof are observed. Until then state **CHARTERED / NOT DEPLOYED**.
+
+
+## Separate authority lanes — mandatory admission before execution
+
+**Lane A — Independent Test-Catalogue Admission (governance, not a runtime worker).** A distinct authorized test-governance reviewer owns normative truth mappings, assertion sufficiency and approved source editions. Input is a frozen test-review packet pinned to an exact commit, including test and implementation SHA-256, truth IDs/obligations, fixture/real-boundary limits, negative cases and reviewer's independently attributable identity. Reviewer records `ADMIT / FIX / REJECT / UNPROVEN` with rationale and immutable evidence. Only after `ADMIT` may a **separate protected-catalogue change** update `config/verification/test-catalog.json` on its own reviewed branch, preserving normative obligations and existing scopes. The review must not be performed by the author of the tests or by the worker being evaluated. An owner's plan approval is not `ADMIT`. No runtime job claim, model invocation or worker execution is needed to perform this static source/logic review.
+
+**Lane B — Worker Execution and Independent Product Verification (runtime).** The QA worker consumes only a test edition admitted by Lane A. It may claim an eligible durable job, run *already admitted* tests within a bounded approved executor, observe source and CI, and submit separately attributable evidence. A distinct Windows verifier signs owner-machine acceptance. Neither a successful unit fixture nor a QA worker's self-reported PASS can authorize a catalogue change, owner-Windows Product Gate or merge.
+
+**Circular dependency prohibition:** Do not require the new QA worker to approve its own tests or to be running before Lane A can admit the tests used to train it. Lane A is a human/independent-governance review of static sources; Lane B starts only after Lane A has produced an accepted catalogue edition and separate deployment proof.
+
+**Current blocked editions:** #3321 head `dbd6efcc35fd6c97e1aad8f31c307f20f7838790`, Architecture Verification run `40597366983`, rejects `tests/issue-3302-independent-catalogue-preflight.test.mjs` and `tests/issue-3302-independent-qa-claim.test.mjs` as unadmitted. #3311 W8/W9 revision-5 tests are independently pending too. This document is an **admission request contract, not an ADMIT receipt**. The separate reviewer must freeze and recompute exact editions before admission, particularly if this PR head changes.
+
+**Enforcement:** The coding actor cannot update the protected catalogue or mark its own review admitted. CI's `Approved test truth admission BLOCKED` is expected until the separate reviewer approves and applies a trusted-base binding. Never disable the gate, temporarily rename tests to escape it, claim green on an old head, or treat GitHub comments as a running verifier.

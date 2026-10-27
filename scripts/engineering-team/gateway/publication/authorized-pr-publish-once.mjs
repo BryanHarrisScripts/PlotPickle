@@ -237,6 +237,22 @@ export async function publishAuthorizedDraftOnce({
   return result;
 }
 
+/** A worker's prepared commit is not publishable without its exact release receipt. */
+export function validateCodingReleaseWitness(release, grant, prepared) {
+  return release?.schemaVersion === 1 &&
+    release.kind === 'coding-resource-release' &&
+    release.state === 'RELEASED_AFTER_DURABLE_RESULT' &&
+    release.grantId === grant?.grantId &&
+    release.sourceHead === grant?.sourceHead &&
+    release.localCommit === grant?.localCommit &&
+    release.branch === grant?.branch &&
+    prepared?.grantId === release.grantId &&
+    prepared.commit === release.localCommit &&
+    prepared.sourceHead === release.sourceHead &&
+    prepared.branch === release.branch &&
+    prepared.state === 'LOCAL_COMMIT_PREPARED';
+}
+
 /** Local Windows CLI; never installs a service, admits a queue or invokes Pi. */
 export async function runOwnerPublishOnce({ publicationId, repoRoot = process.cwd(),
   env = process.env, platform = process.platform, now = Date.now,
@@ -256,13 +272,7 @@ export async function runOwnerPublishOnce({ publicationId, repoRoot = process.cw
       grant.grantId + '.result.json'), 4096);
     release = await regularJson(path.join(privateRoot, 'coding-attempts',
       grant.grantId + '.released.json'), 4096);
-    if (release.schemaVersion !== 1 || release.kind !== 'coding-resource-release' ||
-        release.state !== 'RELEASED_AFTER_DURABLE_RESULT' ||
-        release.grantId !== grant.grantId ||
-        release.sourceHead !== grant.sourceHead ||
-        release.localCommit !== grant.localCommit ||
-        release.branch !== grant.branch ||
-        prepared.grantId !== release.grantId || prepared.commit !== release.localCommit)
+    if (!validateCodingReleaseWitness(release, grant, prepared))
       return blocked('PUBLISH_CODING_OWNERSHIP_RELEASE_UNVERIFIABLE');
     // A release witness written while the original guard was held is not
     // enough if that owner still owns its hardlink (e.g. failed unlink).

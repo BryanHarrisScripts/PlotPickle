@@ -63,7 +63,7 @@ foreach ($entry in @($file, $file.Directory)) {
     $aclHash = [System.Security.Cryptography.SHA256]::Create()
     try {
         $bytes = [System.Text.Encoding]::UTF8.GetBytes($acl.Sddl)
-        $digest = [Convert]::ToHexString($aclHash.ComputeHash($bytes)).ToLowerInvariant()
+        $digest = ([BitConverter]::ToString($aclHash.ComputeHash($bytes))).Replace('-','').ToLowerInvariant()
     } finally {
         $aclHash.Dispose()
     }

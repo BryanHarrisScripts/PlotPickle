@@ -11747,6 +11747,38 @@
             "digest": "d49b718cc543cb2b29516115b7a9e04846abb8a5feb9dc6432ee35269dd25c46"
           }
         ]
+      },
+      {
+        "target": "tests/issue-2034-oss-radar-discovery-recall.test.mjs",
+        "targetDigest": "12b00d79f67d020040d1aafe3bbfe096c52f8da18d2100bcc13134e2b7c96298",
+        "catalogueIds": [
+          "verification.oss-radar-discovery-recall"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic GitHub search 403/429 responses, missing Retry-After headers, rate-limit reset and bounded backoff. No live GitHub response, recovery of a throttled token, publication success, or user acceptance was proven.",
+        "inputs": [
+          {
+            "path": "lib/verification/oss-radar/discover-github.mjs",
+            "digest": "9e7e14ceab82a1e975adf2a615a354b4c75e5bf64926adc368ea6a64d9ac457e"
+          },
+          {
+            "path": "config/oss-radar/adaptive-intelligence.json",
+            "digest": "1787646a9c824a21cc593b7a9d8faae66321846aa910dd96f3ff4c612aad3ffb"
+          }
+        ]
       }
     ]
   }

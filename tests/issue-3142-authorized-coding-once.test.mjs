@@ -325,3 +325,49 @@ test('native Git creates a real isolated commit without modifying clean main', (
     assert.equal(saved.state, 'LOCAL_COMMIT_PREPARED');
     assert.equal(saved.independentVerification, false);
   }));
+
+test('distinct owner grants cannot overlap model execution or consume a second reservation', () =>
+  work(async ({ repoRoot, privateRoot }) => {
+    const at = Date.now();
+    let signalEntered, releaseModel;
+    const entered = new Promise(resolve => { signalEntered = resolve; });
+    const held = new Promise(resolve => { releaseModel = resolve; });
+    let modelCalls = 0;
+    const git = async (cwd, args) => {
+      if (args[0] === 'worktree') {
+        const stage = args[3];
+        await mkdir(path.dirname(path.join(stage, TARGET)), { recursive: true });
+        await writeFile(path.join(stage, TARGET), ORIGINAL);
+      }
+      if (args[0] === 'diff' && args[1] === '--name-only')
+        return { stdout: TARGET + '\\n' };
+      if (args[0] === 'rev-parse') return { stdout: COMMIT + '\\n' };
+      return { stdout: '' };
+    };
+    const base = { repoRoot, privateRoot, source, credential: 'fake-test-key-not-real-123456',
+      now: () => at, runGit: git, checkSyntax: async () => {} };
+    const first = runAuthorizedCodingOnce({ ...base, grant: makeGrant(at),
+      requestEdit: async () => {
+        modelCalls++;
+        signalEntered();
+        await held;
+        return { oldText: 'return 1;', newText: 'return 2;' };
+      } });
+    try {
+      await entered;
+      const second = await runAuthorizedCodingOnce({
+        ...base, grant: { ...makeGrant(at), grantId: '2'.repeat(32) },
+        requestEdit: async () => { modelCalls++; throw Error('overlap forbidden'); } });
+      assert.equal(second.code, 'CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
+      assert.equal(modelCalls, 1);
+      await assert.rejects(readFile(path.join(privateRoot, 'coding-attempts',
+        '2'.repeat(32) + '.reserved.json'), 'utf8'));
+    } finally {
+      releaseModel();
+    }
+    assert.equal((await first).state, 'LOCAL_COMMIT_PREPARED');
+    const third = await runAuthorizedCodingOnce({ ...base,
+      grant: { ...makeGrant(at), grantId: '3'.repeat(32) },
+      requestEdit: async () => ({ oldText: 'return 1;', newText: 'return 2;' }) });
+    assert.equal(third.state, 'LOCAL_COMMIT_PREPARED');
+  }));

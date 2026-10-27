@@ -6,7 +6,7 @@
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { link, lstat, mkdir, open, readdir, readFile, statfs, unlink, writeFile } from 'node:fs/promises';
+import { link, lstat, mkdir, open, readdir, readFile, statfs, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gatewayAppSource, privateGatewayRoot } from './gateway-host.mjs';
@@ -86,34 +86,45 @@ async function safePath(root, relative) {
  * An abandoned lock requires owner inspection; never steal it by age.
  */
 async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, execute) {
-  const lockPath = path.join(receipts, '.coding-stage-budget.lock');
-  // A second, immutable hardlink remains a fail-closed guard if the visible
-  // budget pathname is removed while a model/Git request is already in flight.
-  // Neither a new worker nor recovery is allowed to discard this guard by age.
-  const guardPath = path.join(receipts, '.coding-stage-owner.lock');
-  let lock, identity, guardCreated = false, ownership = null;
-  let releaseSafe = true, executionStarted = false, completed = null;
-  const same = (stat, owned) => stat.isFile() && !stat.isSymbolicLink() &&
-    stat.dev === owned.dev && stat.ino === owned.ino;
+  // The SQLite resource row is the atomic admission/release authority.
+  // Per-attempt evidence names are never reused or unlinked by the Factory.
+  // Historical shared locks from older attempts block migration pending
+  // independent owner reconciliation; never steal an uncertain owner.
+  const legacyPaths = ['.coding-stage-budget.lock', '.coding-stage-owner.lock'];
+  let ownership = null, lock = null, lockPath = null, guardPath = null;
+  let identity = null, guardCreated = false, safeRelease = true;
+  let executionStarted = false, completed = null;
   const matches = async filename => {
-    if (!identity) return false;
-    try { return same(await lstat(filename), identity); }
-    catch { return false; }
+    if (!identity || !filename) return false;
+    try {
+      const current = await lstat(filename);
+      return current.isFile() && !current.isSymbolicLink() &&
+        current.dev === identity.dev && current.ino === identity.ino;
+    } catch { return false; }
   };
   const owns = async () => Boolean(guardCreated) && ownership?.owned() &&
     await matches(lockPath) && await matches(guardPath) && ownership.owned();
   try {
-    // SQLite's primary-key insert serializes compliant processes before any
-    // lock-file mutation. It retains an uncertain claim after crash or STOP.
     ownership = claimCodingOwnership(receipts, grant.grantId, at);
+    for (const name of legacyPaths) {
+      try {
+        await lstat(path.join(receipts, name));
+        return block('CODING_LEGACY_LOCK_RECONCILIATION_REQUIRED');
+      } catch (error) {
+        if (error?.code !== 'ENOENT')
+          return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
+      }
+    }
+    lockPath = path.join(receipts, '.coding-attempt-' + ownership.nonce + '.lock');
+    guardPath = path.join(receipts, '.coding-attempt-' + ownership.nonce + '.guard');
     lock = await open(lockPath, 'wx', 0o600);
     identity = await lock.stat();
     if (!identity.isFile()) return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
-    await lock.writeFile(JSON.stringify({ grantId: grant.grantId, acquiredAt: at }) + '\n');
+    await lock.writeFile(JSON.stringify({
+      schemaVersion: 1, grantId: grant.grantId, ownerNonce: ownership.nonce,
+      ownershipEpoch: ownership.epoch, acquiredAt: at, state: 'NONREPLAYABLE_OWNER_EVIDENCE',
+    }) + '\n');
     await lock.sync();
-    // Hardlink creation is atomic and fails when another attempt's persistent
-    // guard exists. The new owner cannot bypass an interrupted first attempt
-    // even after somebody removes the primary lock pathname.
     await link(lockPath, guardPath);
     guardCreated = true;
     if (!await owns()) return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
@@ -128,23 +139,21 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
     }
     if (ids.size > MAX_CODING_STAGE_INVENTORY)
       return block('CODING_STAGE_INVENTORY_UNVERIFIABLE');
-    let space;
     try {
-      space = await checkCapacity(stages, { bigint: true });
+      const space = await checkCapacity(stages, { bigint: true });
       const available = BigInt(space.bavail) * BigInt(space.bsize);
       if (BigInt(space.bavail) < 0n || BigInt(space.bsize) <= 0n)
         return block('CODING_STAGE_DISK_UNVERIFIABLE');
       if (available < MIN_CODING_STAGE_FREE_BYTES)
         return block('CODING_STAGE_RESOURCE_PRESSURE');
     } catch { return block('CODING_STAGE_DISK_UNVERIFIABLE'); }
-    // Keep a non-replayable attempt sentinel if ownership vanished during
-    // disk preflight. A lost lock is uncertainty, never a renewed grant.
+    // Retain an immutable no-replay sentinel even when preflight ownership
+    // disappeared. A stale owner never gets a second one-use grant.
     const saved = await onceJson(path.join(stages, '.reserved-' + grant.grantId + '.json'),
       { schemaVersion: 1, grantId: grant.grantId, reservedAt: at,
         state: 'RESERVED_NO_REPLAY' });
     if (!saved) return block('CODING_STAGE_RESERVATION_UNVERIFIABLE');
     if (!await owns()) return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
-    // The callback must check ownership before and after irreversible effects.
     executionStarted = true;
     const outcome = await execute(owns);
     if (!await owns()) return block('CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE');
@@ -154,40 +163,21 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
     return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
   } finally {
     if (lock) {
-      // Only delete the current attempt's own pathname while the persistent
-      // guard still prevents a second compliant worker from gaining ownership.
-      // Lost/replaced ownership is an unreconciled attempt, not free capacity.
-      const ownedLock = await matches(lockPath);
-      const ownedGuard = guardCreated && await matches(guardPath);
-      if (guardCreated && (!ownedLock || !ownedGuard)) {
-        releaseSafe = false;
-      } else {
-        try {
-          if (ownedLock) await unlink(lockPath);
-          else releaseSafe = false;
-          if (guardCreated && releaseSafe && await matches(guardPath)) {
-            // Retain the guard until this owner's paths are removed. The
-            // atomic SQLite row stays claimed until all file release succeeds.
-            if (releaseSafe && await matches(guardPath)) await unlink(guardPath);
-            else releaseSafe = false;
-          } else if (guardCreated) releaseSafe = false;
-        } catch { releaseSafe = false; }
-      }
-      try { await lock.close(); } catch { releaseSafe = false; }
+      // Do not delete a shared or per-attempt pathname. Even deliberate
+      // pathname replacement cannot make this process unlink another file.
+      if (guardCreated && !await owns()) safeRelease = false;
+      else if (!guardCreated && !await matches(lockPath)) safeRelease = false;
+      try { await lock.close(); } catch { safeRelease = false; }
     }
-    // Release the exact owner nonce only after file guards were removed.
-    // Another compliant worker cannot claim the slot until this atomic DELETE.
-    // On any ambiguity retain the SQLite row; recovery is Human reconciled.
     if (ownership) {
-      if (releaseSafe) {
-        try { if (!ownership.release()) releaseSafe = false; }
-        catch { releaseSafe = false; }
+      if (safeRelease) {
+        try { if (!ownership.release()) safeRelease = false; }
+        catch { safeRelease = false; }
       }
-      try { ownership.close(); } catch { releaseSafe = false; }
-      // Publish an exact release witness only after both file guards, the
-      // atomic owner row and the database handle were successfully released.
-      // A crash between release and witness keeps publication BLOCKED.
-      if (releaseSafe && completed?.state === 'LOCAL_COMMIT_PREPARED') {
+      try { ownership.close(); } catch { safeRelease = false; }
+      // Only successful, fully released attempts get a publisher witness.
+      // A crash after SQL DELETE but before this write remains BLOCKED.
+      if (safeRelease && completed?.state === 'LOCAL_COMMIT_PREPARED') {
         try {
           const saved = await onceJson(path.join(receipts, grant.grantId + '.released.json'),
             { schemaVersion: 1, kind: 'coding-resource-release',
@@ -195,16 +185,15 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
               localCommit: completed.commit, branch: completed.branch,
               ownershipEpoch: ownership.epoch, ownershipNonce: ownership.nonce,
               state: 'RELEASED_AFTER_DURABLE_RESULT' });
-          if (!saved) releaseSafe = false;
-        } catch { releaseSafe = false; }
+          if (!saved) safeRelease = false;
+        } catch { safeRelease = false; }
       }
-      if (!releaseSafe) return block(executionStarted
+      if (!safeRelease) return block(executionStarted
         ? 'CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE'
         : 'CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
     }
   }
 }
-
 async function boundedResponse(response) {
   if (!response?.ok || !response.body?.getReader) return null;
   const reader = response.body.getReader();

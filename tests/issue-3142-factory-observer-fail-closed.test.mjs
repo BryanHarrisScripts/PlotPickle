@@ -30,6 +30,17 @@ test("#3142 Factory observer fails closed for STOP and unknown heartbeat states"
     assert.equal(snapshot.factory.online, false, state);
     assert.equal(snapshot.factory.processOwnershipVerified, false, state);
   }
+  // A stale RUNNING heartbeat must never override explicit owner disablement.
+  // Missing enabled is also unverified and therefore offline.
+  for (const state of liveStates) {
+    for (const enabled of [false, undefined]) {
+      const snapshot = summarizeFactoryObserver({
+        status: { state, heartbeatFresh: true, enabled }, now: 1000,
+      });
+      assert.equal(snapshot.factory.online, false, `${state}: enabled=${enabled}`);
+      assert.equal(snapshot.factory.processOwnershipVerified, false);
+    }
+  }
   for (const state of [...liveStates, "STOP_REQUESTED", "UNRECOGNIZED"]) {
     const snapshot = summarizeFactoryObserver({
       status: { state, heartbeatFresh: false, enabled: true }, now: 1000,

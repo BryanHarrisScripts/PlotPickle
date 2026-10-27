@@ -133,8 +133,8 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
       if (available < MIN_CODING_STAGE_FREE_BYTES)
         return block('CODING_STAGE_RESOURCE_PRESSURE');
     } catch { return block('CODING_STAGE_DISK_UNVERIFIABLE'); }
-    // Do not reserve a one-use grant if either ownership pathname was lost.
-    if (!await owns()) return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
+    // Keep a non-replayable attempt sentinel if ownership vanished during
+    // disk preflight. A lost lock is uncertainty, never a renewed grant.
     const saved = await onceJson(path.join(stages, '.reserved-' + grant.grantId + '.json'),
       { schemaVersion: 1, grantId: grant.grantId, reservedAt: at,
         state: 'RESERVED_NO_REPLAY' });

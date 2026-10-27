@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {generateKeyPairSync,sign} from 'node:crypto';
 import {canonicalPayload,verifyAdmissionReceipt} from '../scripts/engineering-team/verification/lane-a-admission-receipt.mjs';
 const {publicKey,privateKey}=generateKeyPairSync('ed25519');
-const sha='a'.repeat(64),digests={'tests/one.test.mjs':'b'.repeat(64)},inputs={'scripts/one.mjs':'c'.repeat(64)};
+const sha='a'.repeat(40),digests={'tests/one.test.mjs':'b'.repeat(64)},inputs={'scripts/one.mjs':'c'.repeat(64)};
 const opts={trustedReviewers:{'qa-key-1':{principal:'PP-F00-LA-W0001',publicKeyPem:publicKey.export({format:'pem',type:'spki'})}},expectedHead:sha,expectedTestDigests:digests,expectedInputDigests:inputs,expectedAuthorPrincipal:'PP-F01-ENG-W0001',allowedTruthRefs:['WHITE-PAPER-V3/W8','WHITE-PAPER-V3/W9']};
 function signed(overrides={}){
  const r={schemaVersion:'PP-TEST-ADMISSION-V1',reviewId:'review1',reviewerPrincipal:'PP-F00-LA-W0001',authorPrincipal:'PP-F01-ENG-W0001',credentialKeyId:'qa-key-1',candidateHead:sha,testDigests:digests,inputDigests:inputs,truthRefs:['WHITE-PAPER-V3/W8'],findings:['Assertion reviewed'],disposition:'ADMIT',evidence:['immutable-review-evidence'],timestampUtc:'2026-10-27T22:00:00Z',...overrides};
@@ -13,7 +13,7 @@ test('valid independently keyed ADMIT is a catalogue candidate, never Lane B exe
 test('self-review is rejected even with valid cryptographic signature',()=>assert.equal(verifyAdmissionReceipt(signed({authorPrincipal:'PP-F00-LA-W0001'}),opts).code,'SELF_REVIEW'));
 test('tampering after signing invalidates receipt',()=>{const r=signed();r.findings=['altered'];assert.equal(verifyAdmissionReceipt(r,opts).code,'SIGNATURE_INVALID');});
 test('stale head, input digests and unknown truth obligations are rejected',()=>{
- assert.equal(verifyAdmissionReceipt(signed({candidateHead:'d'.repeat(64)}),opts).code,'HEAD_MISMATCH');
+ assert.equal(verifyAdmissionReceipt(signed({candidateHead:'d'.repeat(40)}),opts).code,'HEAD_MISMATCH');
  assert.equal(verifyAdmissionReceipt(signed({inputDigests:{'scripts/one.mjs':'e'.repeat(64)}}),opts).code,'EDITION_MISMATCH');
  assert.equal(verifyAdmissionReceipt(signed({truthRefs:['UNKNOWN']}),opts).code,'TRUTH_REF_UNAPPROVED');
 });

@@ -63,7 +63,7 @@ export function projectUnifiedServiceInventory({
  registry,sidecarSnapshot,supervisorSnapshot,tunnelSnapshot,expectedHead,now=Date.now()
 }={}){
  if(registry?.mode!=='READ_ONLY'||!Array.isArray(registry.services))throw Error('UNIFIED_REGISTRY_REQUIRED');
- if(!Number.isSafeInteger(now)||now<0)throw Error('OBSERVATION_TIME_INVALID');
+ if(!Number.isSafeInteger(now)||now<0||!Number.isFinite(new Date(now).getTime()))throw Error('OBSERVATION_TIME_INVALID');
  const diagnostics=[];
  const noProof={
   processOwnershipVerified:false,capabilityReady:false,remoteAuthenticated:null,

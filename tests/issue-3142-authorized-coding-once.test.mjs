@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdtemp, mkdir, lstat, readFile, writeFile, unlink, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, lstat, readdir, readFile, writeFile, unlink, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { boundedSourceEdit, runAuthorizedCodingOnce as runCodingNative, validateCodingGrant } from '../scripts/engineering-team/gateway/authorized-coding-once.mjs';
@@ -19,6 +19,14 @@ const diskReady = async () => ({ bavail: 20n * 1024n ** 3n, bsize: 1n });
 const runAuthorizedCodingOnce = options => runCodingNative({
   ...options, checkCapacity: options.checkCapacity || diskReady,
 });
+const attemptLockPaths = async privateRoot => {
+  const receipts = path.join(privateRoot, 'coding-attempts');
+  const names = (await readdir(receipts)).filter(name =>
+    /^\.coding-attempt-[a-f0-9-]{36}\.lock$/.test(name));
+  assert.equal(names.length, 1, 'exactly one attempt lock must exist in this fixture');
+  return { lock: path.join(receipts, names[0]),
+    guard: path.join(receipts, names[0].replace(/\.lock$/, '.guard')) };
+};
 const makeGrant = at => ({ schemaVersion: 1, kind: 'engineering-edit-once',
   grantId: '1'.repeat(32), issueNumber: 3142, sourceHead: HEAD,
   targetPath: TARGET, targetDigest: digest(ORIGINAL), focusedTest: TEST_FILE,
@@ -257,12 +265,12 @@ test('lost admission lock during disk preflight cannot launch model or consume g
   work(async ({ repoRoot, privateRoot }) => {
     const at = Date.now();
     let gitCalls = 0, modelCalls = 0;
-    const lock = path.join(privateRoot, 'coding-attempts', '.coding-stage-budget.lock');
     const result = await runAuthorizedCodingOnce({ repoRoot, privateRoot, source,
       grant: makeGrant(at), credential: 'fake-test-key-not-real-123456', now: () => at,
       checkCapacity: async () => {
         // Simulate another actor removing the lock while admission is pending.
         // The stage sentinel may be written, but worker execution must stop.
+        const { lock } = await attemptLockPaths(privateRoot);
         await unlink(lock);
         return diskReady();
       },
@@ -288,7 +296,7 @@ test('orphaned budget lock fails closed without model invocation or replay', () 
       grant: makeGrant(at), credential: 'fake-test-key-not-real-123456', now: () => at,
       runGit: async () => { calls++; throw Error('must not run'); },
       requestEdit: async () => { calls++; throw Error('must not call model'); } });
-    assert.equal(result.code, 'CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
+    assert.equal(result.code, 'CODING_LEGACY_LOCK_RECONCILIATION_REQUIRED');
     assert.equal(calls, 0);
     assert.equal(await readFile(path.join(receipts, '.coding-stage-budget.lock'), 'utf8'),
       'orphaned');
@@ -383,8 +391,6 @@ test('replaced primary lock during active model leaves another owner untouched a
   work(async ({ repoRoot, privateRoot }) => {
     const at = Date.now();
     const credentials = 'fake-test-key-not-real-123456';
-    const lock = path.join(privateRoot, 'coding-attempts', '.coding-stage-budget.lock');
-    const guard = path.join(privateRoot, 'coding-attempts', '.coding-stage-owner.lock');
     let modelEntered, releaseModel;
     const entered = new Promise(resolve => { modelEntered = resolve; });
     const held = new Promise(resolve => { releaseModel = resolve; });
@@ -411,6 +417,7 @@ test('replaced primary lock during active model leaves another owner untouched a
       } });
     try {
       await entered;
+      const { lock, guard } = await attemptLockPaths(privateRoot);
       assert.equal((await lstat(guard)).isFile(), true);
       await unlink(lock);
       await writeFile(lock, 'other-attempt-owner-must-survive');
@@ -444,7 +451,6 @@ test('replaced primary lock during active model leaves another owner untouched a
 test('removed primary lock without replacement still cannot admit a distinct grant', () =>
   work(async ({ repoRoot, privateRoot }) => {
     const at = Date.now();
-    const lock = path.join(privateRoot, 'coding-attempts', '.coding-stage-budget.lock');
     let enteredResolve, completeResolve, modelCalls = 0;
     const entered = new Promise(resolve => { enteredResolve = resolve; });
     const held = new Promise(resolve => { completeResolve = resolve; });
@@ -467,6 +473,7 @@ test('removed primary lock without replacement still cannot admit a distinct gra
       } });
     try {
       await entered;
+      const { lock } = await attemptLockPaths(privateRoot);
       await unlink(lock);
       const second = await runAuthorizedCodingOnce({
         ...base, grant: { ...makeGrant(at), grantId: '2'.repeat(32) },
@@ -480,8 +487,8 @@ test('removed primary lock without replacement still cannot admit a distinct gra
     }
     const outcome = await first;
     assert.equal(outcome.code, 'CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE');
-    assert.equal((await lstat(path.join(privateRoot, 'coding-attempts',
-      '.coding-stage-owner.lock'))).isFile(), true);
+    const { guard } = await attemptLockPaths(privateRoot);
+    assert.equal((await lstat(guard)).isFile(), true);
   }));
 
 test('atomic single-resource SQLite owner excludes competing process claims and fences release', () =>

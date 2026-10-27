@@ -11,6 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gatewayAppSource, privateGatewayRoot } from './gateway-host.mjs';
 import { appendPrivateJsonOnce as onceJson } from './receipts/write-once-json.mjs';
+import { claimCodingOwnership } from './receipts/atomic-coding-ownership.mjs';
 
 const exec = promisify(execFile);
 const ID = /^[a-f0-9]{32}$/;
@@ -90,7 +91,7 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
   // budget pathname is removed while a model/Git request is already in flight.
   // Neither a new worker nor recovery is allowed to discard this guard by age.
   const guardPath = path.join(receipts, '.coding-stage-owner.lock');
-  let lock, identity, guardCreated = false;
+  let lock, identity, guardCreated = false, ownership = null;
   let releaseSafe = true, executionStarted = false, completed = null;
   const same = (stat, owned) => stat.isFile() && !stat.isSymbolicLink() &&
     stat.dev === owned.dev && stat.ino === owned.ino;
@@ -99,9 +100,12 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
     try { return same(await lstat(filename), identity); }
     catch { return false; }
   };
-  const owns = async () => Boolean(guardCreated) &&
-    await matches(lockPath) && await matches(guardPath);
+  const owns = async () => Boolean(guardCreated) && ownership?.owned() &&
+    await matches(lockPath) && await matches(guardPath) && ownership.owned();
   try {
+    // SQLite's primary-key insert serializes compliant processes before any
+    // lock-file mutation. It retains an uncertain claim after crash or STOP.
+    ownership = claimCodingOwnership(receipts, grant.grantId, at);
     lock = await open(lockPath, 'wx', 0o600);
     identity = await lock.stat();
     if (!identity.isFile()) return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
@@ -170,6 +174,7 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
                 { schemaVersion: 1, kind: 'coding-resource-release',
                   grantId: grant.grantId, sourceHead: grant.sourceHead,
                   localCommit: completed.commit, branch: completed.branch,
+                  ownershipEpoch: ownership.epoch, ownershipNonce: ownership.nonce,
                   state: 'RELEASED_AFTER_DURABLE_RESULT' });
               if (!released) releaseSafe = false;
             }
@@ -179,6 +184,16 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
         } catch { releaseSafe = false; }
       }
       try { await lock.close(); } catch { releaseSafe = false; }
+    }
+    // Release the exact owner nonce only after file guards were removed.
+    // Another compliant worker cannot claim the slot until this atomic DELETE.
+    // On any ambiguity retain the SQLite row; recovery is Human reconciled.
+    if (ownership) {
+      if (releaseSafe) {
+        try { if (!ownership.release()) releaseSafe = false; }
+        catch { releaseSafe = false; }
+      }
+      try { ownership.close(); } catch { releaseSafe = false; }
       if (!releaseSafe) return block(executionStarted
         ? 'CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE'
         : 'CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');

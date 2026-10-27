@@ -597,3 +597,48 @@ test('uncertain model outcome retains the SQLite resource owner and cannot sched
     assert.equal(saved.code, 'CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE');
     assert.equal(saved.replayAuthorized, false);
   }));
+
+test('pre-execution disk refusals leave terminal evidence but free the coding slot safely', () =>
+  work(async ({ repoRoot, privateRoot }) => {
+    const at = Date.now(), base = { repoRoot, privateRoot, source,
+      credential: 'fake-test-key-not-real-123456', now: () => at,
+      runGit: async () => { throw Error('Git must not run in disk preflight'); },
+      requestEdit: async () => { throw Error('model must not run in disk preflight'); },
+      checkCapacity: async () => ({ bavail: 1n, bsize: 4096n }) };
+    for (const grantId of ['1'.repeat(32), '2'.repeat(32)]) {
+      const outcome = await runAuthorizedCodingOnce({
+        ...base, grant: { ...makeGrant(at), grantId },
+      });
+      assert.equal(outcome.code, 'CODING_STAGE_RESOURCE_PRESSURE');
+    }
+    const receipts = path.join(privateRoot, 'coding-attempts');
+    const entries = await readdir(receipts);
+    const terminal = entries.filter(n =>
+      /^\.coding-attempt-[a-f0-9-]{36}\.released\.json$/.test(n));
+    assert.equal(terminal.length, 2);
+    for (const name of terminal) {
+      const witness = JSON.parse(await readFile(path.join(receipts, name), 'utf8'));
+      assert.equal(witness.state, 'RELEASED_WITHOUT_EXECUTION');
+      assert.equal(witness.localCommit, undefined);
+    }
+    const after = claimCodingOwnership(receipts, '3'.repeat(32), at);
+    assert.equal(after.owned(), true);
+    assert.equal(after.release(), true);
+    after.close();
+  }));
+
+test('replacement of the database after completed release cannot reset the persistent epoch', () =>
+  work(async ({ privateRoot }) => {
+    const receipts = path.join(privateRoot, 'coding-attempts');
+    await mkdir(receipts, { recursive: true });
+    const first = claimCodingOwnership(receipts, '1'.repeat(32), Date.now());
+    assert.equal(first.owned(), true);
+    assert.equal(first.release(), true);
+    first.close();
+    const epoch = JSON.parse(await readFile(path.join(receipts,
+      '.coding-ownership-epoch.json'), 'utf8'));
+    assert.equal(epoch.schemaVersion, 1);
+    await unlink(path.join(receipts, '.coding-ownership.sqlite'));
+    assert.throws(() => claimCodingOwnership(receipts, '2'.repeat(32), Date.now()),
+      'database recreation must not reset the independent owner epoch');
+  }));

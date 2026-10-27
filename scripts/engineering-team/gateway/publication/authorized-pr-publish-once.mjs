@@ -264,6 +264,20 @@ export async function runOwnerPublishOnce({ publicationId, repoRoot = process.cw
         release.branch !== grant.branch ||
         prepared.grantId !== release.grantId || prepared.commit !== release.localCommit)
       return blocked('PUBLISH_CODING_OWNERSHIP_RELEASE_UNVERIFIABLE');
+    // A release witness written while the original guard was held is not
+    // enough if that owner still owns its hardlink (e.g. failed unlink).
+    // A different valid active worker's guard is allowed after release.
+    const activeGuard = path.join(privateRoot, 'coding-attempts', '.coding-stage-owner.lock');
+    let present = false;
+    try { await lstat(activeGuard); present = true; }
+    catch (error) {
+      if (error?.code !== 'ENOENT') return blocked('PUBLISH_CODING_OWNERSHIP_RELEASE_UNVERIFIABLE');
+    }
+    if (present) {
+      const active = await regularJson(activeGuard, 4096);
+      if (!ID.test(active.grantId || '') || active.grantId === grant.grantId)
+        return blocked('PUBLISH_CODING_OWNERSHIP_RELEASE_UNVERIFIABLE');
+    }
     if (grant.publicationId !== publicationId)
       return blocked('PUBLISH_GRANT_ID_MISMATCH');
   } catch { return blocked('PUBLISH_OWNER_GRANT_OR_CODING_RECEIPT_REQUIRED'); }

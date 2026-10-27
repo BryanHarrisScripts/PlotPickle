@@ -246,7 +246,7 @@ export async function runOwnerPublishOnce({ publicationId, repoRoot = process.cw
   const source = await gatewayAppSource({ repoRoot, env });
   if (source?.channel !== 'main') return blocked('PUBLISH_EXACT_CLEAN_MAIN_REQUIRED');
   const privateRoot = privateGatewayRoot(env);
-  let grant, codingGrant, prepared;
+  let grant, codingGrant, prepared, release;
   try {
     const grantDir = path.join(privateRoot, 'owner-publication-grants');
     grant = await regularJson(path.join(grantDir, publicationId + '.json'), 4096);
@@ -254,6 +254,16 @@ export async function runOwnerPublishOnce({ publicationId, repoRoot = process.cw
       grant.grantId + '.json'), 4096);
     prepared = await regularJson(path.join(privateRoot, 'coding-attempts',
       grant.grantId + '.result.json'), 4096);
+    release = await regularJson(path.join(privateRoot, 'coding-attempts',
+      grant.grantId + '.released.json'), 4096);
+    if (release.schemaVersion !== 1 || release.kind !== 'coding-resource-release' ||
+        release.state !== 'RELEASED_AFTER_DURABLE_RESULT' ||
+        release.grantId !== grant.grantId ||
+        release.sourceHead !== grant.sourceHead ||
+        release.localCommit !== grant.localCommit ||
+        release.branch !== grant.branch ||
+        prepared.grantId !== release.grantId || prepared.commit !== release.localCommit)
+      return blocked('PUBLISH_CODING_OWNERSHIP_RELEASE_UNVERIFIABLE');
     if (grant.publicationId !== publicationId)
       return blocked('PUBLISH_GRANT_ID_MISMATCH');
   } catch { return blocked('PUBLISH_OWNER_GRANT_OR_CODING_RECEIPT_REQUIRED'); }

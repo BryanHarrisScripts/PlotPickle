@@ -20,7 +20,7 @@ export function verifyAdmissionReceipt(receipt,{trustedReviewers,expectedHead,ex
  if(!equalDigests(receipt.testDigests,expectedTestDigests)||!equalDigests(receipt.inputDigests,expectedInputDigests))return deny('EDITION_MISMATCH');
  if(!Array.isArray(receipt.truthRefs)||!receipt.truthRefs.length||!receipt.truthRefs.every(x=>allowedTruthRefs.includes(x)))return deny('TRUTH_REF_UNAPPROVED');
  if(!Array.isArray(receipt.findings)||!receipt.findings.length||!Array.isArray(receipt.evidence)||!receipt.evidence.length)return deny('EVIDENCE_MISSING');
- if(!/^\\d{4}-\\d{2}-\\d{2}T/.test(receipt.timestampUtc||''))return deny('TIMESTAMP_INVALID');
+ if(!/^\d{4}-\d{2}-\d{2}T/.test(receipt.timestampUtc||''))return deny('TIMESTAMP_INVALID');
  const trusted=trustedReviewers?.[receipt.credentialKeyId];
  if(!trusted||trusted.principal!==receipt.reviewerPrincipal||trusted.revoked)return deny('REVIEWER_NOT_TRUSTED');
  if(typeof receipt.signatureBase64!=='string')return deny('SIGNATURE_MISSING');

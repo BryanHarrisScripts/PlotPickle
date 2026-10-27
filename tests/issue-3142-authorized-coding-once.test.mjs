@@ -513,7 +513,8 @@ test('atomic single-resource SQLite owner excludes competing process claims and 
       assert.equal(first.owned(), false);
       assert.equal(first.release(), false);
       assert.equal(codingReleaseIsReconciled(receipts, {
-        grantId: '1'.repeat(32), ownershipEpoch: first.epoch }), true);
+        grantId: '1'.repeat(32), ownershipEpoch: first.epoch }), false,
+      'raw SQLite slot release is not an immutable publication witness');
       const second = claimCodingOwnership(receipts, '2'.repeat(32), Date.now());
       try {
         assert.equal(second.owned(), true);

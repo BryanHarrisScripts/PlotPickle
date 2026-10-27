@@ -15,6 +15,10 @@ const LIVE_STATES=new Set(["IDLE","RUNNING","BLOCKED","PR_OPEN","MERGED",
   "WAITING_FOR_PROVIDER","WAITING_FOR_DEPENDENCIES","WAITING_FOR_PRODUCT_UAT",
   "WAITING_FOR_PR_VERIFICATION","WAITING_FOR_ELIGIBLE_ISSUE",
   "WAITING_FOR_EXACT_CLEAN_MAIN","WAITING_FOR_RETRY_HEAD_OR_REVIEW"]);
+// Explicit owner STOP/PAUSE must not be confused with a dead heartbeat.
+// OFFLINE and unknown states are intentionally excluded: they are not proof
+// of a deliberate operator STOP and still warrant outage investigation.
+const INTENTIONAL_STOP_STATES=new Set(["STOP_REQUESTED","STOPPED","PAUSED","PAUSE_REQUESTED"]);
 const safeIssue=n=>Number.isSafeInteger(n)&&ISSUE.test(String(n));
 const safeHead=s=>typeof s==="string"&&SHA.test(s)?s:null;
 
@@ -48,7 +52,7 @@ export function summarizeFactoryObserver({status,approvedIssues=[],evidence=[],n
   const heartbeatFresh=factory.heartbeatFresh===true;
   const rawState=typeof factory.state==="string"?factory.state:"UNKNOWN";
   const online=factory.enabled===true && heartbeatFresh && LIVE_STATES.has(rawState);
-  const stalled=!!(factory.enabled===true&&!heartbeatFresh);
+  const stalled=!!(factory.enabled===true&&!heartbeatFresh&&!INTENTIONAL_STOP_STATES.has(rawState));
   const reservedCount=jobs.filter(x=>x.reserved).length;
   const blockedCount=jobs.filter(x=>x.state==="BLOCKED").length;
   const unknownCount=jobs.filter(x=>x.state==="UNKNOWN"||x.state==="STARTED_UNCONFIRMED").length;

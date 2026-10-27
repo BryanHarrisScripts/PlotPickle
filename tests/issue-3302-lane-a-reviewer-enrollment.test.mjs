@@ -10,6 +10,7 @@ const options={
  trustedRegistrars:{'registrar-1':{principal:'IndependentRegistrar01',publicKeyPem:pem(registrar.publicKey)}},
  expectedRegistrarId:'registrar-1',expectedRegistrarPrincipal:'IndependentRegistrar01',
  expectedHostId:'owner-windows-machine',expectedReviewerSid:'S-1-5-21-111-222-333-1002',
+ expectedReviewerPrincipal:'WindowsReviewer01',expectedCodingSid:'S-1-5-21-111-222-333-1001',
  expectedChallengeNonce:'challenge-20261027-0001',alreadyUsedChallenges:[],now
 };
 function signed(fields={}){
@@ -73,4 +74,11 @@ test('missing reviewer proof-of-possession cannot impersonate a reviewer',()=>{
  const forged=signed();forged.possessionSignatureBase64=sign(null,possessionPayload(forged),registrar.privateKey).toString('base64');
  forged.registrarSignatureBase64=sign(null,enrollmentPayload(forged),registrar.privateKey).toString('base64');
  assert.equal(verifyReviewerEnrollment(forged,options).code,'REVIEWER_POSSESSION_INVALID');
+});
+
+test('reviewer must be distinct from the coding Windows SID with trusted identity expectations',()=>{
+ assert.equal(verifyReviewerEnrollment(signed(),{...options,expectedCodingSid:options.expectedReviewerSid}).code,'SAME_WINDOWS_PRINCIPAL_AS_CODER');
+ assert.equal(verifyReviewerEnrollment(signed(),{...options,expectedCodingSid:undefined}).code,'CODING_IDENTITY_UNATTESTED');
+ assert.equal(verifyReviewerEnrollment(signed(),{...options,expectedReviewerPrincipal:'Coder'}).code,'REVIEWER_PRINCIPAL_MISMATCH');
+ assert.equal(verifyReviewerEnrollment(signed(),{...options,alreadyUsedChallenges:undefined}).code,'CHALLENGE_LEDGER_UNAVAILABLE');
 });

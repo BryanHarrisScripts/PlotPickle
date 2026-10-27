@@ -26,6 +26,10 @@ It combines writing education, story planning, visual development, screenplay wo
 > So the work ahead is to make that truth observable in the product.
 
 
+<p align="center">
+  <img src="public/brand/dashboard/plotpickle-ai-factory-organization.png" alt="PlotPickle AI Factory Organization: the Human Owner and AI Factory Director coordinate Software, Learning and Evolution, Story Builder, and Game Factories, supported by planning, operations, semantic story coordination, and independent quality and release management." width="1200">
+</p>
+
 ## Vision: a creative operating system for Human–AI collaboration
 
 > **A person brings imagination and purpose. PlotPickle connects that intention to capable collaborators, real work, trustworthy evidence and continuous learning.**

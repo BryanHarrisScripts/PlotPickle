@@ -80,6 +80,22 @@ export function createTunnelWatchdogPolicy({
       exhausted = true;
       return report("LAUNCH_RESERVATION_UNVERIFIED", observe());
     }
+    // A one-use reservation can outlive the owner's consent. Re-read STOP and
+    // enablement immediately before spawn; consume the reservation on any
+    // denial or uncertain read rather than launching or replaying it later.
+    try {
+      if (await ownerStopRequested()) {
+        exhausted = true;
+        return report("OWNER_STOP_REQUESTED", observe());
+      }
+      if (!await ownerEnabled()) {
+        exhausted = true;
+        return report("OWNER_DISABLED", observe());
+      }
+    } catch {
+      exhausted = true;
+      return report("OWNER_AUTHORITY_UNVERIFIED", observe());
+    }
     try {
       const child = await startOwned(launcher);
       if (!child || !Number.isSafeInteger(child.pid) || child.pid <= 0 ||

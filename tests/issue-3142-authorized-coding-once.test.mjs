@@ -339,6 +339,13 @@ test('native Git creates a real isolated commit without modifying clean main', (
     assert.equal(release.kind, 'coding-resource-release');
     assert.equal(release.state, 'RELEASED_AFTER_DURABLE_RESULT');
     assert.equal(release.localCommit, result.commit);
+    const receipts = path.join(privateRoot, 'coding-attempts');
+    assert.equal(codingReleaseIsReconciled(receipts, release), true);
+    // The release witness must remain bound to actual immutable owner
+    // evidence; a modified owner file cannot pass the publication gate.
+    await writeFile(path.join(receipts,
+      '.coding-attempt-' + release.ownershipNonce + '.lock'), 'tampered');
+    assert.equal(codingReleaseIsReconciled(receipts, release), false);
   }));
 
 test('distinct owner grants cannot overlap model execution or consume a second reservation', () =>

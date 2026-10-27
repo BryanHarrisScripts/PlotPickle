@@ -6,7 +6,7 @@
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { lstat, mkdir, open, readdir, readFile, statfs, unlink, writeFile } from 'node:fs/promises';
+import { link, lstat, mkdir, open, readdir, readFile, statfs, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gatewayAppSource, privateGatewayRoot } from './gateway-host.mjs';
@@ -86,11 +86,33 @@ async function safePath(root, relative) {
  */
 async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, execute) {
   const lockPath = path.join(receipts, '.coding-stage-budget.lock');
-  let lock;
+  // A second, immutable hardlink remains a fail-closed guard if the visible
+  // budget pathname is removed while a model/Git request is already in flight.
+  // Neither a new worker nor recovery is allowed to discard this guard by age.
+  const guardPath = path.join(receipts, '.coding-stage-owner.lock');
+  let lock, identity, guardCreated = false;
+  let releaseSafe = true;
+  const same = (stat, owned) => stat.isFile() && !stat.isSymbolicLink() &&
+    stat.dev === owned.dev && stat.ino === owned.ino;
+  const matches = async filename => {
+    if (!identity) return false;
+    try { return same(await lstat(filename), identity); }
+    catch { return false; }
+  };
+  const owns = async () => Boolean(guardCreated) &&
+    await matches(lockPath) && await matches(guardPath);
   try {
     lock = await open(lockPath, 'wx', 0o600);
+    identity = await lock.stat();
+    if (!identity.isFile()) return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
     await lock.writeFile(JSON.stringify({ grantId: grant.grantId, acquiredAt: at }) + '\n');
     await lock.sync();
+    // Hardlink creation is atomic and fails when another attempt's persistent
+    // guard exists. The new owner cannot bypass an interrupted first attempt
+    // even after somebody removes the primary lock pathname.
+    await link(lockPath, guardPath);
+    guardCreated = true;
+    if (!await owns()) return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
     const entries = await readdir(stages, { withFileTypes: true });
     const ids = new Set();
     for (const entry of entries) {
@@ -102,8 +124,6 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
     }
     if (ids.size > MAX_CODING_STAGE_INVENTORY)
       return block('CODING_STAGE_INVENTORY_UNVERIFIABLE');
-    // Measure capacity while holding the exclusive admission lock. A failed
-    // probe must not consume the owner grant or create a stage sentinel.
     let space;
     try {
       space = await checkCapacity(stages, { bigint: true });
@@ -113,35 +133,39 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
       if (available < MIN_CODING_STAGE_FREE_BYTES)
         return block('CODING_STAGE_RESOURCE_PRESSURE');
     } catch { return block('CODING_STAGE_DISK_UNVERIFIABLE'); }
-    // Persistent sentinel protects the attempt even if Git has not created
-    // the worktree yet. It is never removed after an uncertain run.
+    // Do not reserve a one-use grant if either ownership pathname was lost.
+    if (!await owns()) return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
     const saved = await onceJson(path.join(stages, '.reserved-' + grant.grantId + '.json'),
       { schemaVersion: 1, grantId: grant.grantId, reservedAt: at,
         state: 'RESERVED_NO_REPLAY' });
     if (!saved) return block('CODING_STAGE_RESERVATION_UNVERIFIABLE');
-    // An externally removed/replaced lock is never authority to launch the
-    // model. Check the same open inode before starting the long-running phase.
-    const owned = await lock.stat();
-    const visible = await lstat(lockPath);
-    if (!visible.isFile() || visible.isSymbolicLink() ||
-        visible.dev !== owned.dev || visible.ino !== owned.ino)
-      return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
-    // Keep the exclusive lock through Git, model, commit and durable result
-    // receipt. A second distinct grant cannot overlap this active attempt.
-    return await execute();
-  } catch { return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE'); }
-  finally {
+    if (!await owns()) return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
+    // The callback must check ownership before and after irreversible effects.
+    const outcome = await execute(owns);
+    if (!await owns()) return block('CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE');
+    return outcome;
+  } catch {
+    return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
+  } finally {
     if (lock) {
-      // A lost/undeletable lifetime lock is NOT successful completion. A
-      // persisted result remains inspectable, but never authorizes replay.
-      // Never steal an orphaned lock, including after a process crash.
-      let released = false;
-      try {
-        await lock.close();
-        await unlink(lockPath);
-        released = true;
-      } catch {}
-      if (!released) return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
+      // Only delete the current attempt's own pathname while the persistent
+      // guard still prevents a second compliant worker from gaining ownership.
+      // Lost/replaced ownership is an unreconciled attempt, not free capacity.
+      const ownedLock = await matches(lockPath);
+      const ownedGuard = guardCreated && await matches(guardPath);
+      if (guardCreated && (!ownedLock || !ownedGuard)) {
+        releaseSafe = false;
+      } else {
+        try {
+          if (ownedLock) await unlink(lockPath);
+          else releaseSafe = false;
+          if (guardCreated && releaseSafe && await matches(guardPath))
+            await unlink(guardPath);
+          else if (guardCreated) releaseSafe = false;
+        } catch { releaseSafe = false; }
+      }
+      try { await lock.close(); } catch { releaseSafe = false; }
+      if (!releaseSafe) return block('CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE');
     }
   }
 }
@@ -199,11 +223,11 @@ export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, g
   if (!path.isAbsolute(repoRoot || '') || !path.isAbsolute(privateRoot || '') ||
       !credential || typeof credential !== 'string' || credential.length < 20)
     return block('CODING_HOST_OR_CREDENTIAL_UNAVAILABLE');
-  const git = runGit || (async (cwd, args) => exec('git', args,
+  const rawGit = runGit || (async (cwd, args) => exec('git', args,
     { cwd, windowsHide: true, timeout: 30_000, maxBuffer: 8192 }));
   // Do not execute model-edited code with the owner's credentials. Native
   // focused tests belong to the subsequent independent, isolated CI gate.
-  const syntax = checkSyntax || (async (cwd, file) => exec(process.execPath, ['--check', file],
+  const rawSyntax = checkSyntax || (async (cwd, file) => exec(process.execPath, ['--check', file],
     { cwd, windowsHide: true, timeout: 15_000, maxBuffer: 8192 }));
   let original;
   try {
@@ -229,7 +253,15 @@ export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, g
   catch (error) {
     if (error?.code !== 'ENOENT') return block('CODING_ALREADY_RESERVED_OR_UNVERIFIABLE');
   }
-  return reserveCodingStage(stages, receipts, grant, at, checkCapacity, async () => {
+  return reserveCodingStage(stages, receipts, grant, at, checkCapacity, async owns => {
+  const guarded = async fn => {
+    if (!await owns()) throw Error('CODING_STAGE_OWNERSHIP_LOST');
+    const output = await fn();
+    if (!await owns()) throw Error('CODING_STAGE_OWNERSHIP_LOST');
+    return output;
+  };
+  const git = (cwd, args) => guarded(() => rawGit(cwd, args));
+  const syntax = (cwd, file) => guarded(() => rawSyntax(cwd, file));
   if (!await onceJson(reservation, { schemaVersion: 1, grantId: grant.grantId,
     issueNumber: grant.issueNumber, sourceHead: source.head, reservedAt: at,
     state: 'RESERVED_NO_REPLAY' })) return block('CODING_ALREADY_RESERVED_OR_UNVERIFIABLE');
@@ -248,12 +280,12 @@ export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, g
     if ((await regularFile(stageFile, 16_384)).replace(/\r\n/g, '\n') !== original.replace(/\r\n/g, '\n'))
       throw Error('STAGED_SOURCE_DIFFERENT');
     phase = 'REQUEST_MODEL';
-    const proposal = await requestEdit({ grant, original, credential, fetchImpl });
+    const proposal = await guarded(() => requestEdit({ grant, original, credential, fetchImpl }));
     phase = 'VALIDATE_MODEL_EDIT';
     const updated = boundedSourceEdit(original, proposal);
     if (!updated || updated.length > 16_384) throw Error('MODEL_EDIT_UNVERIFIABLE');
     phase = 'WRITE_STAGE_EDIT';
-    await writeFile(stageFile, updated, 'utf8');
+    await guarded(() => writeFile(stageFile, updated, 'utf8'));
     phase = 'CHECK_STAGE_DIFF';
     await git(stage, ['diff', '--check']);
     phase = 'CHECK_STAGE_SYNTAX';
@@ -278,6 +310,7 @@ export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, g
   } catch {
     result = Object.freeze({ ...block('CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE'), phase });
   }
+  if (!await owns()) return block('CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE');
   if (!await onceJson(path.join(receipts, grant.grantId + '.result.json'), result))
     return block('CODING_RESULT_RECEIPT_UNVERIFIABLE');
   return result;

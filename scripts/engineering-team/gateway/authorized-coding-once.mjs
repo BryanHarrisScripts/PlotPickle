@@ -93,7 +93,7 @@ async function priorCodingAttemptsReconciled(receipts, currentNonce, epoch) {
     const entries = await readdir(receipts, { withFileTypes: true });
     if (entries.length > 8192) return false;
     const locks = new Map(), guards = new Set();
-    const pattern = /^\\.coding-attempt-([a-f0-9-]{36})\\.(lock|guard)$/;
+    const pattern = /^\.coding-attempt-([a-f0-9-]{36})\.(lock|guard)$/;
     for (const item of entries) {
       if (!item.name.startsWith('.coding-attempt-')) continue;
       const match = pattern.exec(item.name);

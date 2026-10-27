@@ -1,0 +1,68 @@
+#!/usr/bin/env node
+/**
+ * #3268: inspect *only* fixed, already-owned PlotPickle status sources.
+ * No service installation, process spawning, connector access or credentials.
+ * A status report is never an independent Windows acceptance receipt.
+ */
+import {lstat,readFile} from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import process from 'node:process';
+import {fileURLToPath} from 'node:url';
+import {createUnifiedServiceRegistry,projectUnifiedServiceInventory}
+ from '../../../../core/sidecars/runtime/unified-service-inventory.mjs';
+
+const REPO=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../../..');
+const STATUS_PATH='node/runtime/sidecars/status.json';
+const MAX_BYTES=131072;
+async function guardedJson(file){
+ try{
+  const stat=await lstat(file);
+  if(!stat.isFile()||stat.isSymbolicLink()||stat.size<2||stat.size>MAX_BYTES)return null;
+  return JSON.parse(await readFile(file,'utf8'));
+ }catch{return null;}
+}
+export async function inspectLocalServiceInventory({
+ repo=REPO,
+ home=path.resolve(process.env.PLOTPICKLE_HOME||
+   path.join(process.env.LOCALAPPDATA||process.env.USERPROFILE||os.homedir(),'PlotPickle')),
+ appData=path.resolve(process.env.LOCALAPPDATA||path.join(os.homedir(),'AppData','Local')),
+ now=Date.now(),readJson=guardedJson
+}={}){
+ const sidecarConfig=await readJson(path.join(repo,'config/runtime-sidecars.json'));
+ const managedManifest=await readJson(path.join(repo,'config/runtime-manifest.json'));
+ if(sidecarConfig?.statusFile!==STATUS_PATH)throw Error('FIXED_SIDECAR_STATUS_PATH_REQUIRED');
+ const registry=createUnifiedServiceRegistry(sidecarConfig,managedManifest);
+ const [sidecarSnapshot,heartbeat]=await Promise.all([
+  readJson(path.join(home,STATUS_PATH)),
+  readJson(path.join(appData,'PlotPickle','engineering-team','supervisor','heartbeat.json'))
+ ]);
+ const supervisorSnapshot=heartbeat&&typeof heartbeat==='object'?{
+  state:heartbeat.state,sourceHead:heartbeat.sourceHead,
+  heartbeatFresh:Number.isSafeInteger(heartbeat.at)&&
+   heartbeat.at<=now+30000&&now-heartbeat.at<=120000
+ }:null;
+ const result=projectUnifiedServiceInventory({
+  registry,sidecarSnapshot,supervisorSnapshot,now
+ });
+ return Object.freeze({...result,
+  // Read errors and unknown tunnel authentication are never transformed into ready.
+  diagnostics:Object.freeze([...result.diagnostics,
+   ...(!sidecarSnapshot?['SIDECAR_STATUS_UNAVAILABLE']:[]),
+   ...(!heartbeat?['SUPERVISOR_HEARTBEAT_UNAVAILABLE']:[]),
+   'REMOTE_TUNNEL_AUTHENTICATION_NOT_INSPECTED',
+   'SERVICE_MANAGER_NOT_INSTALLED_OR_ATTESTED'
+  ])
+ });
+}
+const THIS=fileURLToPath(import.meta.url);
+if(process.argv[1]&&path.resolve(process.argv[1])===THIS){
+ if(process.argv.length!==3||process.argv[2]!=='--status'){
+  process.stderr.write('UNIFIED_SERVICES_STATUS_ONLY\n');process.exitCode=2;
+ }else{
+  inspectLocalServiceInventory().then(
+   report=>process.stdout.write(JSON.stringify(report,null,2)+'\n'),
+   ()=>{process.stderr.write('UNIFIED_SERVICE_INVENTORY_UNAVAILABLE\n');process.exitCode=1;}
+  );
+ }
+}

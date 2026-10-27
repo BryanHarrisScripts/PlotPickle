@@ -92,16 +92,18 @@ async function priorCodingAttemptsReconciled(receipts, currentNonce, epoch) {
   try {
     const entries = await readdir(receipts, { withFileTypes: true });
     if (entries.length > 8192) return false;
-    const locks = new Map(), guards = new Set();
-    const pattern = /^\.coding-attempt-([a-f0-9-]{36})\.(lock|guard)$/;
+    const locks = new Map(), guards = new Set(), terminals = new Set();
+    const pattern = /^\.coding-attempt-([a-f0-9-]{36})\.(lock|guard|released\.json)$/;
     for (const item of entries) {
       if (!item.name.startsWith('.coding-attempt-')) continue;
       const match = pattern.exec(item.name);
       if (!match || !item.isFile() || item.isSymbolicLink()) return false;
       if (match[2] === 'lock') locks.set(match[1], item.name);
-      else guards.add(match[1]);
+      else if (match[2] === 'guard') guards.add(match[1]);
+      else terminals.add(match[1]);
     }
-    if (locks.size !== guards.size) return false;
+    if (locks.size !== guards.size ||
+        [...terminals].some(nonce => !locks.has(nonce))) return false;
     for (const [nonce, filename] of locks) {
       if (!guards.has(nonce) || nonce === currentNonce) return false;
       const lockPath = path.join(receipts, filename);

@@ -1739,17 +1739,6 @@
       ]
     },
     {
-      "id": "readme-ai-factory-organization-artwork-3319",
-      "classification": "docs",
-      "include": [
-        "public/brand/dashboard/plotpickle-ai-factory-organization.png"
-      ],
-      "ownerLayer": "verification",
-      "riskTokens": [
-        "docs"
-      ]
-    },
-    {
       "id": "repository-readme",
       "classification": "docs",
       "include": [

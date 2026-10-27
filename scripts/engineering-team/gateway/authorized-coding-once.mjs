@@ -170,6 +170,12 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
       try { await lock.close(); } catch { safeRelease = false; }
     }
     if (ownership) {
+      // No second coding grant may run while an earlier model/Git/receipt
+      // outcome is uncertain. Close this connection but RETAIN the exact
+      // SQLite owner row for independently authorized reconciliation.
+      const outcomeSettled = !executionStarted ||
+        completed?.state === 'LOCAL_COMMIT_PREPARED';
+      if (!outcomeSettled) safeRelease = false;
       if (safeRelease) {
         try { if (!ownership.release()) safeRelease = false; }
         catch { safeRelease = false; }
@@ -188,9 +194,11 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
           if (!saved) safeRelease = false;
         } catch { safeRelease = false; }
       }
-      if (!safeRelease) return block(executionStarted
-        ? 'CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE'
-        : 'CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
+      if (!safeRelease) return block(!outcomeSettled
+        ? 'CODING_OUTCOME_UNCERTAIN_RECONCILIATION_REQUIRED'
+        : executionStarted
+          ? 'CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE'
+          : 'CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
     }
   }
 }

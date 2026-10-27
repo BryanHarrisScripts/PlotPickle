@@ -84,7 +84,7 @@ async function safePath(root, relative) {
  * Retained stages are evidence, not a three-stage admission quota.
  * An abandoned lock requires owner inspection; never steal it by age.
  */
-async function reserveCodingStage(stages, receipts, grant, at, checkCapacity) {
+async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, execute) {
   const lockPath = path.join(receipts, '.coding-stage-budget.lock');
   let lock;
   try {
@@ -119,13 +119,15 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity) {
       { schemaVersion: 1, grantId: grant.grantId, reservedAt: at,
         state: 'RESERVED_NO_REPLAY' });
     if (!saved) return block('CODING_STAGE_RESERVATION_UNVERIFIABLE');
-    return null;
+    // Keep the exclusive lock through Git, model, commit and durable result
+    // receipt. A second distinct grant cannot overlap this active attempt.
+    return await execute();
   } catch { return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE'); }
   finally {
     if (lock) {
-      // A lost/undeletable admission lock is NOT successful admission. The
-      // stage sentinel may already exist, but no model or Git worker may run
-      // unless this lock's release is observed. Never steal an orphaned lock.
+      // A lost/undeletable lifetime lock is NOT successful completion. A
+      // persisted result remains inspectable, but never authorizes replay.
+      // Never steal an orphaned lock, including after a process crash.
       let released = false;
       try {
         await lock.close();
@@ -220,8 +222,7 @@ export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, g
   catch (error) {
     if (error?.code !== 'ENOENT') return block('CODING_ALREADY_RESERVED_OR_UNVERIFIABLE');
   }
-  const stageBudget = await reserveCodingStage(stages, receipts, grant, at, checkCapacity);
-  if (stageBudget) return stageBudget;
+  return reserveCodingStage(stages, receipts, grant, at, checkCapacity, async () => {
   if (!await onceJson(reservation, { schemaVersion: 1, grantId: grant.grantId,
     issueNumber: grant.issueNumber, sourceHead: source.head, reservedAt: at,
     state: 'RESERVED_NO_REPLAY' })) return block('CODING_ALREADY_RESERVED_OR_UNVERIFIABLE');
@@ -273,6 +274,7 @@ export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, g
   if (!await onceJson(path.join(receipts, grant.grantId + '.result.json'), result))
     return block('CODING_RESULT_RECEIPT_UNVERIFIABLE');
   return result;
+  });
 }
 
 /** Fixed local operator CLI; never exposed through MCP or the read-only supervisor. */

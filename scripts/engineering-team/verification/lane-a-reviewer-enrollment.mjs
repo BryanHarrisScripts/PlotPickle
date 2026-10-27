@@ -52,18 +52,22 @@ export function possessionPayload(record){
 
 export function verifyReviewerEnrollment(record,{
  trustedRegistrars,expectedRegistrarId,expectedRegistrarPrincipal,
- expectedHostId,expectedReviewerSid,expectedChallengeNonce,
- alreadyUsedChallenges=[],now=Date.now()
+ expectedHostId,expectedReviewerSid,expectedReviewerPrincipal,expectedCodingSid,
+ expectedChallengeNonce,alreadyUsedChallenges,now=Date.now()
 }={}){
  if(!record||record.schemaVersion!=='PP-LANE-A-ENROLL-V1')return deny('SCHEMA_INVALID');
  if(![record.enrollmentId,record.actorId,record.keyId,record.registrarId].every(x=>typeof x==='string'&&ID.test(x)))return deny('ID_INVALID');
  if(record.roleAlias!=='PP-F00-LA-W0001'||record.actorId!=='PP-F00-D02-W0001')return deny('ROLE_MISMATCH');
  if(![record.reviewerPrincipal,record.registrarPrincipal,record.hostId].every(x=>typeof x==='string'&&x.length>2&&x.length<192))return deny('PRINCIPAL_INVALID');
  if(record.reviewerPrincipal===record.registrarPrincipal)return deny('REGISTRAR_NOT_SEPARATE');
+ if(!expectedReviewerPrincipal||record.reviewerPrincipal!==expectedReviewerPrincipal)return deny('REVIEWER_PRINCIPAL_MISMATCH');
  if(!SID.test(record.reviewerSid||'')||record.reviewerSid!==expectedReviewerSid)return deny('WINDOWS_IDENTITY_MISMATCH');
+ if(!SID.test(expectedCodingSid||''))return deny('CODING_IDENTITY_UNATTESTED');
+ if(record.reviewerSid===expectedCodingSid)return deny('SAME_WINDOWS_PRINCIPAL_AS_CODER');
  if(record.hostId!==expectedHostId||!expectedHostId)return deny('HOST_MISMATCH');
  if(!expectedChallengeNonce||record.challengeNonce!==expectedChallengeNonce||!ID.test(record.challengeNonce||''))return deny('CHALLENGE_MISMATCH');
- if(!Array.isArray(alreadyUsedChallenges)||alreadyUsedChallenges.includes(record.challengeNonce))return deny('CHALLENGE_REPLAY');
+ if(!Array.isArray(alreadyUsedChallenges))return deny('CHALLENGE_LEDGER_UNAVAILABLE');
+ if(alreadyUsedChallenges.includes(record.challengeNonce))return deny('CHALLENGE_REPLAY');
  if(![record.processTokenEvidenceDigest,record.privateKeyAclEvidenceDigest].every(x=>typeof x==='string'&&DIGEST.test(x)))return deny('ATTESTATION_EVIDENCE_MISSING');
  if(!Array.isArray(record.evidenceRefs)||record.evidenceRefs.length<2||record.evidenceRefs.some(x=>typeof x!=='string'||!x.trim()||x.length>256))return deny('EVIDENCE_REFS_MISSING');
  if(!Array.isArray(record.capabilities)||record.capabilities.length!==1||record.capabilities[0]!==CAPABILITY)return deny('SCOPE_INVALID');

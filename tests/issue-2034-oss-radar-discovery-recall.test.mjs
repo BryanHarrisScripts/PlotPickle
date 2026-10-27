@@ -447,6 +447,87 @@ test("#2208 retries explicit GitHub Search rate limits without real-time sleepin
   assert.equal(calls, 3);
 });
 
+test("#2208 missing secondary-rate headers back off instead of retrying immediately", async () => {
+  const rateContract = recallContract({ enrichment: false });
+  rateContract.discoveryBudget.searchRateLimitRetries = 2;
+  rateContract.discoveryBudget.searchRateLimitFallbackWaitMs = 65000;
+  rateContract.discoveryBudget.searchRateLimitMaxWaitMs = 90000;
+  const waits = [];
+  let calls = 0;
+  const fetchImpl = async () => {
+    calls++;
+    if (calls <= 2) return {
+      ok: false, status: 403,
+      headers: { get: () => null },
+      json: async () => ({ message: "You have exceeded a secondary rate limit." }),
+    };
+    return { ok: true, status: 200, json: async () => ({ items: [repository()] }) };
+  };
+  const result = await discoverGitHubRepositories({
+    contract: rateContract, token: "fixture-token", fetchImpl,
+    now: new Date(fixture.now), sleepImpl: async ms => { waits.push(ms); },
+  });
+  assert.deepEqual(waits, [65000,90000]);
+  assert.equal(result.rateLimitRetryCount, 2);
+  assert.equal(result.rateLimitWaitMs, 155000);
+  assert.equal(calls, 4);
+});
+
+test("#2208 GitHub retry instructions never get shortened by the job wait budget", async () => {
+  const rateContract = recallContract({ enrichment: false });
+  rateContract.discoveryBudget.searchRateLimitRetries = 2;
+  rateContract.discoveryBudget.searchRateLimitFallbackWaitMs = 65000;
+  rateContract.discoveryBudget.searchRateLimitMaxWaitMs = 90000;
+  const waits = [];
+  let calls = 0;
+  await assert.rejects(
+    discoverGitHubRepositories({
+      contract: rateContract, token: "fixture-token",
+      fetchImpl: async () => {
+        calls++;
+        return {
+          ok: false, status: 429,
+          headers: { get: name => name === "retry-after" ? "180" : null },
+          json: async () => ({ message: "You have exceeded a secondary rate limit." }),
+        };
+      },
+      sleepImpl: async ms => { waits.push(ms); },
+      now: new Date(fixture.now),
+    }),
+    /HTTP 429: You have exceeded a secondary rate limit/u,
+  );
+  assert.equal(calls, 1);
+  assert.deepEqual(waits, []);
+});
+
+test("#2208 reset applies only to exhausted primary limit, not an unrelated secondary 403", async () => {
+  const rateContract = recallContract({ enrichment: false });
+  rateContract.discoveryBudget.searchRateLimitRetries = 1;
+  rateContract.discoveryBudget.searchRateLimitFallbackWaitMs = 65000;
+  rateContract.discoveryBudget.searchRateLimitMaxWaitMs = 90000;
+  const waits = [];
+  let calls = 0;
+  const result = await discoverGitHubRepositories({
+    contract: rateContract, token: "fixture-token",
+    fetchImpl: async () => {
+      calls++;
+      if (calls === 1) return {
+        ok: false, status: 403,
+        headers: { get: name => name === "x-ratelimit-remaining" ? "100" :
+          name === "x-ratelimit-reset" ? "3000" : null },
+        json: async () => ({ message: "Secondary rate limit" }),
+      };
+      return { ok: true, status: 200, json: async () => ({ items: [repository()] }) };
+    },
+    sleepImpl: async ms => { waits.push(ms); },
+    nowMsImpl: () => 1000,
+    now: new Date(fixture.now),
+  });
+  assert.equal(result.rateLimitRetryCount, 1);
+  assert.deepEqual(waits, [65000]);
+  assert.equal(calls, 3);
+});
+
 test("#2034 keeps search/rate failures diagnosable and the daily workflow focused", async () => {
   await assert.rejects(
     discoverGitHubRepositories({

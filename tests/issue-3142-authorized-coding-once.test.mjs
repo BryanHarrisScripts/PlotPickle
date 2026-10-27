@@ -5,6 +5,7 @@ import { mkdtemp, mkdir, lstat, readFile, writeFile, unlink, rm } from 'node:fs/
 import os from 'node:os';
 import path from 'node:path';
 import { boundedSourceEdit, runAuthorizedCodingOnce as runCodingNative, validateCodingGrant } from '../scripts/engineering-team/gateway/authorized-coding-once.mjs';
+import { claimCodingOwnership, codingReleaseIsReconciled } from '../scripts/engineering-team/gateway/receipts/atomic-coding-ownership.mjs';
 
 const HEAD = 'a'.repeat(40);
 const COMMIT = 'b'.repeat(40);
@@ -481,4 +482,39 @@ test('removed primary lock without replacement still cannot admit a distinct gra
     assert.equal(outcome.code, 'CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE');
     assert.equal((await lstat(path.join(privateRoot, 'coding-attempts',
       '.coding-stage-owner.lock'))).isFile(), true);
+  }));
+
+test('atomic single-resource SQLite owner excludes competing process claims and fences release', () =>
+  work(async ({ privateRoot }) => {
+    const receipts = path.join(privateRoot, 'coding-attempts');
+    await mkdir(receipts, { recursive: true });
+    const first = claimCodingOwnership(receipts, '1'.repeat(32), Date.now());
+    try {
+      assert.equal(first.owned(), true);
+      assert.throws(() => claimCodingOwnership(receipts, '2'.repeat(32), Date.now()));
+      assert.equal(codingReleaseIsReconciled(receipts, {
+        grantId: '1'.repeat(32), ownershipEpoch: first.epoch }), false);
+      assert.equal(first.release(), true);
+      assert.equal(first.owned(), false);
+      assert.equal(first.release(), false);
+      assert.equal(codingReleaseIsReconciled(receipts, {
+        grantId: '1'.repeat(32), ownershipEpoch: first.epoch }), true);
+      const second = claimCodingOwnership(receipts, '2'.repeat(32), Date.now());
+      try {
+        assert.equal(second.owned(), true);
+        assert.equal(second.epoch, first.epoch);
+      } finally { assert.equal(second.release(), true); second.close(); }
+    } finally { first.close(); }
+  }));
+
+test('an unreconciled ownership row is non-replayable even after the original connection closes', () =>
+  work(async ({ privateRoot }) => {
+    const receipts = path.join(privateRoot, 'coding-attempts');
+    await mkdir(receipts, { recursive: true });
+    const first = claimCodingOwnership(receipts, '1'.repeat(32), Date.now());
+    const epoch = first.epoch;
+    first.close(); // Simulated process loss: DO NOT release the resource row.
+    assert.throws(() => claimCodingOwnership(receipts, '2'.repeat(32), Date.now()));
+    assert.equal(codingReleaseIsReconciled(receipts, {
+      grantId: '1'.repeat(32), ownershipEpoch: epoch }), false);
   }));

@@ -121,10 +121,14 @@ async function priorCodingAttemptsReconciled(receipts, currentNonce, epoch) {
       const release = JSON.parse(await readFile(releasePath, 'utf8'));
       if (release.schemaVersion !== 1 ||
           release.kind !== 'coding-resource-release' ||
-          release.state !== 'RELEASED_AFTER_DURABLE_RESULT' ||
+          !['RELEASED_AFTER_DURABLE_RESULT', 'RELEASED_WITHOUT_EXECUTION']
+            .includes(release.state) ||
           release.ownershipNonce !== nonce ||
           release.ownershipEpoch !== epoch || release.grantId !== owner.grantId)
         return false;
+      if (release.state === 'RELEASED_AFTER_DURABLE_RESULT' &&
+          (!SHA.test(release.localCommit || '') ||
+           typeof release.branch !== 'string')) return false;
     }
     return true;
   } catch { return false; }
@@ -228,16 +232,21 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
         catch { safeRelease = false; }
       }
       try { ownership.close(); } catch { safeRelease = false; }
-      // Only successful, fully released attempts get a publisher witness.
-      // A crash after SQL DELETE but before this write remains BLOCKED.
-      if (safeRelease && completed?.state === 'LOCAL_COMMIT_PREPARED') {
+      // A successful commit gets a publisher witness. A pre-execution
+      // refusal gets a different terminal witness proving the slot may be
+      // reused but granting NO publishing authority. An uncertain executed
+      // attempt never gets a release witness or automatic replay.
+      if (safeRelease && guardCreated && outcomeSettled) {
         try {
           const saved = await onceJson(path.join(receipts, grant.grantId + '.released.json'),
             { schemaVersion: 1, kind: 'coding-resource-release',
               grantId: grant.grantId, sourceHead: grant.sourceHead,
-              localCommit: completed.commit, branch: completed.branch,
+              ...(executionStarted ? {
+                localCommit: completed.commit, branch: completed.branch,
+              } : {}),
               ownershipEpoch: ownership.epoch, ownershipNonce: ownership.nonce,
-              state: 'RELEASED_AFTER_DURABLE_RESULT' });
+              state: executionStarted ? 'RELEASED_AFTER_DURABLE_RESULT' :
+                'RELEASED_WITHOUT_EXECUTION' });
           if (!saved) safeRelease = false;
         } catch { safeRelease = false; }
       }

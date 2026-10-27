@@ -41,7 +41,16 @@ test("#3142 Factory observer fails closed for STOP and unknown heartbeat states"
       assert.equal(snapshot.factory.processOwnershipVerified, false);
     }
   }
-  for (const state of [...liveStates, "STOP_REQUESTED", "UNRECOGNIZED"]) {
+  // An intentional STOP/PAUSE is not an abnormal stale-heartbeat outage.
+  for (const state of ["STOP_REQUESTED", "STOPPED", "PAUSED", "PAUSE_REQUESTED"]) {
+    const snapshot = summarizeFactoryObserver({
+      status: { state, heartbeatFresh: false, enabled: true }, now: 1000,
+    });
+    assert.equal(snapshot.factory.online, false, state);
+    assert.equal(snapshot.factory.stalled, false, state);
+  }
+  // A stale unknown or OFFLINE state is not an authenticated intentional STOP.
+  for (const state of [...liveStates, "OFFLINE", "UNRECOGNIZED"]) {
     const snapshot = summarizeFactoryObserver({
       status: { state, heartbeatFresh: false, enabled: true }, now: 1000,
     });

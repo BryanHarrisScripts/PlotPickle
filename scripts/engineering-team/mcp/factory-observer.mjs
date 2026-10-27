@@ -9,7 +9,8 @@ const COMPLETED=new Set(["COMPLETED_RECEIPT"]);
 const OBSERVED=new Set(["COMPLETED_RECEIPT","RESERVED_NO_RESULT","NO_RESERVATION","UNVERIFIABLE_RECEIPT"]);
 const TERMINAL=new Set(["BLOCKED","PR_OPEN","WAITING_FOR_PROVIDER","WAITING_FOR_PRODUCT_UAT"]);
 // Only recognized Factory heartbeat states may be reported online. A fresh
-// heartbeat is not permission to treat STOP_REQUESTED or unknown states as live.
+// heartbeat is not permission to treat STOP_REQUESTED, unknown states or
+// an owner-disabled Factory as live.
 const LIVE_STATES=new Set(["IDLE","RUNNING","BLOCKED","PR_OPEN","MERGED",
   "WAITING_FOR_PROVIDER","WAITING_FOR_DEPENDENCIES","WAITING_FOR_PRODUCT_UAT",
   "WAITING_FOR_PR_VERIFICATION","WAITING_FOR_ELIGIBLE_ISSUE",
@@ -46,7 +47,7 @@ export function summarizeFactoryObserver({status,approvedIssues=[],evidence=[],n
   });
   const heartbeatFresh=factory.heartbeatFresh===true;
   const rawState=typeof factory.state==="string"?factory.state:"UNKNOWN";
-  const online=heartbeatFresh && LIVE_STATES.has(rawState);
+  const online=factory.enabled===true && heartbeatFresh && LIVE_STATES.has(rawState);
   const stalled=!!(factory.enabled===true&&!heartbeatFresh);
   const reservedCount=jobs.filter(x=>x.reserved).length;
   const blockedCount=jobs.filter(x=>x.state==="BLOCKED").length;

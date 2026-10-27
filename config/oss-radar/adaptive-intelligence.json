@@ -15,7 +15,7 @@
     "enrichmentShortlistSize": 42,
     "finalReviewCount": 21,
     "laneBalancedEnrichment": true,
-    "searchMinIntervalMs": 2250,
+    "searchMinIntervalMs": 3500,
     "searchRateLimitRetries": 2,
     "searchRateLimitFallbackWaitMs": 65000,
     "searchRateLimitMaxWaitMs": 90000

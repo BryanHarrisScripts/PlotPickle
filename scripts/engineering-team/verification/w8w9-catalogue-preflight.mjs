@@ -43,7 +43,18 @@ export async function inspectEdition({root, head}) {
     if (binding.length!==1) { mismatches.push({path,code:'BINDING_CARDINALITY',count:binding.length}); continue; }
     const b=binding[0];
     if (b.targetDigest!==expected) mismatches.push({path,code:'CATALOGUE_TARGET_STALE'});
-    if (!Array.isArray(b.truthRefs)||!b.truthRefs.includes('WHITE-PAPER-V3/W8')||!b.truthRefs.includes('WHITE-PAPER-V3/W9')) mismatches.push({path,code:'TRUTH_REFS_MISSING'});
+    if (!Array.isArray(b.truthRefs) || !['W8','W9'].every(obligationId=>b.truthRefs.some(ref=>ref?.truthId==='WHITE-PAPER-V3' && ref?.obligationId===obligationId))) mismatches.push({path,code:'TRUTH_REFS_MISSING'});
+    if (!Array.isArray(b.catalogueIds) || !b.catalogueIds.includes('agent.autonomous-factory-queue-3110')) mismatches.push({path,code:'CATALOGUE_ID_MISSING'});
+    if (!Array.isArray(b.scopes) || !b.scopes.includes('unit-fixture')) mismatches.push({path,code:'SCOPE_MISSING'});
+    const declared = new Map(Array.isArray(b.inputs) ? b.inputs.map(input=>[input.path,input.digest]) : []);
+    const required = path.includes('authorized-coding-once')
+      ? ['scripts/engineering-team/gateway/authorized-coding-once.mjs','scripts/engineering-team/gateway/receipts/atomic-coding-ownership.mjs']
+      : path.includes('authorized-pr-publish-once')
+        ? ['scripts/engineering-team/gateway/authorized-coding-once.mjs','scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs','scripts/engineering-team/gateway/receipts/atomic-coding-ownership.mjs']
+        : ['scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs'];
+    for (const input of [...required,'scripts/engineering-team/gateway/gateway-host.mjs','scripts/engineering-team/gateway/receipts/write-once-json.mjs']) {
+      if (declared.get(input)!==EDITION.inputs[input]) mismatches.push({path,code:'INPUT_DIGEST_STALE',input});
+    }
   }
   return {status:'BLOCKED',code:mismatches.length?'EDITION_OR_CATALOGUE_NOT_ADMITTED':'AWAITING_INDEPENDENT_ASSERTION_REVIEW',head,mismatches,independentReview:false,windowsProductGate:false,governedExecutionAuthorized:false};
 }

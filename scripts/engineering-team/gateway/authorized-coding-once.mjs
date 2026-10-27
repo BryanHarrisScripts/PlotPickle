@@ -161,25 +161,24 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
         try {
           if (ownedLock) await unlink(lockPath);
           else releaseSafe = false;
-          if (guardCreated && releaseSafe && await matches(guardPath))
-            await unlink(guardPath);
-          else if (guardCreated) releaseSafe = false;
+          if (guardCreated && releaseSafe && await matches(guardPath)) {
+            // Publish the write-once release witness *while the last hardlink
+            // guard is still exclusively held*. A publisher must also reject
+            // an unreleased guard for this same grant, even with a witness.
+            if (completed?.state === 'LOCAL_COMMIT_PREPARED') {
+              const released = await onceJson(path.join(receipts, grant.grantId + '.released.json'),
+                { schemaVersion: 1, kind: 'coding-resource-release',
+                  grantId: grant.grantId, sourceHead: grant.sourceHead,
+                  localCommit: completed.commit, branch: completed.branch,
+                  state: 'RELEASED_AFTER_DURABLE_RESULT' });
+              if (!released) releaseSafe = false;
+            }
+            if (releaseSafe && await matches(guardPath)) await unlink(guardPath);
+            else releaseSafe = false;
+          } else if (guardCreated) releaseSafe = false;
         } catch { releaseSafe = false; }
       }
       try { await lock.close(); } catch { releaseSafe = false; }
-      // The prepared-result JSON is NOT a safe publication credential until
-      // the independent release witness confirms this attempt dropped its own
-      // lifetime guard; uncertain release is permanently non-replayable.
-      if (releaseSafe && completed?.state === 'LOCAL_COMMIT_PREPARED') {
-        try {
-          const released = await onceJson(path.join(receipts, grant.grantId + '.released.json'),
-            { schemaVersion: 1, kind: 'coding-resource-release',
-              grantId: grant.grantId, sourceHead: grant.sourceHead,
-              localCommit: completed.commit, branch: completed.branch,
-              state: 'RELEASED_AFTER_DURABLE_RESULT' });
-          if (!released) releaseSafe = false;
-        } catch { releaseSafe = false; }
-      }
       if (!releaseSafe) return block(executionStarted
         ? 'CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE'
         : 'CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');

@@ -107,3 +107,40 @@ test("non-Windows and unverifiable owner authority fail closed", async () => {
   assert.equal(result.state, "OWNER_AUTHORITY_UNVERIFIED");
   assert.doesNotMatch(JSON.stringify(result), /private token/);
 });
+
+test("STOP, disable or unreadable authority after durable reservation prevents spawn and replay", async () => {
+  for (const change of ["stop", "disable", "unverifiable"]) {
+    let stopped = false, enabled = true, checks = 0, launches = 0, reservations = 0;
+    const watchdog = createTunnelWatchdogPolicy({
+      platform: "win32", now: () => 100_000,
+      ownerStopRequested: async () => {
+        checks++;
+        if (change === "unverifiable" && checks === 2) throw Error("private credential");
+        return stopped;
+      },
+      ownerEnabled: async () => enabled,
+      probeLocal: async () => ({ state: "FREE" }),
+      verifyOwnerLauncher: async () => "C:\\PlotPickle\\Start-PlotPickle-Tunnel-Authenticated.ps1",
+      reserveLaunch: async () => {
+        reservations++;
+        if (change === "stop") stopped = true;
+        if (change === "disable") enabled = false;
+        return true;
+      },
+      startOwned: async () => { launches++; return child(); },
+    });
+    const first = await watchdog.tick();
+    assert.equal(first.state, change === "stop" ? "OWNER_STOP_REQUESTED" :
+      change === "disable" ? "OWNER_DISABLED" : "OWNER_AUTHORITY_UNVERIFIED", change);
+    assert.equal(first.restartBudgetExhausted, true, change);
+    assert.equal(launches, 0, change);
+    assert.equal(reservations, 1, change);
+    // Even if the owner later resumes, a consumed one-use reservation cannot
+    // be retried by this policy instance without fresh owner authorization.
+    stopped = false; enabled = true;
+    assert.equal((await watchdog.tick()).state, "RESTART_BUDGET_EXHAUSTED", change);
+    assert.equal(launches, 0, change);
+    assert.equal(reservations, 1, change);
+    assert.doesNotMatch(JSON.stringify(first), /private credential/);
+  }
+});

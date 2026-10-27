@@ -234,6 +234,8 @@ Each domain owns its deliverable, but **all code and platform integrations move 
 
 ## 6. A common work-order / handoff record
 
+**Developer implementation brief:** [Semantic Handoff, Factory Identity and Final Inspection (October 27, 2026)](developer-briefs/3142-semantic-handoff-inspection-and-rework-2026-10-27.md) preserves the four-Factory organizational model, reserves F00 for shared services, proposes stable department/actor numbers, and specifies append-only handoff events, independent inspection cards and linked corrective queue work. This is a Human-approved design proposal, not an implemented API, running department or independent QA result.
+
 The exact wire format remains owned by existing PlotPickle contracts. This is a **conceptual checklist, not an implemented API schema**. A credible cross-factory handoff answers all of these questions:
 
 | Field | Meaning |

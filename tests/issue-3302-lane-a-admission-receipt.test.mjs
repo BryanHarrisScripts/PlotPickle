@@ -22,3 +22,25 @@ test('untrusted or revoked reviewer key cannot admit',()=>{
  assert.equal(verifyAdmissionReceipt(signed(),{...opts,trustedReviewers:{'qa-key-1':{...opts.trustedReviewers['qa-key-1'],revoked:true}}}).code,'REVIEWER_NOT_TRUSTED');
 });
 test('signed FIX verdict is evidence but cannot authorize catalogue update',()=>{const r=verifyAdmissionReceipt(signed({disposition:'FIX'}),opts);assert.equal(r.accepted,true);assert.equal(r.mayUpdateCatalogue,false);});
+
+test('signed receipt round trip is attributable to a separate ephemeral fixture key',()=>{
+ const receipt=signed();
+ const bytes=canonicalPayload(receipt);
+ const verified=verifyAdmissionReceipt(JSON.parse(JSON.stringify(receipt)),opts);
+ assert.equal(verified.accepted,true);
+ assert.equal(verified.disposition,'ADMIT');
+ assert.equal(verified.mayRunLaneB,false);
+ assert.equal(bytes.toString('utf8'),canonicalPayload(receipt).toString('utf8'));
+ assert.match(verified.receiptDigest,/^[a-f0-9]{64}$/);
+});
+test('wrong signing key cannot impersonate trusted reviewer',()=>{
+ const imposter=generateKeyPairSync('ed25519');
+ const receipt=signed();
+ receipt.signatureBase64=sign(null,canonicalPayload(receipt),imposter.privateKey).toString('base64');
+ assert.equal(verifyAdmissionReceipt(receipt,opts).code,'SIGNATURE_INVALID');
+});
+test('missing evidence or signature cannot become admission',()=>{
+ assert.equal(verifyAdmissionReceipt(signed({evidence:[]}),opts).code,'EVIDENCE_MISSING');
+ const receipt=signed();delete receipt.signatureBase64;
+ assert.equal(verifyAdmissionReceipt(receipt,opts).code,'SIGNATURE_MISSING');
+});

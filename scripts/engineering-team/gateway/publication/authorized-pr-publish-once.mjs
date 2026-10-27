@@ -12,6 +12,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gatewayAppSource, privateGatewayRoot } from '../gateway-host.mjs';
 import { appendPrivateJsonOnce as writeOnce } from '../receipts/write-once-json.mjs';
+import { codingReleaseIsReconciled } from '../receipts/atomic-coding-ownership.mjs';
 
 const exec = promisify(execFile);
 const ID = /^[a-f0-9]{32}$/;
@@ -250,7 +251,11 @@ export function validateCodingReleaseWitness(release, grant, prepared) {
     prepared.commit === release.localCommit &&
     prepared.sourceHead === release.sourceHead &&
     prepared.branch === release.branch &&
-    prepared.state === 'LOCAL_COMMIT_PREPARED';
+    prepared.state === 'LOCAL_COMMIT_PREPARED' &&
+    typeof release.ownershipEpoch === 'string' &&
+    /^[a-f0-9-]{36}$/.test(release.ownershipEpoch) &&
+    typeof release.ownershipNonce === 'string' &&
+    /^[a-f0-9-]{36}$/.test(release.ownershipNonce);
 }
 
 /** Local Windows CLI; never installs a service, admits a queue or invokes Pi. */
@@ -272,7 +277,8 @@ export async function runOwnerPublishOnce({ publicationId, repoRoot = process.cw
       grant.grantId + '.result.json'), 4096);
     release = await regularJson(path.join(privateRoot, 'coding-attempts',
       grant.grantId + '.released.json'), 4096);
-    if (!validateCodingReleaseWitness(release, grant, prepared))
+    if (!validateCodingReleaseWitness(release, grant, prepared) ||
+        !codingReleaseIsReconciled(path.join(privateRoot, 'coding-attempts'), release))
       return blocked('PUBLISH_CODING_OWNERSHIP_RELEASE_UNVERIFIABLE');
     // A release witness written while the original guard was held is not
     // enough if that owner still owns its hardlink (e.g. failed unlink).

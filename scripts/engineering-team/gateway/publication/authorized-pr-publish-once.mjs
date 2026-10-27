@@ -280,19 +280,17 @@ export async function runOwnerPublishOnce({ publicationId, repoRoot = process.cw
     if (!validateCodingReleaseWitness(release, grant, prepared) ||
         !codingReleaseIsReconciled(path.join(privateRoot, 'coding-attempts'), release))
       return blocked('PUBLISH_CODING_OWNERSHIP_RELEASE_UNVERIFIABLE');
-    // A release witness written while the original guard was held is not
-    // enough if that owner still owns its hardlink (e.g. failed unlink).
-    // A different valid active worker's guard is allowed after release.
-    const activeGuard = path.join(privateRoot, 'coding-attempts', '.coding-stage-owner.lock');
-    let present = false;
-    try { await lstat(activeGuard); present = true; }
-    catch (error) {
-      if (error?.code !== 'ENOENT') return blocked('PUBLISH_CODING_OWNERSHIP_RELEASE_UNVERIFIABLE');
-    }
-    if (present) {
-      const active = await regularJson(activeGuard, 4096);
-      if (!ID.test(active.grantId || '') || active.grantId === grant.grantId)
-        return blocked('PUBLISH_CODING_OWNERSHIP_RELEASE_UNVERIFIABLE');
+    // Legacy shared lock files from the previous worker implementation are
+    // unreconciled historical evidence; never use a new witness to bypass them.
+    // Current per-attempt evidence files are immutable and are never unlinked.
+    for (const name of ['.coding-stage-budget.lock', '.coding-stage-owner.lock']) {
+      try {
+        await lstat(path.join(privateRoot, 'coding-attempts', name));
+        return blocked('PUBLISH_LEGACY_OWNER_RECONCILIATION_REQUIRED');
+      } catch (error) {
+        if (error?.code !== 'ENOENT')
+          return blocked('PUBLISH_CODING_OWNERSHIP_RELEASE_UNVERIFIABLE');
+      }
     }
     if (grant.publicationId !== publicationId)
       return blocked('PUBLISH_GRANT_ID_MISMATCH');

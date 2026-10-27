@@ -119,6 +119,13 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
       { schemaVersion: 1, grantId: grant.grantId, reservedAt: at,
         state: 'RESERVED_NO_REPLAY' });
     if (!saved) return block('CODING_STAGE_RESERVATION_UNVERIFIABLE');
+    // An externally removed/replaced lock is never authority to launch the
+    // model. Check the same open inode before starting the long-running phase.
+    const owned = await lock.stat();
+    const visible = await lstat(lockPath);
+    if (!visible.isFile() || visible.isSymbolicLink() ||
+        visible.dev !== owned.dev || visible.ino !== owned.ino)
+      return block('CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
     // Keep the exclusive lock through Git, model, commit and durable result
     // receipt. A second distinct grant cannot overlap this active attempt.
     return await execute();

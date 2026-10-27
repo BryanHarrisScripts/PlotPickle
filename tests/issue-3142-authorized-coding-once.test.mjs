@@ -107,8 +107,88 @@ test('failed model edit is held for inspection and cannot be replayed', () =>
     };
     const options = { repoRoot, privateRoot, source, grant, credential: 'fake-test-key-not-real-123456',
       now: () => at, runGit: git, requestEdit: async () => ({ oldText: 'missing old code', newText: 'something' }) };
-    assert.equal((await runAuthorizedCodingOnce(options)).code, 'CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE');
+    const result = await runAuthorizedCodingOnce(options);
+    assert.equal(result.code, 'CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE');
+    assert.equal(result.phase, 'VALIDATE_MODEL_EDIT');
     assert.equal((await runAuthorizedCodingOnce(options)).code, 'CODING_ALREADY_RESERVED_OR_UNVERIFIABLE');
+    const saved = JSON.parse(await readFile(path.join(privateRoot, 'coding-attempts',
+      grant.grantId + '.result.json'), 'utf8'));
+    assert.equal(saved.phase, 'VALIDATE_MODEL_EDIT');
+  }));
+
+test('a failed model request records only a fixed phase and preserves non-replay', () =>
+  work(async ({ repoRoot, privateRoot }) => {
+    const at = Date.now();
+    const grant = makeGrant(at);
+    const credential = 'fake-test-key-not-real-123456';
+    let modelCalls = 0;
+    const git = async (cwd, args) => {
+      if (args[0] === 'worktree') {
+        const stage = args[3];
+        await mkdir(path.dirname(path.join(stage, TARGET)), { recursive: true });
+        await writeFile(path.join(stage, TARGET), ORIGINAL);
+      }
+      return { stdout: '' };
+    };
+    const options = { repoRoot, privateRoot, source, grant, credential, now: () => at,
+      runGit: git, requestEdit: async () => {
+        modelCalls++;
+        throw Error('SECRET_MODEL_PAYLOAD_AND_HOST_PATH');
+      } };
+    const first = await runAuthorizedCodingOnce(options);
+    assert.equal(first.state, 'BLOCKED');
+    assert.equal(first.code, 'CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE');
+    assert.equal(first.phase, 'REQUEST_MODEL');
+    assert.equal((await runAuthorizedCodingOnce(options)).code,
+      'CODING_ALREADY_RESERVED_OR_UNVERIFIABLE');
+    assert.equal(modelCalls, 1);
+    const receiptText = await readFile(path.join(privateRoot, 'coding-attempts',
+      grant.grantId + '.result.json'), 'utf8');
+    assert.equal(JSON.parse(receiptText).phase, 'REQUEST_MODEL');
+    assert.doesNotMatch(receiptText, /SECRET_MODEL|fake-test-key|privateRoot/);
+  }));
+
+test('coding worker requests strict structured JSON edits from the Responses API', () =>
+  work(async ({ repoRoot, privateRoot }) => {
+    const at = Date.now();
+    const grant = makeGrant(at);
+    const git = async (cwd, args) => {
+      if (args[0] === 'worktree') {
+        const stage = args[3];
+        await mkdir(path.dirname(path.join(stage, TARGET)), { recursive: true });
+        await writeFile(path.join(stage, TARGET), ORIGINAL);
+      }
+      if (args[0] === 'diff' && args[1] === '--name-only')
+        return { stdout: TARGET + '\\n' };
+      if (args[0] === 'rev-parse') return { stdout: COMMIT + '\\n' };
+      return { stdout: '' };
+    };
+    let called = 0;
+    const fetchImpl = async (url, options) => {
+      called++;
+      assert.equal(url, 'https://api.openai.com/v1/responses');
+      const payload = JSON.parse(options.body);
+      assert.equal(payload.store, false);
+      assert.equal(payload.max_output_tokens, grant.maxOutputTokens);
+      assert.equal(payload.text.format.type, 'json_schema');
+      assert.equal(payload.text.format.strict, true);
+      assert.deepEqual(payload.text.format.schema.required, ['oldText', 'newText']);
+      assert.equal(payload.text.format.schema.additionalProperties, false);
+      return new Response(JSON.stringify({
+        status: 'completed',
+        output: [{ type: 'message', status: 'completed',
+          content: [{ type: 'output_text',
+            text: JSON.stringify({ oldText: 'return 1;', newText: 'return 2;' }) }] }],
+      }), { status: 200 });
+    };
+    const result = await runAuthorizedCodingOnce({
+      repoRoot, privateRoot, source, grant,
+      credential: 'fake-test-key-not-real-123456', now: () => at,
+      runGit: git, fetchImpl, checkSyntax: async () => {},
+    });
+    assert.equal(result.state, 'LOCAL_COMMIT_PREPARED');
+    assert.equal(result.commit, COMMIT);
+    assert.equal(called, 1);
   }));
 
 test('invalid grant or missing credential has no staging side effects', () =>

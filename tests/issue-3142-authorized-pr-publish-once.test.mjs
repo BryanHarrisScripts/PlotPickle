@@ -282,6 +282,8 @@ test('publication requires an exact coding-ownership release witness rather than
     const release = { schemaVersion: 1, kind: 'coding-resource-release',
       state: 'RELEASED_AFTER_DURABLE_RESULT', grantId: f.grant.grantId,
       sourceHead: f.grant.sourceHead, localCommit: f.grant.localCommit,
+      ownershipEpoch: '12345678-1234-1234-1234-123456789abc',
+      ownershipNonce: '12345678-1234-1234-1234-123456789abc',
       branch: f.grant.branch };
     assert.equal(validateCodingReleaseWitness(release, f.grant, f.prepared), true);
     const bad = [

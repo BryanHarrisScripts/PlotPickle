@@ -5,7 +5,7 @@ import { promisify } from 'node:util';
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { publishAuthorizedDraftOnce, validatePublicationGrant } from
+import { publishAuthorizedDraftOnce, validatePublicationGrant, validateCodingReleaseWitness } from
   '../scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs';
 import { runOwnerCodingAndPublishOnce } from '../scripts/engineering-team/gateway/authorized-coding-once.mjs';
 
@@ -275,3 +275,24 @@ test('one invocation can hand off an authorized prepared commit to separate publ
   })).code, 'CODING_AND_PUBLISH_GRANT_IDS_REQUIRED');
   assert.equal(coding, 2);
 });
+
+
+test('publication requires an exact coding-ownership release witness rather than only a prepared result', () =>
+  fixture(async f => {
+    const release = { schemaVersion: 1, kind: 'coding-resource-release',
+      state: 'RELEASED_AFTER_DURABLE_RESULT', grantId: f.grant.grantId,
+      sourceHead: f.grant.sourceHead, localCommit: f.grant.localCommit,
+      branch: f.grant.branch };
+    assert.equal(validateCodingReleaseWitness(release, f.grant, f.prepared), true);
+    const bad = [
+      null, { ...release, state: 'UNCERTAIN' },
+      { ...release, grantId: 'f'.repeat(32) },
+      { ...release, sourceHead: 'f'.repeat(40) },
+      { ...release, localCommit: 'f'.repeat(40) },
+      { ...release, branch: 'engineering/other' },
+    ];
+    for (const proof of bad)
+      assert.equal(validateCodingReleaseWitness(proof, f.grant, f.prepared), false);
+    assert.equal(validateCodingReleaseWitness(release, f.grant,
+      { ...f.prepared, state: 'CODING_OUTCOME_UNCERTAIN' }), false);
+  }));

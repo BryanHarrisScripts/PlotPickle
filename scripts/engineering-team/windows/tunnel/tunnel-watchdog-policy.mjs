@@ -28,13 +28,13 @@ export function createTunnelWatchdogPolicy({
     reserveLaunch, startOwned].every(fn => typeof fn === "function"))
     throw new TypeError("WATCHDOG_HOST_ADAPTER_REQUIRED");
   let owned = null, failures = 0, nextStartAt = 0, startedAt = 0;
-  let exhausted = false;
+  let exhausted = false, tickInFlight = null;
   const alive = () => owned && owned.exitCode === null && owned.signalCode === null;
   const observe = () => Object.freeze({
     ownedProcessObserved: Boolean(alive()), restartAttempts: failures,
     retryAfter: nextStartAt || null, restartBudgetExhausted: exhausted,
   });
-  async function tick() {
+  async function tickOnce() {
     if (platform !== "win32") return report("WINDOWS_ONLY", observe());
     // STOP and disabled states precede all probes, launch and retries.
     try {
@@ -112,6 +112,18 @@ export function createTunnelWatchdogPolicy({
       exhausted = true;
       return report("LAUNCH_OUTCOME_UNVERIFIED", observe());
     }
+  }
+  // Concurrent scheduler/health callbacks must not reserve or spawn twice.
+  // Share the one pending decision; a settled tick allows a later fresh probe.
+  function tick() {
+    if (tickInFlight) return tickInFlight;
+    const pending = tickOnce();
+    tickInFlight = pending;
+    pending.then(
+      () => { if (tickInFlight === pending) tickInFlight = null; },
+      () => { if (tickInFlight === pending) tickInFlight = null; },
+    );
+    return pending;
   }
   return Object.freeze({ tick, observe });
 }

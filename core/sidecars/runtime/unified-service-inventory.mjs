@@ -8,7 +8,7 @@ import {createRuntimeServiceRegistry} from './service-registry.mjs';
 const ID=/^[a-z0-9][a-z0-9-]{1,63}$/;
 const SHA=/^[a-f0-9]{40}$/;
 const MAX_AGE_MS=120_000;
-const safeText=(x,max=100)=>typeof x==='string'?x.slice(0,max):null;
+const SUPERVISOR_STATES=new Set(['RUNNING','PAUSED','BLOCKED','OFFLINE','STOPPED','STOP_REQUESTED','OFF','UNKNOWN']);
 const freeze=x=>Object.freeze(x);
 const GROUPS=freeze([
  {id:'independent-windows-supervisor',label:'Independent Windows Supervisor',group:'supervisors',state:'UNPROVEN'},
@@ -84,7 +84,7 @@ export function projectUnifiedServiceInventory({
    snapshots.set(item.id,safeReported(item.state));
   }
  }else if(sidecarSnapshot){diagnostics.push('SIDECAR_STATUS_STALE_OR_INVALID');}
- const supervisorState=safeText(supervisorSnapshot?.state,32);
+ const supervisorState=SUPERVISOR_STATES.has(supervisorSnapshot?.state)?supervisorSnapshot.state:null;
  const supervisorFresh=supervisorSnapshot?.heartbeatFresh===true&&
   SHA.test(expectedHead||'')&&supervisorSnapshot?.sourceHead===expectedHead;
  const services=registry.services.map(service=>{

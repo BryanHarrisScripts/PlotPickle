@@ -10,7 +10,7 @@ const registrar=generateKeyPairSync('ed25519'),reviewer=generateKeyPairSync('ed2
 const pem=key=>key.export({format:'pem',type:'spki'});
 const now=Date.parse('2026-10-27T23:30:00Z');
 const options={
- trustedRegistrars:{'registrar-1':{principal:'IndependentRegistrar01',publicKeyPem:pem(registrar.publicKey)}},
+ trustedRegistrars:{'registrar-1':{principal:'IndependentRegistrar01',publicKeyPem:pem(registrar.publicKey),revoked:false}},
  expectedRegistrarId:'registrar-1',expectedRegistrarPrincipal:'IndependentRegistrar01',
  expectedHostId:'owner-windows-machine',expectedReviewerSid:'S-1-5-21-111-222-333-1002',
  expectedReviewerPrincipal:'WindowsReviewer01',expectedCodingSid:'S-1-5-21-111-222-333-1001',
@@ -49,6 +49,16 @@ test('unsigned enrollment privilege extensions fail closed before identity admis
  const second=signed();
  second.canEditCatalogue=true;
  assert.equal(verifyReviewerEnrollment(second,options).code,'UNSIGNED_EXTENSION_REJECTED');
+});
+test('missing, malformed or revoked registrar status is denied even for a valid signature',()=>{
+ const trusted=options.trustedRegistrars['registrar-1'];
+ for(const revoked of [undefined,null,'false',0,true]) {
+  const changed={...trusted,revoked};
+  const result=verifyReviewerEnrollment(signed(),{...options,trustedRegistrars:{'registrar-1':changed}});
+  assert.equal(result.code,'REGISTRAR_NOT_TRUSTED',String(revoked));
+  assert.equal(result.verified,false);
+  assert.equal(result.mayAdmit,false);
+ }
 });
 test('wrong or revoked registrar identity is refused',()=>{
  assert.equal(verifyReviewerEnrollment(signed(),{...options,expectedRegistrarId:'other'}).code,'REGISTRAR_NOT_AUTHORIZED');

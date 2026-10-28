@@ -11,7 +11,7 @@ Our named role `PP-F00-LA-W0001` is an operator-facing **alias**. The organizati
 ## Independent operating principals (not author-issued)
 
 - Coding principal: existing Software Factory identity / real owner-Windows SID, to be independently measured.
-- Reviewer principal: **different Windows account SID** and independent reviewer execution identity `PP-F00-D02-W0001`; no GitHub write token, model coding grant, or merge permission.
+- Reviewer principal: **different independently observed Windows service execution token/SID** and reviewer actor `PP-F00-D02-W0001`; it need not be a normal interactive Windows login. Its service identity must be protected from the coding and manager identities, with no GitHub write token, model coding grant, catalogue-editing or merge permission.
 - Registrar / trust authority: separately authorized F00 owner or security administrator, external to the coding process. Registrar holds a separately protected Ed25519 signing key and controls the trusted public-key registry and the one-use challenge ledger.
 - Registrar must observe the real Windows process token SID and the reviewer's private-key ACL **out of process** before attesting their SHA-256 evidence. Reviewer-provided JSON claiming those observations is not proof.
 - Host consumer receives only the independently installed reviewer's **public** key after registrar approval. A committed PR, self-published GitHub comment, synthetic test signing key, or arbitrary key registry supplied by a review request may never establish trust.
@@ -19,9 +19,10 @@ Our named role `PP-F00-LA-W0001` is an operator-facing **alias**. The organizati
 
 ## Enrollment sequence (no password or private key through ChatGPT)
 
-1. Owner creates a dedicated **standard/non-administrator Windows account**, e.g. `PlotPickleLaneA`, by supported Windows account administration. This may require an owner interaction or administrator permissions. Do not create it automatically as a side effect of tests or a GitHub PR.
-2. Independently confirm the coding account SID and reviewer account SID are distinct. Use Windows `whoami /user` under each account; the registrar independently collects process-token evidence.
-3. Under the reviewer account only, create a private **user-specific** directory outside the Git checkout. Generate Ed25519 credentials locally using an independently reviewed ceremony; never send the private key, machine credentials, recovery secret, or private key base64 into GitHub, ChatGPT, PRs or the PlotPickle coding worker. Disable inherited/broad NTFS ACL grants; restrict the private key to the reviewer SID and necessary Windows security principals. Capture a redacted ACL/owner report and a public-key fingerprint.
+1. The single approved **Always-on PlotPickle installer** (owner-reviewed elevation/consent) provisions a dedicated **noninteractive, restricted reviewer service execution identity**, such as a supported service SID/virtual account or a separate least-privilege managed local account. There is **no separate installer choice** requiring a normal user to create an interactive login. The exact Windows SCM identity method, upgrade/rollback and access-control configuration must first pass native Windows acceptance. Installer completion alone cannot activate Lane A or create independent review authority; pre-install and tests must remain inert.
+2. An external registrar independently observes the actual reviewer service process token/SID and the Software Factory coding process token/SID and confirms they are distinct. A service name, task name or worker label is not SID evidence; a manager-owned JSON assertion is not an independent observation.
+3. Generate and store an Ed25519 signing key **only within the approved restricted reviewer identity** using an independently reviewed signing ceremony. Prefer a nonexportable OS-backed key **only after proving real Ed25519 compatibility and process-bound isolation** on the supported Windows release; otherwise use a protected key file outside all Git checkouts with inheritance disabled and a verified NTFS ACL limited to the reviewer's distinct service SID plus strictly necessary OS security principals. Never send the private key, recovery secret or password into GitHub, ChatGPT, PRs, the Service Manager or the coding worker. The registrar captures a redacted token/ACL/key-fingerprint witness out of process.
+
 4. Independently authorize the registrar key and reviewer account; registrar issues a **fresh one-use challenge nonce**, bound to the reviewer role, canonical actor, actual SID, host ID and public-key fingerprint. Reviewer signs the challenge using its isolated private key. Registrar checks key possession, Windows token and private-key ACL independently.
 5. Registrar signs a time-bounded `PP-LANE-A-ENROLL-V1` envelope containing the role alias/canonical identity, SID, host, reviewer key, challenge, scope, observed evidence digests, and timestamps. Its signing key and trust registry remain outside PlotPickle and outside PR control.
 6. The read-only `lane-a-reviewer-enrollment.mjs` verifier checks registrar signature, possession signature, reviewer/coder SID separation, approved scope, nonce, evidence claims and expiry. Its result is deliberately a **candidate only**; the actual Windows process/ACL observation and challenge-consumption receipt must be separately accepted.
@@ -31,7 +32,8 @@ Our named role `PP-F00-LA-W0001` is an operator-facing **alias**. The organizati
 
 ## Proof and STOP checklist
 
-- [ ] Distinct actual Windows SIDs observed independently, including process ownership and supervisor provenance.
+- [ ] Single installer provisions a restricted **noninteractive** reviewer service identity with clean-install/update/uninstall and rollback proof; no separate user account setup required.
+- [ ] Distinct actual Windows service/coding process token SIDs observed **out of process** with durable evidence, including supervisor provenance.
 - [ ] Reviewer-only private-key access established and ACL inspected by external registrar.
 - [ ] Separate registrar trust root installed via protected operator configuration; private keys never in repo.
 - [ ] Fresh nonce recorded by registrar; replay refused even after restart.
@@ -45,8 +47,9 @@ Our named role `PP-F00-LA-W0001` is an operator-facing **alias**. The organizati
 
 - PR #3321: local negative tests pass; exact-head CI blocked by independently governed test-truth admission; prototype `wx` claim is not tamper-resistant, so Lane B must remain off.
 - PR #3322: synthetic Ed25519 tests pass; exact-head CI blocked by the same truth gate. New enrollment tests are additional **unadmitted** editions. Neither self-approves.
-- Factory tunnel can inspect the Supervisor and execute allowlisted tests, but has **no credential or Windows-account provisioning action**. Supervisor heartbeat does not prove reviewer process ownership.
-- This package creates no account, key, registrar, trust activation, test admission or production reviewer on the owner machine. **Owner Windows enrollment and independent operator attestation remain required.**
+- The existing Factory tunnel can inspect the Supervisor and execute allowlisted tests, but exposes **no supported Windows service-identity or credential provisioning action**. Supervisor heartbeat does not prove reviewer process ownership.
+- The draft `Inspect-PlotPickleLaneAIdentity.ps1` is currently a **read-only file-key ACL inspection prototype** executed as the candidate reviewer. It does **not** prove an installer-created Windows virtual service principal, a nonexportable OS-backed key, independent registrar attestation, trusted challenge consumption or a running reviewer service; those require separately reviewed native Windows integration.
+- This draft PR provisions **no** account, service identity, key, registrar, trust activation, test admission or reviewer on the owner host. The approved installer must deliver reviewed native service-identity creation, but trusted F00 admission remains separately credentialled and independently verified even after a successful installation. No duplicate tunnel or second supervisor is introduced.
 
 ## Fail-closed test doctrine
 

@@ -8,6 +8,8 @@ on:
       - "scripts/engineering-team/windows/verification/Build-PlotPickleLaneAService.ps1"
       - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneAHost.ps1"
       - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneAScmCanary.CI.ps1"
+      - "tests/issue-3302-lane-a-native-service-host.test.mjs"
+      - "docs/developer-briefs/3302-installer-lane-a-w8w9-independent-admission-packet-2026-10-27.md"
       - "scripts/engineering-team/windows/verification/Install-PlotPickleLaneAService.ps1"
   workflow_dispatch:
 

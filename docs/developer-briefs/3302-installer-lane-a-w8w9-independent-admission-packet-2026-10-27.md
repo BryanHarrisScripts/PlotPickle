@@ -70,3 +70,18 @@ The earlier author-side native diagnostic [#40686345501](https://github.com/Brya
 The six new source-level native-safety checks were exercised using injected V8 fixtures: **6/6 pass**. The native test embedded in the Node test suite remains opt-in / not executed under that test runner; the separate Windows workflow above executes the actual C# host smoke and SCM canary instead. Recompute all SHA-256 editions independently at final review because any subsequent source changes supersede this packet.
 
 **Final diagnostic workflow edition:** the read-only Windows canary now triggers for changes to the native test and this review packet, to produce source-linked hosted-Windows diagnostics. Its successful results are **not** a trusted F00 signature and do not turn test-truth admission or owner Windows Product Gate green.
+
+## October 28 source/test safety addendum — pending independent review
+
+**Author-side source checkpoint before this addendum:** `28158f40d68e1c9b8ca0e179eb1bace2a14405b4` on existing draft PR #3322. Re-read the actual final PR head before independent certification. No signer, reviewer, Windows acceptance, test admission, or protected catalogue write occurred.
+
+The external-trust preflight previously accepted a registrar record with an absent or malformed `revoked` field because it rejected only literal `true`. A source correction now requires literal `false`, so unknown revocation status is denied. A proposed negative regression checks `undefined`, `null`, string `'false'` and literal `true`; all must return `EXTERNAL_REGISTRAR_TRUST_PIN_MISSING`, `cryptographicCandidate:false`, and `mayAdmit:false`.
+
+| Revised author-side candidate edition | UTF-8 SHA-256 | Git blob SHA |
+| --- | --- | --- |
+| `scripts/engineering-team/verification/lane-a-external-trust-bootstrap.mjs` | `c6e837fbeb75ce001cb5b90eb1018dbe16e7b281e49dac5d7bcd949381662f7e` | `7d97746df4b1a0f6ec8dee23c9a3a733e59eea60` |
+| `tests/issue-3302-lane-a-external-trust-bootstrap.test.mjs` | `e699445cc2161364f19132ed17c1f9d83c230cd915126230bb470336c086af79` | `fd695200eaf64d5aadba87e711effb09dfcad209` |
+
+These candidate SHA-256 values were recomputed from exact GitHub file contents by the author-side tooling, checked against known SHA-256 vectors; this is **not independent digest verification**. The regression is **PROPOSED, NOT GOVERNED-TEST EXECUTED OR ADMITTED**. The independent F00 reviewer must verify these editions plus all imported dependencies, original W8/W9 obligations, crash/STOP limits, and the true revocation policy. A separately authorized maintainer alone may update protected catalogue bindings after a genuine signed ADMIT.
+
+**Packet completeness warning:** the earlier four-test table predates additional automated-reviewer, external-trust-bootstrap, signed-registrar-policy and CLI test editions present on the draft branch. It is NOT an exhaustive final-head admission manifest. All new/revised tests and their transitive code inputs must be enumerated and independently examined before any trust-binding change or release. No test packet from this author may bootstrap its own reviewer authority.

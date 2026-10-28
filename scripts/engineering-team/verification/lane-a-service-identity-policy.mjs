@@ -59,6 +59,17 @@ export function inspectLaneAServiceIdentity(observation,{
  if(!SHA256.test(expectedRegistrarObservationDigest||'')||
   observation.registrarObservationDigest!==expectedRegistrarObservationDigest)
   return blocked('EXTERNAL_REGISTRAR_EVIDENCE_MISSING');
+ // Process owner SID alone does not prove a nonprivileged effective Windows token.
+ // These are observed facts to be corroborated by the independent registrar,
+ // never a signed attestation or permission to start the reviewer.
+ if(observation.privilegeObservationState!=='COMPLETE'||
+  observation.reviewerTokenElevated!==false||
+  observation.reviewerTokenAdministratorsEnabled!==false||
+  !Array.isArray(observation.reviewerTokenUnexpectedPrivileges)||
+  observation.reviewerTokenUnexpectedPrivileges.length!==0||
+  observation.codingCanControlReviewerService!==false||
+  observation.reviewerCanControlManagerService!==false)
+  return blocked('WINDOWS_TOKEN_PRIVILEGE_ISOLATION_UNPROVEN');
  if(observation.privateKeyOwnerSid!==expectedReviewerSid||
   observation.privateKeyReadAccessibleToCoder!==false||
   observation.privateKeyAclInherited!==false)

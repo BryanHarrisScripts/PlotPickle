@@ -74,3 +74,15 @@ test('syntactically plausible but invalid signed timestamps are rejected',()=>{
  assert.equal(verifyAdmissionReceipt(signed({timestampUtc:'2026-99-99T22:00:00Z'}),opts).code,'TIMESTAMP_INVALID');
  assert.equal(verifyAdmissionReceipt(signed({timestampUtc:'2026-10-27T22:00:00+00:00'}),opts).code,'TIMESTAMP_INVALID');
 });
+
+test('signed findings and evidence require bounded nonempty strings, not just nonempty arrays',()=>{
+ for(const findings of [[' '],[null],[{}],['x'.repeat(2049)]])
+  assert.equal(verifyAdmissionReceipt(signed({findings}),opts).code,'EVIDENCE_MISSING');
+ for(const evidence of [[' '],[null],[{}],['x'.repeat(2049)]])
+  assert.equal(verifyAdmissionReceipt(signed({evidence}),opts).code,'EVIDENCE_MISSING');
+});
+test('invalid calendar dates and missing expected edition maps fail closed without throwing',()=>{
+ assert.equal(verifyAdmissionReceipt(signed({timestampUtc:'2026-02-30T22:00:00Z'}),opts).code,'TIMESTAMP_INVALID');
+ assert.equal(verifyAdmissionReceipt(signed(),{...opts,expectedInputDigests:null}).code,'EDITION_MISMATCH');
+ assert.equal(verifyAdmissionReceipt(signed(),{...opts,expectedTestDigests:null}).code,'EDITION_MISMATCH');
+});

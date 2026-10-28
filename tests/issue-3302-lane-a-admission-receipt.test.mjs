@@ -4,7 +4,7 @@ import {generateKeyPairSync,sign} from 'node:crypto';
 import {canonicalPayload,verifyAdmissionReceipt} from '../scripts/engineering-team/verification/lane-a-admission-receipt.mjs';
 const {publicKey,privateKey}=generateKeyPairSync('ed25519');
 const sha='a'.repeat(40),digests={'tests/one.test.mjs':'b'.repeat(64)},inputs={'scripts/one.mjs':'c'.repeat(64)};
-const opts={trustedReviewers:{'qa-key-1':{principal:'PP-F00-LA-W0001',publicKeyPem:publicKey.export({format:'pem',type:'spki'})}},expectedHead:sha,expectedTestDigests:digests,expectedInputDigests:inputs,expectedAuthorPrincipal:'PP-F01-ENG-W0001',allowedTruthRefs:['WHITE-PAPER-V3/W8','WHITE-PAPER-V3/W9']};
+const opts={trustedReviewers:{'qa-key-1':{principal:'PP-F00-LA-W0001',publicKeyPem:publicKey.export({format:'pem',type:'spki'})}},expectedHead:sha,expectedTestDigests:digests,expectedInputDigests:inputs,expectedAuthorPrincipal:'PP-F01-ENG-W0001',observedAtMs:Date.parse('2026-10-27T22:00:30Z'),allowedTruthRefs:['WHITE-PAPER-V3/W8','WHITE-PAPER-V3/W9']};
 function signed(overrides={}){
  const r={schemaVersion:'PP-TEST-ADMISSION-V1',reviewId:'review1',reviewerPrincipal:'PP-F00-LA-W0001',authorPrincipal:'PP-F01-ENG-W0001',credentialKeyId:'qa-key-1',candidateHead:sha,testDigests:digests,inputDigests:inputs,truthRefs:['WHITE-PAPER-V3/W8'],findings:['Assertion reviewed'],disposition:'ADMIT',evidence:['immutable-review-evidence'],timestampUtc:'2026-10-27T22:00:00Z',...overrides};
  r.signatureBase64=sign(null,canonicalPayload(r),privateKey).toString('base64');return r;
@@ -73,6 +73,15 @@ test('extra unsigned receipt fields never influence accepted admission',()=>{
 test('syntactically plausible but invalid signed timestamps are rejected',()=>{
  assert.equal(verifyAdmissionReceipt(signed({timestampUtc:'2026-99-99T22:00:00Z'}),opts).code,'TIMESTAMP_INVALID');
  assert.equal(verifyAdmissionReceipt(signed({timestampUtc:'2026-10-27T22:00:00+00:00'}),opts).code,'TIMESTAMP_INVALID');
+});
+
+test('signed admission requires an external trusted observation clock and bounded lifetime',()=>{
+ const r=signed();
+ assert.equal(verifyAdmissionReceipt(r,{...opts,observedAtMs:undefined}).code,'TRUSTED_CLOCK_UNAVAILABLE');
+ assert.equal(verifyAdmissionReceipt(r,{...opts,observedAtMs:Number.MAX_SAFE_INTEGER}).code,'TRUSTED_CLOCK_UNAVAILABLE');
+ assert.equal(verifyAdmissionReceipt(r,{...opts,observedAtMs:Date.parse('2026-10-28T22:00:01Z')}).code,'RECEIPT_OUTSIDE_TIME_WINDOW');
+ assert.equal(verifyAdmissionReceipt(r,{...opts,observedAtMs:Date.parse('2026-10-27T21:58:59Z')}).code,'RECEIPT_OUTSIDE_TIME_WINDOW');
+ assert.equal(verifyAdmissionReceipt(r,{...opts,observedAtMs:Date.parse('2026-10-28T22:00:00Z')}).accepted,true);
 });
 
 test('signed findings and evidence require bounded nonempty strings, not just nonempty arrays',()=>{

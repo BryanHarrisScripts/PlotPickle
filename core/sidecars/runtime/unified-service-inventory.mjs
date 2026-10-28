@@ -52,9 +52,12 @@ export function createUnifiedServiceRegistry(sidecarConfig,managedManifest){
  return freeze({schemaVersion:1,mode:'READ_ONLY',services:freeze(entries),get(id){return entries.find(x=>x.id===id)||null;}});
 }
 function safeTimestamp(value,now){
- if(typeof value!=='string'||!(/^\d{4}-\d\d-\d\dT/.test(value)))return null;
+ // A parseable offset or rolled-over calendar date is not canonical UTC evidence.
+ if(typeof value!=='string'||
+  !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value))return null;
  const timestamp=Date.parse(value);
- if(!Number.isFinite(timestamp)||timestamp>now+30_000||now-timestamp>MAX_AGE_MS)return null;
+ if(!Number.isFinite(timestamp)||new Date(timestamp).toISOString().slice(0,19)!==value.slice(0,19)||
+  timestamp>now+30_000||now-timestamp>MAX_AGE_MS)return null;
  return timestamp;
 }
 const STATES=new Set(['waiting','starting','ready','degraded','unavailable','failed','stopped']);
@@ -72,8 +75,6 @@ export function projectUnifiedServiceInventory({
  };
  const sidecarKnown=registry.services.filter(x=>x.source==='runtime-sidecars').map(x=>x.id);
  const snapshots=new Map();
- // Once an ID is duplicated, later entries cannot restore its reported state.
- const duplicateSidecars=new Set();
  let sidecarFresh=false;
  if(sidecarSnapshot?.schemaVersion===1&&Array.isArray(sidecarSnapshot.services)&&
     safeTimestamp(sidecarSnapshot.observedAt,now)!==null){
@@ -82,13 +83,8 @@ export function projectUnifiedServiceInventory({
    if(!item||typeof item.id!=='string'||!sidecarKnown.includes(item.id)){
     diagnostics.push('UNKNOWN_SIDECAR_OBSERVATION');continue;
    }
-   if(snapshots.has(item.id)){
-    diagnostics.push('DUPLICATE_SIDECAR_OBSERVATION');
-    duplicateSidecars.add(item.id);
-    snapshots.set(item.id,null);
-    continue;
-   }
-   snapshots.set(item.id,duplicateSidecars.has(item.id)?null:safeReported(item.state));
+   if(snapshots.has(item.id)){diagnostics.push('DUPLICATE_SIDECAR_OBSERVATION');snapshots.set(item.id,null);continue;}
+   snapshots.set(item.id,safeReported(item.state));
   }
  }else if(sidecarSnapshot){diagnostics.push('SIDECAR_STATUS_STALE_OR_INVALID');}
  const supervisorState=SUPERVISOR_STATES.has(supervisorSnapshot?.state)?supervisorSnapshot.state:null;

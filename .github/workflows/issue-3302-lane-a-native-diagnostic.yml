@@ -14,6 +14,8 @@ on:
       - "tests/issue-3302-lane-a-external-trust-bootstrap.test.mjs"
       - "scripts/engineering-team/verification/lane-a-automated-reviewer.mjs"
       - "tests/issue-3302-lane-a-automated-reviewer.test.mjs"
+      - "scripts/engineering-team/verification/lane-a-signed-registrar-policy.mjs"
+      - "tests/issue-3302-lane-a-signed-registrar-policy.test.mjs"
       - "docs/developer-briefs/3302-installer-lane-a-w8w9-independent-admission-packet-2026-10-27.md"
       - "scripts/engineering-team/windows/verification/Install-PlotPickleLaneAService.ps1"
   workflow_dispatch:
@@ -101,7 +103,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          node --test tests/issue-3302-lane-a-external-trust-bootstrap.test.mjs tests/issue-3302-lane-a-native-service-host.test.mjs tests/issue-3302-lane-a-automated-reviewer.test.mjs
+          node --test tests/issue-3302-lane-a-external-trust-bootstrap.test.mjs tests/issue-3302-lane-a-native-service-host.test.mjs tests/issue-3302-lane-a-automated-reviewer.test.mjs tests/issue-3302-lane-a-signed-registrar-policy.test.mjs
           if ($LASTEXITCODE -ne 0) { throw "LANE_A_DIAGNOSTIC_NODE_TESTS_FAILED" }
           Write-Output "AUTHOR_SIDE_DIAGNOSTIC_TESTS_PASS_NOT_INDEPENDENT_ADMISSION"
 

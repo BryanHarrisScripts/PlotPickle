@@ -39,7 +39,7 @@ try {
         return
     }
     $base.accountObserved = [string]$service.StartName
-    if ($service.StartName -cne $expectedServiceAccount) {
+    if ($service.StartName -ne $expectedServiceAccount) {
         $base.status = 'SERVICE_ACCOUNT_MISMATCH'
         $base | ConvertTo-Json -Depth 5
         return

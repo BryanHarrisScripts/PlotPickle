@@ -81,7 +81,7 @@ try {
     $root=(Resolve-Path -LiteralPath $RepositoryRoot -ErrorAction Stop).Path
     $gitCommand=Get-Command git.exe -ErrorAction Stop
     $head=@(& $gitCommand.Source -C $root rev-parse HEAD 2>$null)
-    $status=@(& $gitCommand.Source -C $root status --porcelain 2>$null)
+    $status=@(& $gitCommand.Source -C $root status --porcelain --untracked-files=no 2>$null)
     if ($LASTEXITCODE -ne 0 -or @($head).Count -ne 1) { throw 'GIT_SOURCE_NOT_INSPECTABLE' }
     $report.sourceHead=[string]$head[0]
     $report.sourceHeadMatch=($report.sourceHead -ceq $ExpectedSourceHead)

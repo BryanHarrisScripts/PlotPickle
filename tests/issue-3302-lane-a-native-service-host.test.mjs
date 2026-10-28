@@ -64,7 +64,7 @@ test('native diagnostic wrapper refuses to equate compiler or SCM configuration 
   '[switch]$RunNativeCompile', "nativeCompile='NOT_REQUESTED'",
   "w8w9TestAdmission='UNPROVEN'", "signingKeyProvisioned='UNPROVEN'",
   "independentTokenWitness='UNPROVEN'","canAdmit=$false",
-  "Get-CimInstance","'INERT_SELF_TEST_PASSED'"
+  "'Inspect-PlotPickleLaneAService.ps1'","'INERT_SELF_TEST_PASSED'"
  ])assert.ok(ps.includes(expected),expected);
  for(const forbidden of ['Start-Service','New-Service','New-LocalUser',
   'New-Item -ItemType User','Set-Service','sc.exe start','git push'])

@@ -44,3 +44,17 @@ Author-side isolated Node test run (container Linux, Node 22): `node --test test
 6. Only then review actual contention, crash recovery and resource budgets and independently enable the *second* coding worker. No automatic merge or Worker 2 until those proofs.
 
 **Observed source baseline:** current owner clean MAIN `233efe098cd0751a81ae16f3b58f86a96d237be2`, independent Supervisor RUNNING/fresh; legacy Pi queue five blocked/reserved/no replay. Coding dispatcher currently OFFLINE / `CHATGPT_ONLY_DISPATCHER_NOT_IMPLEMENTED`, automaticMergeEnabled=false. Four-role source and installer are **not** deployed to Windows.
+
+
+## October 28: exact-owner job/result correlation repair (candidate only)
+
+The first worker-pool implementation treated a `DRAFT_PR_CREATED` outcome with a valid remote commit/PR number/engineering receipt as sufficient without checking that the result referred to the **same** claimed issue and exact owner grants. This was a source-level false-success risk. The new candidate additionally requires the returned `grantId`, `publicationId`, `issueNumber` and `sourceHead` to match the immutable claimed ticket, plus `pullRequestCreated=true`, `focusedTestExecuted=false`, `independentVerification=false`, `automaticMergeAuthorized=false`, `replayAuthorized=false`. A mismatch leaves the permanent job claim reserved and returns `CLAIM_RETAINED_CODING_OR_PUBLICATION_UNPROVEN` (no retry, no merge).
+
+A new **proposed/unadmitted** negative test uses nine incompatible reply variants (other grant, other publication, wrong issue, stale head and forbidden privilege/state claims). It does not execute on the owner Windows host until separate approved W8/W9 binding. Candidate source edition at code/test commit `6a9c0b0e178bc02616ed59d775e2067baf2ae34c`:
+
+| File | UTF-8 SHA-256 (author-side; known-vector self-check) | Git blob |
+| --- | --- | --- |
+| `scripts/engineering-team/gateway/worker-pool/worker-pool.mjs` | `5f6f3155160843b5b2c30ea029242e910fbe4844703dc9fb4e7d704b1abac964` | `448757eaee6ffc78399e83fb6e612805e21d94c7` |
+| `tests/issue-3142-factory-worker-pool.test.mjs` | `b5d4e0764bb5ca65fa15433904d8fdb3dde0347f98d46a1f3786658d256acdc7` | `7899a382f03cd688a50caf43799de599e25054a8` |
+
+These are author-computed editions, not externally accepted truth. Review all direct/transitive inputs and rehash at the final source head. This PR remains DRAFT and conflicted with current MAIN's protected `config/verification/test-catalog.json`; no author-side catalogue correction or force-merge is authorized. The live Windows Supervisor is correctly RUNNING on clean MAIN `4311a26ee49ae97f8f94c9bde008eb6b62fdfa2f`, while coding dispatcher and workers are NOT installed. Independently trusted F00 signing, catalogue-maintainer binding, exact-head CI and native owner Product Gate remain prerequisites.

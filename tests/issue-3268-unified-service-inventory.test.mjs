@@ -162,3 +162,14 @@ test('real canonical source registries are read without adding new launchers or 
  assert.equal(actual.services.filter(x=>x.source==='runtime-manifest').length,5);
  assert.ok(actual.services.every(x=>x.canStart===false&&x.canMerge===false));
 });
+
+test('unknown or malicious heartbeat content never leaks into a published observation',()=>{
+ const secret='RUNNING token=abc123 user-private';
+ const result=project({expectedHead:SHA,supervisorSnapshot:{
+  state:secret,heartbeatFresh:true,sourceHead:SHA
+ }});
+ const observed=get(result,'independent-windows-supervisor');
+ assert.equal(observed.observedState,null);
+ assert.equal(JSON.stringify(result).includes('token=abc123'),false);
+ assert.equal(observed.independentlyVerified,false);
+});

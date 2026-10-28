@@ -20,11 +20,14 @@ export function verifyAdmissionReceipt(receipt,{trustedReviewers,expectedHead,ex
  if(!id.test(expectedAuthorPrincipal||'')||receipt.authorPrincipal!==expectedAuthorPrincipal)return deny('AUTHOR_NOT_ATTESTED');
  if(!verdicts.has(receipt.disposition))return deny('DISPOSITION_INVALID');
  if(!commit.test(receipt.candidateHead||'')||receipt.candidateHead!==expectedHead)return deny('HEAD_MISMATCH');
- const equalDigests=(actual,expected)=>actual&&expected&&typeof actual==='object'&&!Array.isArray(actual)&&!Array.isArray(expected)&&Object.keys(expected).length>0&&Object.keys(actual).length===Object.keys(expected).length&&Object.entries(expected).every(([k,v])=>hex.test(v)&&actual[k]===v);
+ const equalDigests=(actual,expected)=>actual&&expected&&typeof actual==='object'&&!Array.isArray(actual)&&typeof expected==='object'&&!Array.isArray(expected)&&Object.keys(expected).length>0&&Object.keys(actual).length===Object.keys(expected).length&&Object.entries(expected).every(([k,v])=>typeof v==='string'&&hex.test(v)&&Object.hasOwn(actual,k)&&actual[k]===v);
  if(!equalDigests(receipt.testDigests,expectedTestDigests)||!equalDigests(receipt.inputDigests,expectedInputDigests))return deny('EDITION_MISMATCH');
  if(!Array.isArray(receipt.truthRefs)||!receipt.truthRefs.length||!Array.isArray(allowedTruthRefs)||!receipt.truthRefs.every(x=>typeof x==='string'&&allowedTruthRefs.includes(x)))return deny('TRUTH_REF_UNAPPROVED');
- if(!Array.isArray(receipt.findings)||!receipt.findings.length||!Array.isArray(receipt.evidence)||!receipt.evidence.length)return deny('EVIDENCE_MISSING');
- if(typeof receipt.timestampUtc!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(receipt.timestampUtc)||!Number.isFinite(Date.parse(receipt.timestampUtc)))return deny('TIMESTAMP_INVALID');
+ const validEvidenceList=(items)=>Array.isArray(items)&&items.length>0&&items.length<=128&&items.every(x=>typeof x==='string'&&x.trim().length>0&&x.length<=2048);
+ if(!validEvidenceList(receipt.findings)||!validEvidenceList(receipt.evidence))return deny('EVIDENCE_MISSING');
+ const timestamp=receipt.timestampUtc;
+ const parsed=typeof timestamp==='string'?Date.parse(timestamp):NaN;
+ if(typeof timestamp!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(timestamp)||!Number.isFinite(parsed)||new Date(parsed).toISOString().slice(0,19)!==timestamp.slice(0,19))return deny('TIMESTAMP_INVALID');
  if(typeof receipt.credentialKeyId!=='string'||!id.test(receipt.credentialKeyId)||!trustedReviewers||!Object.hasOwn(trustedReviewers,receipt.credentialKeyId))return deny('REVIEWER_NOT_TRUSTED');
  const trusted=trustedReviewers[receipt.credentialKeyId];
  if(!trusted||trusted.principal!==receipt.reviewerPrincipal||trusted.revoked)return deny('REVIEWER_NOT_TRUSTED');

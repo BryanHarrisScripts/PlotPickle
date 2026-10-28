@@ -71,4 +71,7 @@ try {
     }
   }
 } catch { $report.serviceSidType='SCM_SID_INSPECTION_UNAVAILABLE' }
+# A missing diagnostic-only SCM service can leave sc.exe's LASTEXITCODE nonzero.
+# The structured receipt, not an unrelated native command exit code, is truth.
+$global:LASTEXITCODE=0
 $report|ConvertTo-Json -Depth 5

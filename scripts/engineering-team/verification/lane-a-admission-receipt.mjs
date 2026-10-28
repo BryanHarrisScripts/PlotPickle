@@ -15,7 +15,7 @@ export function canonicalPayload(receipt){
  for(const field of SIGNED_FIELDS){if(!Object.hasOwn(receipt,field))throw new Error('MISSING_FIELD:'+field);body[field]=receipt[field];}
  return Buffer.from(JSON.stringify(body),'utf8');
 }
-export function verifyAdmissionReceipt(receipt,{trustedReviewers,expectedHead,expectedTestDigests,expectedInputDigests,allowedTruthRefs,expectedAuthorPrincipal,observedAtMs}){
+export function verifyAdmissionReceipt(receipt,{trustedReviewers,expectedHead,expectedTestDigests,expectedInputDigests,allowedTruthRefs,requiredTruthRefs,expectedAuthorPrincipal,observedAtMs}){
  const deny=(code)=>({accepted:false,code,mayUpdateCatalogue:false,mayRunLaneB:false});
  if(!receipt||typeof receipt!=='object'||Array.isArray(receipt)||receipt.schemaVersion!=='PP-TEST-ADMISSION-V1')return deny('SCHEMA_INVALID');
  if(Object.keys(receipt).some(field=>!RECEIPT_FIELDS.has(field)))return deny('UNSIGNED_EXTENSION_REJECTED');
@@ -26,7 +26,17 @@ export function verifyAdmissionReceipt(receipt,{trustedReviewers,expectedHead,ex
  if(!commit.test(receipt.candidateHead||'')||receipt.candidateHead!==expectedHead)return deny('HEAD_MISMATCH');
  const equalDigests=(actual,expected)=>actual&&expected&&typeof actual==='object'&&!Array.isArray(actual)&&typeof expected==='object'&&!Array.isArray(expected)&&Object.keys(expected).length>0&&Object.keys(actual).length===Object.keys(expected).length&&Object.entries(expected).every(([k,v])=>typeof v==='string'&&hex.test(v)&&Object.hasOwn(actual,k)&&actual[k]===v);
  if(!equalDigests(receipt.testDigests,expectedTestDigests)||!equalDigests(receipt.inputDigests,expectedInputDigests))return deny('EDITION_MISMATCH');
- if(!Array.isArray(receipt.truthRefs)||!receipt.truthRefs.length||!Array.isArray(allowedTruthRefs)||!receipt.truthRefs.every(x=>typeof x==='string'&&allowedTruthRefs.includes(x)))return deny('TRUTH_REF_UNAPPROVED');
+ if(!Array.isArray(receipt.truthRefs)||!receipt.truthRefs.length||!Array.isArray(allowedTruthRefs)||
+  !receipt.truthRefs.every(x=>typeof x==='string'&&allowedTruthRefs.includes(x))||
+  new Set(receipt.truthRefs).size!==receipt.truthRefs.length)return deny('TRUTH_REF_UNAPPROVED');
+ // A signed ADMIT for one allowed obligation must not silently stand in for
+ // the full independently required truth scope (for example W8 AND W9).
+ if(receipt.disposition==='ADMIT'){
+  if(!Array.isArray(requiredTruthRefs)||!requiredTruthRefs.length||
+   requiredTruthRefs.some(x=>typeof x!=='string'||!allowedTruthRefs.includes(x))||
+   new Set(requiredTruthRefs).size!==requiredTruthRefs.length)return deny('REQUIRED_TRUTH_REFS_UNATTESTED');
+  if(requiredTruthRefs.some(x=>!receipt.truthRefs.includes(x)))return deny('REQUIRED_TRUTH_REFS_MISSING');
+ }
  const validEvidenceList=(items)=>Array.isArray(items)&&items.length>0&&items.length<=128&&items.every(x=>typeof x==='string'&&x.trim().length>0&&x.length<=2048);
  if(!validEvidenceList(receipt.findings)||!validEvidenceList(receipt.evidence))return deny('EVIDENCE_MISSING');
  const timestamp=receipt.timestampUtc;

@@ -91,7 +91,7 @@ export function verifyReviewerEnrollment(record,{
  if(record.registrarId!==expectedRegistrarId||record.registrarPrincipal!==expectedRegistrarPrincipal)return deny('REGISTRAR_NOT_AUTHORIZED');
  if(!trustedRegistrars||!Object.hasOwn(trustedRegistrars,record.registrarId))return deny('REGISTRAR_NOT_TRUSTED');
  const registrar=trustedRegistrars[record.registrarId];
- if(!registrar||registrar.revoked||registrar.principal!==record.registrarPrincipal)return deny('REGISTRAR_NOT_TRUSTED');
+ if(!registrar||registrar.revoked!==false||registrar.principal!==record.registrarPrincipal)return deny('REGISTRAR_NOT_TRUSTED');
  if(!SIGNATURE.test(record.registrarSignatureBase64||'')||!SIGNATURE.test(record.possessionSignatureBase64||''))return deny('SIGNATURE_FORMAT_INVALID');
  let reviewerKey,registrarKey,signatureValid=false,possessionValid=false;
  try{

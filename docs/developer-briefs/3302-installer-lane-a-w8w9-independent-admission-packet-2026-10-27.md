@@ -6,13 +6,13 @@
 
 This packet requests genuinely independent examination of three NEW test editions on draft PR #3322. It does not grant ADMIT, protected truth modification, Windows process trust, reviewer credentials, Lane B execution or merge permissions. The reviewer `PP-F00-D02-W0001` (alias `PP-F00-LA-W0001`) is not yet provisioned/qualified; no one may act as that identity just because the owner authorised engineering work.
 
-**Frozen code/test checkpoint before this packet:** `64417e533d2b8eadaa3feeb551645375f8db303a`. Re-fetch the final PR HEAD at review; compare exact SHA-256 for each test and implementation input. The packet commit itself is not a signed reviewer receipt.
+**Frozen code/test checkpoint before this packet:** `59dfd821d82b022cf19b2aa532ca29b9085dac56`. Re-fetch the final PR HEAD at review; compare exact SHA-256 for each test and implementation input. The packet commit itself is not a signed reviewer receipt.
 
 ## Exact test editions, proposed existing WHITE-PAPER-V3 truths
 
 | Test target | SHA-256 content digest | Git blob ID | Proposed truth obligation |
 | --- | --- | --- | --- |
-| `tests/issue-3302-lane-a-admission-receipt.test.mjs` | `26d0448c765efae2f4fdc90e021495f5b3f29663aee3cf4acac38f432d417a22` | `a58797611544b2a0f7255df3d2935b00f9fe3ace` | WHITE-PAPER-V3 W8 + W9 |
+| `tests/issue-3302-lane-a-admission-receipt.test.mjs` | `8bd678493cdfd433b0a443d65bbe1c7c14c8f1f15d719d56536c4d1ff3e9c4f8` | `84b9378cf651653053a748d129fa3e4105d1ee10` | WHITE-PAPER-V3 W8 + W9 |
 | `tests/issue-3302-lane-a-reviewer-enrollment.test.mjs` | `2b3426c7510eb95bc81584aa24c53c178d802e64a26afe86f2471b60e9a51824` | `d26512f7f63e4678f16fce332dbec33aff5c1892` | WHITE-PAPER-V3 W8 + W9 |
 | `tests/issue-3302-lane-a-service-identity-policy.test.mjs` | `6ecba980d77b8be6a6b3f6a3d26bba003785c1045edb5933ed4029d121eb03f6` | `3bf35db8ee275f031580fdddb6698f22d1c88e6a` | WHITE-PAPER-V3 W8 + W9 |
 
@@ -22,7 +22,7 @@ This packet requests genuinely independent examination of three NEW test edition
 
 | Input | Exact SHA-256 | Git blob |
 | --- | --- | --- |
-| `scripts/engineering-team/verification/lane-a-admission-receipt.mjs` | `fba13b012ca8ffcbf268c03cb206634e993cf18ab2b895a8e67f00ead8d7d7dc` | `7e3a40bc9bc38575998a83472f1e2da462a7b400` |
+| `scripts/engineering-team/verification/lane-a-admission-receipt.mjs` | `3b00a47641f1d6a27a42dbf31a233f208b960dd6527af59dd8f9c47543437b67` | `252dbb7907f61b870dea0360ba6c778fac5ef571` |
 | `scripts/engineering-team/verification/lane-a-reviewer-enrollment.mjs` | `602888c8e8c9c9b25c37bf20982c00576e9e2de8fcce47b940313555dd2ce6c7` | `0a6f35586a01ca1a7d4ee7a7b3784e7f8ed2f807` |
 | `scripts/engineering-team/verification/lane-a-admission-chain.mjs` | `de5369c7f881afc83a6695a1b82ccd4d266969f87f76aea9b311708afcd6f173` | `0572e93e888306397235fbc348105b9be73a6fb5` |
 | `scripts/engineering-team/verification/lane-a-service-identity-policy.mjs` | `911c833e1719f618e31808499e92acb771dcca9fb895b28852b7e2bff450c573` | `4afc6f83477d7ee29cb16727684f366f75de8e9d` |
@@ -33,7 +33,7 @@ Catalogue-binding **proposal only**, to be considered after actual independent s
 
 ## Existing author-side evidence and limits
 
-- Receipt-verifier tests cover Ed25519 signatures/tampering, exact **40-character** Git commit, nonempty test/input editions, expected author, forbidden self-review, revoked key and negative FIX/UNPROVEN. Corrected privilege bug: a valid ADMIT remains evidence **only**, `mayUpdateCatalogue:false`; a different maintainer is required.
+- Receipt-verifier tests cover Ed25519 signatures/tampering, exact **40-character** Git commit, nonempty test/input editions, expected author, forbidden self-review, revoked key and negative FIX/UNPROVEN. Corrected privilege bug: a valid ADMIT remains evidence **only**; unsigned top-level privilege extensions and malformed signed timestamps are rejected, `mayUpdateCatalogue:false`; a different maintainer is required.
 - Reviewer enrollment fixtures cover Ed25519 registrar + reviewer proof-of-possession, fixed actor/alias and distinct claimed Windows SIDs, key revocation, expiry and role scope. A verified fixture remains `SIGNED_ENROLLMENT_CANDIDATE`, not reviewer activation.
 - New service identity policy is fixed to noninteractive `NT SERVICE\PlotPickleLaneA` with canonical actor `PP-F00-D02-W0001`, one Always-on installer, separate coding SID, fixed binary digest and observed registrar evidence, read-only candidate output, STOP and no catalogue/coding/merge capability. **11/11 source-equivalent author V8 assertions PASS** including a static inspection of Windows PowerShell script; not native Windows or actual Node test-runner.
 - The Windows PowerShell service inspector is **read-only**, examines fixed SCM service, optional running process token via CIM and reports `independentlyAttested:false`. It has not run on owner Windows; a source-local observation is not the independent registrar.

@@ -139,6 +139,28 @@ jobs:
           Write-Output ("F00_DIRSYNC_CAPABILITY={0}; ERROR_CODE={1}" -f $receipt.directorySync,$receipt.errorCode)
           Write-Output "DIAGNOSTIC_ONLY; NO_DURABILITY_PROOF; NO_ADMISSION; NO_RETRY"
 
+      - name: Probe pre-existing Windows journal primitives (NON-RELEASE)
+        shell: pwsh
+        env:
+          PLOTPICKLE_LANE_A_EPHEMERAL_CI: "1"
+        run: |
+          $ErrorActionPreference = "Stop"
+          $raw = & "./scripts/engineering-team/windows/verification/Test-PlotPickleLaneANonceJournal.CI.ps1"
+          if ($LASTEXITCODE -ne 0) { throw "NON_RELEASE_JOURNAL_PROBE_EXECUTION_FAILED" }
+          $receipt = $raw | ConvertFrom-Json
+          if ($receipt.schemaVersion -ne "PP-F00-NONRELEASE-JOURNAL-PROBE-V1" -or
+              $receipt.powerLossDurabilityVerified -ne $false -or
+              $receipt.atomicNonceConsumptionVerified -ne $false -or
+              $receipt.independentlyAttested -ne $false -or
+              $receipt.registrarProvisioned -ne $false -or
+              $receipt.w8w9Admitted -ne $false -or
+              $receipt.canAdmit -ne $false -or
+              $receipt.canMerge -ne $false) {
+            throw "NON_RELEASE_JOURNAL_PROBE_OVERSTATED"
+          }
+          Write-Output ("F00_JOURNAL_CAPABILITY={0}; EXCLUSIVE={1}; REGULAR_FILE_FLUSH={2}" -f $receipt.code,$receipt.exclusiveFileAccessObserved,$receipt.regularFileFlushObserved)
+          Write-Output "NO POWER_LOSS PROOF; NO ATOMIC_NONCE_LEDGER; NO ADMISSION; NO RELEASE"
+
       - name: Candidate-only Ed25519 and native-source tests (not W8/W9 admission)
         shell: pwsh
         run: |

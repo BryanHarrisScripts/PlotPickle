@@ -77,3 +77,21 @@ This is an AUTHOR-SIDE source-edition change, **not** a signed F00 ADMIT. The re
 | `tests/issue-3302-lane-a-native-service-host.test.mjs` | `2bb30b4100f4c28da6e427bf30f7207e08b7c24c6798849f99ecfc9a12b3c8dc` | `c1e57fe7a063e66e4eecb8bc8e5f4f913877712f` |
 
 The proposed regression asserts that the read-only owner acceptance command has tracked-only Git status. It has **not** been executed under a qualified F00 identity or admitted to protected truth. Exact source check before this documentation commit: `0275fe028d292a52e5fa3107900e8dbfb9970675`. CI for this source head: Architecture Verification #40712662099 **FAILED** all seven layers because all eight changed W8/W9 tests remain unadmitted; hosted NON-RELEASE native diagnostic #40712661805 **PASSED**. No owner-Windows Product Gate, signed reviewer, distinct registrar or protected-catalogue maintainer observed. Both results are intentionally non-promotable to ADMIT.
+
+
+## October 28 owner-approved commissioning: trust-record revocation hardening (AUTHOR-SIDE ONLY)
+
+Owner approval to continue engineering **does not designate a separate independent publisher, registrar or F00 reviewer** and does **not** satisfy signed W8/W9 admission. The current coding principal cannot self-issue the initial protected trust root, registrar enrollment, reviewer qualification or catalogue-maintainer authority.
+
+Two separate F00 cryptographic verification paths formerly accepted a purportedly trusted key if its `revoked` field was absent, null, or a falsy malformed value. Now **only an explicit boolean `revoked: false`** is allowed: in `verifyReviewerEnrollment` for the externally trusted registrar, and in `verifyAdmissionReceipt` for the enrolled reviewer key. This also rejects literal `'false'` strings and integer zero, and preserves rejection of `true`. Positive cryptographic *test fixtures* were updated with explicit `revoked:false`. Proposed negative tests cover `undefined`, `null`, `'false'`, `0`, and `true`. The production source retains all existing external trust and no-self-review checks; it does not create keys or certify its own truth.
+
+**Updated editions observed at PR source/test HEAD `ad5726f703eeadfce5610bf882f1fe4fd15a10c0`** (author-side SHA-256 implementation checked against standard SHA-256 vectors; independent F00 must independently recompute final HEAD and full import/static-read closure):
+
+| Changed file | UTF-8 SHA-256 | Git blob SHA |
+| --- | --- | --- |
+| `scripts/engineering-team/verification/lane-a-reviewer-enrollment.mjs` | `9396000f92c1e063143ca35342a9a71406ec9c3f21a39dd5746ec1b2c0a7305b` | `16bd80a42bad7bd80ccea0d2de20d7a2a86af6c4` |
+| `scripts/engineering-team/verification/lane-a-admission-receipt.mjs` | `2a40c0f7b27e396da91a1f5b734c50091c76ea53ed405caa8e9846b7f5e522fc` | `e1a4a29bcb9b0e9c693e5d6ed3e825e4d31cc094` |
+| `tests/issue-3302-lane-a-reviewer-enrollment.test.mjs` | `6aae2c1a6996e270526a6cead59ea0db1991b2bab5e6ac52a92fd61e87c6c6ab` | `ccbcb2534724039460dee99d7109188597ec8b59` |
+| `tests/issue-3302-lane-a-admission-receipt.test.mjs` | `eda0c193605a4b4976dad71306ce93c567ba57faa5d469cc19a4474a0ac4ee8f` | `c9d5c144f7635b4e711d47e14d73429a27130d68` |
+
+**Independent review intake, not a claim of signing:** Review all eight actual current Lane A test edits and the full source/input graph against unchanged WHITE-PAPER-V3 W8+W9. The separate registrar must obtain an out-of-band approved public root fingerprint, demonstrate distinct Windows coder/reviewer tokens and key ACLs, atomically consume the nonce and issue a source-bound signed enrollment. A qualified independent reviewer must issue a signed ADMIT, FIX, REJECT, or UNPROVEN disposition for the exact current digest set. A distinct protected-catalogue maintainer may bind only a legitimate signed ADMIT and must preserve current MAIN approved bindings. Do **not** infer an ADMIT from passing hosted diagnostics, test-fixture Ed25519 keys or a GitHub comment. No private keys or authentication secrets belong in this repository or issue.

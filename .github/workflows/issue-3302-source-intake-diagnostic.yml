@@ -1,0 +1,93 @@
+name: F00 Immutable Source Intake Diagnostic (NON-RELEASE)
+on:
+  pull_request:
+    paths:
+      - "scripts/engineering-team/verification/f00-source-intake.mjs"
+      - ".github/workflows/issue-3302-source-intake-diagnostic.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-windows-intake:
+    name: Windows Git fixture and immutable edition checks (NON-RELEASE)
+    runs-on: windows-2022
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+      - name: Node source parser
+        shell: pwsh
+        run: |
+          node --check scripts/engineering-team/verification/f00-source-intake.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'INTAKE_SYNTAX_FAILED' }
+      - name: Disposable Git object integrity smoke test (not F00 review)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $repoRoot=(Get-Location).Path
+          $script=Join-Path $repoRoot 'scripts\engineering-team\verification\f00-source-intake.mjs'
+          $fixture=Join-Path $env:RUNNER_TEMP 'f00-intake-fixture'
+          New-Item -ItemType Directory -Path $fixture -Force | Out-Null
+          git -C $fixture init --quiet
+          git -C $fixture config user.email 'ci-fixture@example.invalid'
+          git -C $fixture config user.name 'CI Fixture Only'
+          $normative=Join-Path $fixture 'docs\white-papers\AI_Programming_Evolution_White_Paper.md'
+          New-Item -ItemType Directory -Path (Split-Path $normative) -Force | Out-Null
+          [System.IO.File]::WriteAllText($normative, 'fixture W8 W9 approved normative bytes')
+          git -C $fixture add .
+          git -C $fixture commit --quiet -m 'fixture normative baseline'
+          if ($LASTEXITCODE -ne 0) { throw 'FIXTURE_BASE_FAILED' }
+          $base=(git -C $fixture rev-parse HEAD).Trim()
+          $tests=@(
+            'admission-receipt',
+            'automated-reviewer-cli',
+            'automated-reviewer',
+            'external-trust-bootstrap',
+            'native-service-host',
+            'reviewer-enrollment',
+            'service-identity-policy',
+            'signed-registrar-policy'
+          )
+          $testDir=Join-Path $fixture 'tests'
+          New-Item -ItemType Directory -Path $testDir -Force | Out-Null
+          foreach($test in $tests) {
+            $name="issue-3302-lane-a-$test.test.mjs"
+            [System.IO.File]::WriteAllText((Join-Path $testDir $name),"// fixture only: $test")
+          }
+          git -C $fixture add .
+          git -C $fixture commit --quiet -m 'fixture lane a test editions'
+          if ($LASTEXITCODE -ne 0) { throw 'FIXTURE_HEAD_FAILED' }
+          $head=(git -C $fixture rev-parse HEAD).Trim()
+          $r=& node $script --repo $fixture --head $head --base $base --scope lane-a | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $r.state -ne 'IMMUTABLE_INTAKE_READY' -or
+              $r.requiredTestEditions.Count -ne 8 -or $r.changedFileCount -ne 8 -or
+              -not $r.normativeUnchanged -or $r.signedAdmission -or
+              $r.independentReview -or $r.catalogueWriteAuthorized -or
+              $r.automaticMergeEnabled) {
+            throw 'IMMUTABLE_INTAKE_TEST_FAILED'
+          }
+          # Git objects must remain authoritative over working-tree mutations.
+          [System.IO.File]::WriteAllText((Join-Path $testDir 'issue-3302-lane-a-admission-receipt.test.mjs'),'working tree tampered')
+          $r2=& node $script --repo $fixture --head $head --base $base --scope lane-a | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or
+              $r2.requiredTestEditions[0].sha256 -ne $r.requiredTestEditions[0].sha256) {
+            throw 'WORKING_TREE_INFLUENCED_HASH'
+          }
+          git -C $fixture reset --hard --quiet
+          [System.IO.File]::AppendAllText($normative,' changed in candidate')
+          git -C $fixture add .
+          git -C $fixture commit --quiet -m 'fixture tampered normative source'
+          $altered=(git -C $fixture rev-parse HEAD).Trim()
+          $resultJson=(& node $script --repo $fixture --head $altered --base $base --scope lane-a) -join ''
+          $r3=$resultJson | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 2 -or $r3.state -ne 'BLOCKED_INTAKE_INCOMPLETE' -or $r3.normativeUnchanged) {
+            throw 'CHANGED_NORMATIVE_NOT_BLOCKED'
+          }
+          Write-Output 'NON_RELEASE_IMMUTABLE_GIT_INTAKE_SMOKE_PASSED'
+          Write-Output 'NO REVIEWER, NO ADMIT, NO PRIVATE KEYS, NO CATALOGUE WRITE, NO PRODUCT GATE'

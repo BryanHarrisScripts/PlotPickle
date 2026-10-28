@@ -61,7 +61,7 @@ internal static class LaneARegistrarJournalBoundary
         Require(string.Equals(actual,target,StringComparison.OrdinalIgnoreCase),"HANDLE_PATH_SWAP_DENIED");
         Require(string.Equals(Canonical(expected),expected,StringComparison.OrdinalIgnoreCase),"PATH_SWAP_DENIED");
     }
-    static string Process(FileStream fs,string operation,string scope,string request,string suppliedNonce) {
+    static string Process(FileStream fs,string full,string operation,string scope,string request,string suppliedNonce) {
         Require(fs.Length>=Encoding.UTF8.GetByteCount(Header) && fs.Length<=MaxBytes,"JOURNAL_SIZE_INVALID");
         byte[] data=new byte[(int)fs.Length]; fs.Position=0;
         int received=0; while(received<data.Length) {
@@ -117,6 +117,7 @@ internal static class LaneARegistrarJournalBoundary
         Buffer.BlockCopy(bytes,0,frame,4,bytes.Length);
         Buffer.BlockCopy(checksumNext,0,frame,4+bytes.Length,32);
         Require(fs.Length+frame.Length<=MaxBytes,"JOURNAL_FULL");
+        Require(!File.Exists(Path.Combine(Path.GetDirectoryName(full),"STOP")),"STOP_OBSERVED");
         fs.Position=fs.Length;
         fs.Write(frame,0,frame.Length);
         fs.Flush(true); // Native regular-file FlushFileBuffers, NOT directory fsync.
@@ -140,6 +141,7 @@ internal static class LaneARegistrarJournalBoundary
            (operation=="ISSUE" && args.Length!=5)) return Block("SCOPE_INVALID");
         try {
             string full=Canonical(args[1]), nonce;
+            Require(!File.Exists(Path.Combine(Path.GetDirectoryName(full),"STOP")),"STOP_OBSERVED");
             string tokenSid;
             using(var identity=WindowsIdentity.GetCurrent()) {
                 Require(identity!=null && identity.User!=null,"TOKEN_UNVERIFIABLE");
@@ -149,7 +151,7 @@ internal static class LaneARegistrarJournalBoundary
             using(var fs=new FileStream(full,FileMode.Open,FileAccess.ReadWrite,
                 FileShare.None,4096,FileOptions.WriteThrough)) {
                 VerifyHandle(fs,full);
-                nonce=Process(fs,operation,scope,request,args.Length==6?args[5]:null);
+                nonce=Process(fs,full,operation,scope,request,args.Length==6?args[5]:null);
                 VerifyHandle(fs,full);
             } // Close failure is caught below: never return success on uncertainty.
             Console.WriteLine("CANDIDATE_FLUSHED|"+nonce+"|TOKEN_OBSERVED_NOT_ATTESTED");

@@ -10,6 +10,7 @@ import { link, lstat, mkdir, open, readdir, readFile, statfs, writeFile } from '
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gatewayAppSource, privateGatewayRoot } from './gateway-host.mjs';
+import { ownerOneShotAllowed } from './owner-runtime-gate.mjs';
 import { appendPrivateJsonOnce as onceJson } from './receipts/write-once-json.mjs';
 import { claimCodingOwnership } from './receipts/atomic-coding-ownership.mjs';
 
@@ -149,7 +150,7 @@ async function priorCodingAttemptsReconciled(receipts, currentNonce, epoch) {
   } catch { return false; }
 }
 
-async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, execute) {
+async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, execute, operatorReady) {
   // The SQLite resource row is the atomic admission/release authority.
   // Per-attempt evidence names are never reused or unlinked by the Factory.
   // Historical shared locks from older attempts block migration pending
@@ -167,7 +168,8 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
     } catch { return false; }
   };
   const owns = async () => Boolean(guardCreated) && ownership?.owned() &&
-    await matches(lockPath) && await matches(guardPath) && ownership.owned();
+    await matches(lockPath) && await matches(guardPath) && ownership.owned() &&
+    await operatorReady().catch(() => false);
   try {
     ownership = claimCodingOwnership(receipts, grant.grantId, at);
     for (const name of legacyPaths) {
@@ -323,7 +325,8 @@ async function modelEdit({ grant, original, credential, fetchImpl }) {
 /** Injection seams enable disposable fixture verification without paid calls. */
 export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, grant,
   credential, fetchImpl = globalThis.fetch, runGit = null, checkSyntax = null,
-  requestEdit = modelEdit, checkCapacity = statfs, now = Date.now } = {}) {
+  requestEdit = modelEdit, checkCapacity = statfs, now = Date.now,
+  operatorReady = async () => true } = {}) {
   const at = now();
   if (!validateCodingGrant(grant, source, at)) return block('CODING_OWNER_GRANT_REQUIRED');
   if (!path.isAbsolute(repoRoot || '') || !path.isAbsolute(privateRoot || '') ||
@@ -359,6 +362,7 @@ export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, g
   catch (error) {
     if (error?.code !== 'ENOENT') return block('CODING_ALREADY_RESERVED_OR_UNVERIFIABLE');
   }
+  if (!await operatorReady().catch(() => false)) return block('CODING_OWNER_STOP_PAUSE_OR_HEARTBEAT_UNVERIFIABLE');
   return reserveCodingStage(stages, receipts, grant, at, checkCapacity, async owns => {
   const guarded = async fn => {
     if (!await owns()) throw Error('CODING_STAGE_OWNERSHIP_LOST');
@@ -420,7 +424,7 @@ export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, g
   if (!await onceJson(path.join(receipts, grant.grantId + '.result.json'), result))
     return block('CODING_RESULT_RECEIPT_UNVERIFIABLE');
   return result;
-  });
+  }, operatorReady);
 }
 
 /** Fixed local operator CLI; never exposed through MCP or the read-only supervisor. */
@@ -429,6 +433,8 @@ export async function runOwnerCodingOnce({ grantId, env = process.env,
   if (platform !== 'win32' || !ID.test(grantId || '')) return block('CODING_WINDOWS_ONLY');
   const source = await gatewayAppSource({ repoRoot, env });
   if (!source || source.channel !== 'main') return block('CODING_EXACT_CLEAN_MAIN_REQUIRED');
+  if (!await ownerOneShotAllowed(source.head))
+    return block('CODING_OWNER_STOP_PAUSE_OR_HEARTBEAT_UNVERIFIABLE');
   const privateRoot = privateGatewayRoot(env);
   let grant;
   try {
@@ -437,7 +443,8 @@ export async function runOwnerCodingOnce({ grantId, env = process.env,
     if (grant.grantId !== grantId) return block('CODING_GRANT_ID_MISMATCH');
   } catch { return block('CODING_OWNER_GRANT_REQUIRED'); }
   return runAuthorizedCodingOnce({ repoRoot, privateRoot, source, grant,
-    credential: env.OPENAI_API_KEY, now });
+    credential: env.OPENAI_API_KEY, now,
+    operatorReady: () => ownerOneShotAllowed(source.head) });
 }
 
 /**

@@ -40,11 +40,15 @@ export async function inspectLocalServiceInventory({
  if(sidecarConfig?.statusFile!==STATUS_PATH)throw Error('FIXED_SIDECAR_STATUS_PATH_REQUIRED');
  const registry=createUnifiedServiceRegistry(sidecarConfig,managedManifest);
  const supervisorDir=path.join(appData,'PlotPickle','engineering-team','supervisor');
- const [sidecarSnapshot,heartbeat,stopMarkerState]=await Promise.all([
+ const [sidecarSnapshot,heartbeat,rawStopMarkerState]=await Promise.all([
   readJson(path.join(home,STATUS_PATH)),
   readJson(path.join(supervisorDir,'heartbeat.json')),
   readStopMarker(path.join(supervisorDir,'stop-request.json'))
  ]);
+ // Only an explicit ABSENT result can clear a local STOP observation.
+ // Malformed or unsupported observer results must fail closed.
+ const stopMarkerState=rawStopMarkerState==='PRESENT'||rawStopMarkerState==='ABSENT'
+  ?rawStopMarkerState:'UNKNOWN';
  const supervisorSnapshot=heartbeat&&typeof heartbeat==='object'?{
   state:heartbeat.state,sourceHead:heartbeat.sourceHead,stopMarkerState,
   heartbeatFresh:Number.isSafeInteger(heartbeat.at)&&

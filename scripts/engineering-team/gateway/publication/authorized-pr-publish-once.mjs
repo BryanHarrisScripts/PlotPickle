@@ -11,6 +11,7 @@ import { lstat, mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gatewayAppSource, privateGatewayRoot } from '../gateway-host.mjs';
+import { ownerOneShotAllowed } from '../owner-runtime-gate.mjs';
 import { appendPrivateJsonOnce as writeOnce } from '../receipts/write-once-json.mjs';
 import { codingReleaseIsReconciled } from '../receipts/atomic-coding-ownership.mjs';
 
@@ -140,6 +141,7 @@ async function readStagedCommit({ repoRoot, privateRoot, grant, git }) {
 export async function publishAuthorizedDraftOnce({
   repoRoot, privateRoot, source, grant, codingGrant, prepared, token,
   runGit = null, fetchImpl = globalThis.fetch, now = Date.now,
+  operatorReady = async () => true,
 } = {}) {
   const at = now();
   if (!validatePublicationGrant(grant, prepared, codingGrant, source, at))
@@ -149,6 +151,10 @@ export async function publishAuthorizedDraftOnce({
       typeof token !== 'string' || token.length < 20 ||
       typeof fetchImpl !== 'function')
     return blocked('PUBLISH_HOST_OR_TOKEN_UNAVAILABLE');
+  const operatorOk = async () => {
+    try { return await operatorReady() === true; } catch { return false; }
+  };
+  if (!await operatorOk()) return blocked('PUBLISH_OWNER_STOP_PAUSE_OR_HEARTBEAT_UNVERIFIABLE');
   const git = runGit || ((cwd, args) => exec('git', args,
     { cwd, windowsHide: true, timeout: 15_000, maxBuffer: 65_536 }));
   let staged;
@@ -165,7 +171,15 @@ export async function publishAuthorizedDraftOnce({
     localCommit: grant.localCommit, tree: staged.tree, contentDigest: staged.digest,
     reservedAt: at, state: 'EXTERNAL_REQUEST_OUTCOME_UNCERTAIN_NO_REPLAY' }))
     return blocked('PUBLISH_ALREADY_RESERVED_OR_UNVERIFIABLE');
-  const request = makeRequester(fetchImpl, token);
+  const rawRequest = makeRequester(fetchImpl, token);
+  // A STOP after reservation makes any possibly-started external operation
+  // UNCERTAIN and permanently nonreplayable; never continue the API sequence.
+  const request = async (...args) => {
+    if (!await operatorOk()) throw Error('OPERATOR_STOP_OR_UNVERIFIABLE');
+    const response = await rawRequest(...args);
+    if (!await operatorOk()) throw Error('OPERATOR_CHANGED_DURING_EXTERNAL_REQUEST');
+    return response;
+  };
   let result = uncertain('GITHUB_REQUEST_OUTCOME_UNKNOWN'), phase = 'CHECK_BASE';
   try {
     const main = await request('GET', '/git/ref/heads/main');
@@ -266,6 +280,8 @@ export async function runOwnerPublishOnce({ publicationId, repoRoot = process.cw
     return blocked('PUBLISH_WINDOWS_ONLY');
   const source = await gatewayAppSource({ repoRoot, env });
   if (source?.channel !== 'main') return blocked('PUBLISH_EXACT_CLEAN_MAIN_REQUIRED');
+  if (!await ownerOneShotAllowed(source.head))
+    return blocked('PUBLISH_OWNER_STOP_PAUSE_OR_HEARTBEAT_UNVERIFIABLE');
   const privateRoot = privateGatewayRoot(env);
   let grant, codingGrant, prepared, release;
   try {
@@ -296,7 +312,8 @@ export async function runOwnerPublishOnce({ publicationId, repoRoot = process.cw
       return blocked('PUBLISH_GRANT_ID_MISMATCH');
   } catch { return blocked('PUBLISH_OWNER_GRANT_OR_CODING_RECEIPT_REQUIRED'); }
   return publishAuthorizedDraftOnce({ repoRoot, privateRoot, source, grant,
-    codingGrant, prepared, token: env.PLOTPICKLE_GITHUB_PUBLISH_TOKEN, now });
+    codingGrant, prepared, token: env.PLOTPICKLE_GITHUB_PUBLISH_TOKEN, now,
+    operatorReady: () => ownerOneShotAllowed(source.head) });
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);

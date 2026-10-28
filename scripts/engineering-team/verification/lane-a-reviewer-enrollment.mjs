@@ -78,7 +78,11 @@ export function verifyReviewerEnrollment(record,{
  if(!Array.isArray(alreadyUsedChallenges))return deny('CHALLENGE_LEDGER_UNAVAILABLE');
  if(alreadyUsedChallenges.includes(record.challengeNonce))return deny('CHALLENGE_REPLAY');
  if(![record.processTokenEvidenceDigest,record.privateKeyAclEvidenceDigest].every(x=>typeof x==='string'&&DIGEST.test(x)))return deny('ATTESTATION_EVIDENCE_MISSING');
+ if(record.processTokenEvidenceDigest===record.privateKeyAclEvidenceDigest)return deny('ATTESTATION_EVIDENCE_NOT_DISTINCT');
  if(!Array.isArray(record.evidenceRefs)||record.evidenceRefs.length<2||record.evidenceRefs.some(x=>typeof x!=='string'||!x.trim()||x.length>256))return deny('EVIDENCE_REFS_MISSING');
+ // The Windows process-token and private-key ACL observations must be
+ // independently addressable; repeating one reference is not two proofs.
+ if(new Set(record.evidenceRefs).size!==record.evidenceRefs.length)return deny('EVIDENCE_REFS_NOT_DISTINCT');
  if(!Array.isArray(record.capabilities)||record.capabilities.length!==1||record.capabilities[0]!==CAPABILITY)return deny('SCOPE_INVALID');
  const issued=canonicalUtcMs(record.issuedAtUtc),expires=canonicalUtcMs(record.expiresAtUtc);
  if(!Number.isSafeInteger(now)||now<0||!Number.isFinite(new Date(now).getTime())||

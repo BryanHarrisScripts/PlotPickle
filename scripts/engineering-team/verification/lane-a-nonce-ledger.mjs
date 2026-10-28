@@ -7,7 +7,8 @@
  * Never delete a spent entry, retry a previously reserved challenge or treat
  * an uncertain fsync/process outcome as reusable.
  */
-import { randomBytes } from 'node:crypto';
+import { randomBytes, createHash } from 'node:crypto';
+import { operateLaneAPreprovisionedJournal } from './lane-a-preprovisioned-journal.mjs';
 import { open, lstat, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -46,6 +47,12 @@ async function writeOnce(filename,record,directory){
   } finally { if (handle) await handle.close().catch(()=>{}); }
   await syncParent(directory);
 }
+const scopeDigest = (identity) => createHash('sha256')
+  .update(JSON.stringify(identity)).digest('hex');
+const journalRequestId = (operation,requestId,nonce='') => createHash('sha256')
+  .update(operation+'|'+requestId+'|'+nonce).digest('hex').slice(0,32);
+const validJournalPath = (root,journalPath) => typeof journalPath==='string' &&
+  journalPath===path.join(root,'registrar-journal.bin');
 const fieldsValid = (x) =>
   x && typeof x === 'object' && !Array.isArray(x) &&
   ID.test(x.registrarId||'') && ID.test(x.hostId||'') &&
@@ -53,10 +60,16 @@ const fieldsValid = (x) =>
   ID.test(x.requestId||'');
 
 /** Registrar-owned source candidate; only emits a non-secret random challenge. */
-export async function issueLaneAChallenge({root,registrarId,hostId,reviewerPrincipal,reviewerSid,requestId}={}){
+export async function issueLaneAChallenge({root,registrarId,hostId,reviewerPrincipal,reviewerSid,requestId,journalPath}={}){
   const identity={registrarId,hostId,reviewerPrincipal,reviewerSid,requestId};
   if(!fieldsValid(identity)) return deny('CHALLENGE_SCOPE_INVALID');
   try { await validateRoot(root); } catch { return deny('PROTECTED_REGISTRAR_STORAGE_UNVERIFIABLE'); }
+  if(journalPath!==undefined){
+    if(!validJournalPath(root,journalPath)) return deny('PREPROVISIONED_JOURNAL_PATH_INVALID');
+    return operateLaneAPreprovisionedJournal({journalPath,operation:'ISSUE',
+      scopeDigest:scopeDigest(identity),
+      requestId:journalRequestId('ISSUE',requestId)});
+  }
   const challengeNonce=randomBytes(32).toString('hex');
   const record={schemaVersion:'PP-LANE-A-NONCE-LEDGER-V1',challengeNonce,
     ...identity, status:'ISSUED_UNUSED', immutableCandidate:true};
@@ -73,10 +86,16 @@ export async function issueLaneAChallenge({root,registrarId,hostId,reviewerPrinc
 
 /** Permanently spend an existing challenge. Concurrent contenders cannot both win. */
 export async function spendLaneAChallengeOnce({root,challengeNonce,registrarId,hostId,
-  reviewerPrincipal,reviewerSid,requestId}={}){
+  reviewerPrincipal,reviewerSid,requestId,journalPath}={}){
   const identity={registrarId,hostId,reviewerPrincipal,reviewerSid,requestId};
   if(!NONCE.test(challengeNonce||'') || !fieldsValid(identity)) return deny('CHALLENGE_SCOPE_INVALID');
   try { await validateRoot(root); } catch { return deny('PROTECTED_REGISTRAR_STORAGE_UNVERIFIABLE'); }
+  if(journalPath!==undefined){
+    if(!validJournalPath(root,journalPath)) return deny('PREPROVISIONED_JOURNAL_PATH_INVALID');
+    return operateLaneAPreprovisionedJournal({journalPath,operation:'SPEND',
+      challengeNonce,scopeDigest:scopeDigest(identity),
+      requestId:journalRequestId('SPEND',requestId,challengeNonce)});
+  }
   const issuedPath=path.join(root,'issued',challengeNonce+'.json');
   let issued;
   try {

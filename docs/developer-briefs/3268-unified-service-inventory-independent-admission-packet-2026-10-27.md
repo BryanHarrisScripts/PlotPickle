@@ -4,12 +4,12 @@
 
 ## Exact source editions before this packet
 
-The author-proposed branch was pinned at `d96a8a166c924c145a19ca05ec93ba8adeabdbc9` before adding this packet. Re-fetch the current PR SHA and verify Git blob IDs and **independent SHA-256** of each file at review time. The source contents are not permitted to drift silently.
+The author-proposed branch was pinned at `ddb39d627d447cff2226f324e9c231c6d8f82bfd` before adding this packet. Re-fetch the current PR SHA and verify Git blob IDs and **independent SHA-256** of each file at review time. The source contents are not permitted to drift silently.
 
 | Scope | File | Git blob SHA |
 | --- | --- | --- |
-| New test | `tests/issue-3268-unified-service-inventory.test.mjs` | `c90930fe00b23b3d2e116a65840bb084b8f62ed4` |
-| Implementation | `core/sidecars/runtime/unified-service-inventory.mjs` | `3c233fda4643d4143db233f8f94d9f561df8f3d7` |
+| New test | `tests/issue-3268-unified-service-inventory.test.mjs` | `58691d2801034c77b6f0eb6381de13bfdc5f481f` |
+| Implementation | `core/sidecars/runtime/unified-service-inventory.mjs` | `2850ae554c7034b192ffe5cd079150d1b58873f1` |
 | Read-only CLI | `scripts/engineering-team/windows/services/inspect-unified-services.mjs` | `b939957c37c06ab696e79bbde2a145585f664388` |
 | Existing dependency | `core/sidecars/runtime/service-registry.mjs` | `021dbf1d9a729109d3fa2eae55034be20b31e29a` |
 | Existing source inventory | `config/runtime-sidecars.json` | `cc60ff0815f712fcaa7ce6653d693ee0c1780d2d` |
@@ -21,11 +21,11 @@ The author-proposed branch was pinned at `d96a8a166c924c145a19ca05ec93ba8adeabdb
 - **W9 preserved obligations/stale evidence:** Unrecognized IDs, malformed status, stale/incorrect exact head, invalid data, replay/unknown process state and duplicate source entries must not turn a component READY or silently alter established approved tests. A planned factory listing is not an operational claim.
 - **Existing runtime contract:** #2693/#2694 six governed sidecars remain owned by the current sidecar supervisor, and `config/runtime-manifest.json` owns the broader managed component declarations. No extra launcher, credential store, headless model dispatcher or second tunnel.
 
-The 18 source-linked test cases cover registry composition, default unproven status, fresh-but-untrusted sidecar `ready`, forged supervisor acceptance, stale head/heartbeat, forged remote tunnel authorization, stale status, duplicate/unknown reports, duplicate/malformed service IDs, unsafe sidecar entrypoint, fixed-source CLI no-elevation inspection, unavailable sources, and actual six-sidecar/four-factory inventory without extra execution capability.
+The 20 source-linked test cases cover registry composition, default unproven status, fresh-but-untrusted sidecar `ready`, forged supervisor acceptance, stale head/heartbeat, forged remote tunnel authorization, stale status, duplicate/unknown reports, duplicate/malformed service IDs, unsafe sidecar entrypoint, fixed-source CLI no-elevation inspection, unavailable sources, and actual six-sidecar/four-factory inventory without extra execution capability.
 
 ## Known limitations the independent reviewer must inspect
 
-1. The author's in-memory V8 fixture execution registered 18/18 PASS; this was a **source-equivalent simulation**, **not Node's actual test runner**, hosted exact-head CI, independent QA or native Windows owner-product evidence.
+1. The author's in-memory V8 fixture execution registered 20/20 PASS; this was a **source-equivalent simulation**, **not Node's actual test runner**, hosted exact-head CI, independent QA or native Windows owner-product evidence.
 2. The file/status sources are read-only projections and **do not cryptographically attest** to process ownership or remote plugin authorization. The inventory consequently returns zero proven-operational components, even for reported `ready` or `RUNNING` states.
 3. `inspect-unified-services.mjs` is a fixed `--status` diagnostic, not the always-on Windows Service Manager or an installer. It does not replace existing supervisors or modify the owner's current tasks, tunnel or machine.
 4. Direct file symlinks are rejected in the CLI. Windows parent-directory reparse-point handling, packaging, SCM identity/process-tree, restart/STOP and source-head witness are **not proved**. Read-only status alone must not become an action authorization or standalone verifier credential.
@@ -46,8 +46,8 @@ The following SHA-256 values were calculated from the exact GitHub UTF-8 file co
 
 | Evidence file | SHA-256 |
 | --- | --- |
-| `tests/issue-3268-unified-service-inventory.test.mjs` | `8e5ca19b1855c543807045e50bf23cc1c23ef9d03172bf2e9afe48ea05c4c8a7` |
-| `core/sidecars/runtime/unified-service-inventory.mjs` | `78aed48e1f26635dfb2a3229f3dd9ddca5230404f2c81a1a853a2b9e3a815572` |
+| `tests/issue-3268-unified-service-inventory.test.mjs` | `d928de26a22c665b31d2c10da1d2e3aec7fa8119c1dbe2736834856b9e30b1fa` |
+| `core/sidecars/runtime/unified-service-inventory.mjs` | `ad9351152e98b2f93be2c851cb3d61431eeec7fc08c117f1a092a5b131aff238` |
 | `scripts/engineering-team/windows/services/inspect-unified-services.mjs` | `efdabe90b98d6c508ef09d1c70f0d3e0c83e8f02191240e4abfe48af4dde5224` |
 | `core/sidecars/runtime/service-registry.mjs` | `64f4d72796a55d9bb535913035aed1d5a7f32d979354636650f44b1cc1c618a2` |
 | `config/runtime-sidecars.json` | `3f9a5f25f916ccf295441e7c005a88c0edb19f66961b1db94a70dec6a6c648c8` |
@@ -60,3 +60,7 @@ The following SHA-256 values were calculated from the exact GitHub UTF-8 file co
 **Owner Windows preflight note:** An authenticated read-only `factory-pr-head` check of the candidate was `BLOCKED / CANDIDATE_BASE_MISMATCH` because the current owner checkout was `8a6bec0b1137adf6d515f8314d158df155357b9d`, five commits behind GitHub MAIN `8a122d9984760a86faa20a6b8210459896d70b17`; no source staging occurred. A separately allowlisted `factory-qa-handoff` Node suite **did pass** on that older Windows source head, with `independentVerification:false`; that is proof only of the old Windows test route, not this exact new test or Product Gate.
 
 The real F00 reviewer must independently recompute all digests, inspect assertions and source consequences, and write an attributable signed `ADMIT/FIX/REJECT/UNPROVEN` receipt. The author must not edit the protected catalogue.
+
+## Supervisor pause/stop status extension
+
+Two additional negative tests ensure already-existing `PAUSE_REQUESTED`, `PAUSED`, `STOP_REQUESTED`, and `STOPPED` supervisor statuses are represented conservatively, not silently discarded; owner STOP marker presence still overrides even an apparently PAUSED heartbeat. No state confers process owner verification, a start command, or acknowledgement of true Windows teardown. These remain author-generated in-memory source-equivalent assertions, **not** native Windows proof. Source editions and 20/20 fixture count above supersede earlier packet SHA values.

@@ -1,0 +1,47 @@
+name: Lane A Native Host Diagnostic (NON-RELEASE)
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/issue-3302-lane-a-native-diagnostic.yml"
+      - "scripts/engineering-team/windows/verification/PlotPickleLaneAService.cs"
+      - "scripts/engineering-team/windows/verification/Build-PlotPickleLaneAService.ps1"
+      - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneAHost.ps1"
+      - "scripts/engineering-team/windows/verification/Install-PlotPickleLaneAService.ps1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-compile-only:
+    name: Native compiler smoke test — NOT signer, SCM or W8/W9 proof
+    runs-on: windows-2022
+    timeout-minutes: 12
+    steps:
+      - name: Checkout candidate (no persisted credentials)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Compile fixed inert C# SCM host and validate fail-closed receipt
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $path = "./scripts/engineering-team/windows/verification/Test-PlotPickleLaneAHost.ps1"
+          $raw = & $path -RunNativeCompile
+          if ($LASTEXITCODE -ne 0) { throw "LANE_A_WINDOWS_DIAGNOSTIC_PROCESS_FAILED" }
+          $receipt = $raw | ConvertFrom-Json
+          if ($receipt.schemaVersion -ne "PP-LANE-A-WINDOWS-DIAGNOSTIC-V1" -or
+              $receipt.nativeCompile -ne "INERT_CSC_SELF_TEST_PASS" -or
+              $receipt.reviewerActivated -ne $false -or
+              $receipt.canAdmit -ne $false -or
+              $receipt.canMerge -ne $false -or
+              $receipt.w8w9TestAdmission -ne "UNPROVEN" -or
+              $receipt.signingKeyProvisioned -ne "UNPROVEN" -or
+              $receipt.independentTokenWitness -ne "UNPROVEN") {
+            throw "LANE_A_NATIVE_DIAGNOSTIC_SCOPE_OR_BUILD_INVALID"
+          }
+          Write-Output "NATIVE_CSC_SELF_TEST_ONLY_PASS"
+          Write-Output "NOT SCM START; NOT OWNER WINDOWS; NOT SIGNER ENROLLMENT"
+          Write-Output "NOT W8/W9 ADMISSION; NOT PRODUCT GATE; NOT RELEASE"

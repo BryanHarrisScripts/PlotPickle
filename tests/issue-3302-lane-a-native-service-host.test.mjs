@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile,mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 
 const root=new URL('../scripts/engineering-team/windows/verification/',import.meta.url);
@@ -62,7 +63,7 @@ test('Windows native C# compile and smoke test are opt-in, never an independent 
 },async()=>{
  const dir=await mkdtemp(join(tmpdir(),'plotpickle-lane-a-native-'));
  try{
-  const script=new URL('Build-PlotPickleLaneAService.ps1',root).pathname;
+  const script=fileURLToPath(new URL('Build-PlotPickleLaneAService.ps1',root));
   const result=execFileSync('powershell.exe',
    ['-NoProfile','-NonInteractive','-File',decodeURIComponent(script),
     '-Build','-OutputDirectory',dir],

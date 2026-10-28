@@ -19,6 +19,7 @@ on:
       - "tests/issue-3302-lane-a-automated-reviewer-cli.test.mjs"
       - "scripts/engineering-team/verification/lane-a-signed-registrar-policy.mjs"
       - "tests/issue-3302-lane-a-signed-registrar-policy.test.mjs"
+      - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneANonceJournal.CI.ps1"
       - "docs/developer-briefs/3302-installer-lane-a-w8w9-independent-admission-packet-2026-10-27.md"
       - "scripts/engineering-team/windows/verification/Install-PlotPickleLaneAService.ps1"
   workflow_dispatch:

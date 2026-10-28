@@ -102,6 +102,43 @@ jobs:
           Write-Output "READ_ONLY_OWNER_ACCEPTANCE_FAIL_CLOSED_PASS"
           Write-Output "NOT OWNER WINDOWS; NOT TRUST BOOTSTRAP; NOT REVIEWER ADMIT"
 
+      - name: Diagnose Windows directory fsync capability (NON-RELEASE)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $probe = @'
+          import {mkdtemp,mkdir,open,rm} from "node:fs/promises";
+          import os from "node:os";
+          import path from "node:path";
+          const root=await mkdtemp(path.join(os.tmpdir(),"plotpickle-f00-fsync-"));
+          try {
+            const dir=path.join(root,"issued");
+            await mkdir(dir);
+            let handle;
+            try {
+              handle=await open(dir,"r");
+              await handle.sync();
+              console.log(JSON.stringify({schemaVersion:"PP-F00-DIRSYNC-PROBE-V1",directorySync:"SUPPORTED",errorCode:null}));
+            } catch(error) {
+              const errorCode=typeof error?.code==="string" && /^[A-Z0-9_]+$/.test(error.code) ? error.code : "UNKNOWN";
+              console.log(JSON.stringify({schemaVersion:"PP-F00-DIRSYNC-PROBE-V1",directorySync:"DENIED_OR_UNSUPPORTED",errorCode}));
+            } finally {
+              if(handle) await handle.close();
+            }
+          } finally {
+            await rm(root,{recursive:true,force:true});
+          }
+          '@
+          $result = $probe | node --input-type=module -
+          if ($LASTEXITCODE -ne 0) { throw "F00_FSYNC_PROBE_EXECUTION_FAILED" }
+          $receipt = $result | ConvertFrom-Json
+          if ($receipt.schemaVersion -ne "PP-F00-DIRSYNC-PROBE-V1" -or
+              $receipt.directorySync -notin @("SUPPORTED","DENIED_OR_UNSUPPORTED")) {
+            throw "F00_FSYNC_PROBE_MALFORMED"
+          }
+          Write-Output ("F00_DIRSYNC_CAPABILITY={0}; ERROR_CODE={1}" -f $receipt.directorySync,$receipt.errorCode)
+          Write-Output "DIAGNOSTIC_ONLY; NO_DURABILITY_PROOF; NO_ADMISSION; NO_RETRY"
+
       - name: Candidate-only Ed25519 and native-source tests (not W8/W9 admission)
         shell: pwsh
         run: |

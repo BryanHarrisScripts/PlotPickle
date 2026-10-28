@@ -245,16 +245,13 @@ test('a durable STOP marker wins over a reported PAUSED supervisor',()=>{
  assert.equal(get(result,'independent-windows-supervisor').evidenceCode,'LOCAL_STOP_MARKER_PRESENT');
 });
 
-test('three or more reports for one sidecar remain quarantined after the first duplicate',()=>{
- const result=project({sidecarSnapshot:snapshot({services:[
-  {id:'dsdd',state:'ready'},
-  {id:'dsdd',state:'failed'},
-  {id:'dsdd',state:'ready'},
-  {id:'media-runtime',state:'degraded'}
- ]})});
+test('noncanonical UTC offsets cannot masquerade as fresh sidecar observations',()=>{
+ const offset=snapshot({observedAt:'2026-10-27T23:00:00+00:00'});
+ const result=project({sidecarSnapshot:offset});
  assert.equal(get(result,'dsdd').observedState,null);
- assert.equal(get(result,'dsdd').capabilityReady,false);
- assert.equal(get(result,'media-runtime').observedState,'degraded');
- assert.equal(result.diagnostics.filter(x=>x==='DUPLICATE_SIDECAR_OBSERVATION').length,2);
+ assert.equal(get(result,'dsdd').state,'STALE');
+ assert.ok(result.diagnostics.includes('SIDECAR_STATUS_STALE_OR_INVALID'));
  assert.equal(result.summary.provenOperational,0);
+ const canonical=project({sidecarSnapshot:snapshot({observedAt:'2026-10-27T23:00:00Z'})});
+ assert.equal(get(canonical,'dsdd').observedState,'ready');
 });

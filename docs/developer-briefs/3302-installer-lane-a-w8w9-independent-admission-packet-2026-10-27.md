@@ -41,7 +41,7 @@ The proposed F00 reviewer `PP-F00-D02-W0001` / alias `PP-F00-LA-W0001` has **not
 | `scripts/engineering-team/windows/verification/Test-PlotPickleLaneAHost.ps1` | `87ae1c07b4a896d791816ab37af0856bac930e4069170748626b77b6f5e6ff4f` | `c972337c87d5c0d41c46f33fb755d5411015f35d` |
 
 | `scripts/engineering-team/windows/verification/Test-PlotPickleLaneAScmCanary.CI.ps1` | `ff3fc1254968f503c061f949cf9b4d620c0eb22c0265c17aa55ca4d7b1cb7896` | `71743948a3e8a4c9f57956f4525af10b344904d3` |
-| `.github/workflows/issue-3302-lane-a-native-diagnostic.yml` | `84ffa68e750928190618d31dbbb699332036f28144f820577b9280db1855c6b3` | `ef29061a38805878a1c1e863cb9e9d0517b3e15f` |
+| `.github/workflows/issue-3302-lane-a-native-diagnostic.yml` | `6e39bfda7c371bc5a7d2ccb3efe0c9cfe9ceabf94982d9244d922a11622b227f` | `86e9fcfe606bd985ae04447a847e0ead8f59ca62` |
 
 The separate maintainer must bind each target to its exact file digest, the actual imported files and static-read inputs, approved `WHITE-PAPER-V3` W8/W9 references, suitable existing test catalogue suites and honest `unit-fixture`/`static-source` scope. **Do not self-edit `config/verification/test-catalog.json` in this PR.**
 
@@ -68,3 +68,5 @@ Admissible reviewer verdicts are **ADMIT, FIX, REJECT, UNPROVEN**, signed with t
 The earlier author-side native diagnostic [#40686345501](https://github.com/BryanHarrisScripts/PlotPickle/actions/runs/40686345501) passed C# `ServiceBase` compilation + inert self-test. The later source-bound [#40686680844](https://github.com/BryanHarrisScripts/PlotPickle/actions/runs/40686680844) passed **disposable Windows SCM native service registration**, restricted SID configuration, actual `NT SERVICE\\PlotPickleLaneA` process-token check, service start and STOP, and cleanup code. It did **not** generate a signing key, install a production service, prove independent reviewer identity, qualify admission, or exercise the owner Windows 11 Product Gate. The workflow was authored on the same PR branch and is **NOT** an independent W8/W9 reviewer or protected test-catalogue acceptance.
 
 The six new source-level native-safety checks were exercised using injected V8 fixtures: **6/6 pass**. The native test embedded in the Node test suite remains opt-in / not executed under that test runner; the separate Windows workflow above executes the actual C# host smoke and SCM canary instead. Recompute all SHA-256 editions independently at final review because any subsequent source changes supersede this packet.
+
+**Final diagnostic workflow edition:** the read-only Windows canary now triggers for changes to the native test and this review packet, to produce source-linked hosted-Windows diagnostics. Its successful results are **not** a trusted F00 signature and do not turn test-truth admission or owner Windows Product Gate green.

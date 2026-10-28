@@ -12,8 +12,8 @@ This packet requests genuinely independent examination of three NEW test edition
 
 | Test target | SHA-256 content digest | Git blob ID | Proposed truth obligation |
 | --- | --- | --- | --- |
-| `tests/issue-3302-lane-a-admission-receipt.test.mjs` | `becd18bcaf621ef6fd371afd1f8aacb2e8e87dd21a1e40172cab40439fd2f29f` | `b17dae061b22e06d4f280ee9b91391a8d61a80ca` | WHITE-PAPER-V3 W8 + W9 |
-| `tests/issue-3302-lane-a-reviewer-enrollment.test.mjs` | `5e6769c3d67fca127142acf1320e2484164d35f4fadfea8b3f9fa1c306cf3eea` | `524ec800b05356d0f8798400736e711d1b5fcc57` | WHITE-PAPER-V3 W8 + W9 |
+| `tests/issue-3302-lane-a-admission-receipt.test.mjs` | `0aa2fc50d0c3bd09a94003e1b2b388ba9ba07623c913aa21d1758caee982cfb0` | `5476015f2fef2d2f9277b0554997f8f088e47a45` | WHITE-PAPER-V3 W8 + W9 |
+| `tests/issue-3302-lane-a-reviewer-enrollment.test.mjs` | `9c972ec94d8aaca7b29c04c0382943e90099801faa0e095127ab1e112219a0e5` | `5f396d822673a5b279fe8763c98b8b0c890be3ff` | WHITE-PAPER-V3 W8 + W9 |
 | `tests/issue-3302-lane-a-service-identity-policy.test.mjs` | `111cb146ddf8713601402f604733e86e182f4615b74705f127d413d4e8939ebf` | `54ef181f259660027cf51fe368eec43abb0cd430` | WHITE-PAPER-V3 W8 + W9 |
 
 **Approved normative source** `docs/white-papers/AI_Programming_Evolution_White_Paper.md`: SHA-256 `7fd538b813014cf94505903a32e171fca344068d67d15036fbe0fdcb7859c27d`, independently matched by author to `config/verification/test-catalog.json`'s already approved WHITE-PAPER-V3 3.0 sourceDigest. W8 = independent verification as acceptance; W9 = preserve source obligations, prevent repeated repair and unexpected changes. Author-computed match is not a reviewer-issued ADMIT.
@@ -22,7 +22,7 @@ This packet requests genuinely independent examination of three NEW test edition
 
 | Input | Exact SHA-256 | Git blob |
 | --- | --- | --- |
-| `scripts/engineering-team/verification/lane-a-admission-receipt.mjs` | `25d730b5c08194cfa0a55e6bdb3dbe45fe9d063089945a14029472ccd18afd70` | `dd656e8de93289641cdac5d76a7f52568b267c6f` |
+| `scripts/engineering-team/verification/lane-a-admission-receipt.mjs` | `2e3f2e21ed5a60e5978ee85ab74ccda814fa62eda9eb6c3f2cc83066f2852f7a` | `89e4b09401baf0b32429a1cd9d14b3a6c03d27b2` |
 | `scripts/engineering-team/verification/lane-a-reviewer-enrollment.mjs` | `421870e19b224ac41ca9ff998722c0b858fa2a79035af8b06d14f80c229f92d7` | `6856a5eaf6c31dbb51e7403e64400e8f3b2e4ed1` |
 | `scripts/engineering-team/verification/lane-a-admission-chain.mjs` | `de5369c7f881afc83a6695a1b82ccd4d266969f87f76aea9b311708afcd6f173` | `0572e93e888306397235fbc348105b9be73a6fb5` |
 | `scripts/engineering-team/verification/lane-a-service-identity-policy.mjs` | `260f982e24ba6e8b87f90974554ea95d1cab35094be5b24c1cd754d69a612dbd` | `ad5db88e457d6b82e6bf38868f4376b9bd7aa764` |
@@ -39,7 +39,7 @@ Catalogue-binding **proposal only**, to be considered after actual independent s
 - The Windows PowerShell service inspector is **read-only**, examines fixed SCM service, optional running process token via CIM and reports `independentlyAttested:false`. It has not run on owner Windows; a source-local observation is not the independent registrar.
 - Approved single installer architecture is on MAIN (#3324) and shared four-factory workflow on MAIN (#3326), neither creating an actual reviewer identity.
 - Exact-head Architecture Verification is intentionally BLOCKED on **unadmitted** #3302 tests; any new test editions in this PR also require independent admission. No source mutation in MAIN, no signer key or protected catalogue updates.
-- The live owner Windows Supervisor is independent of PR authorship and running but the coding worker and independent reviewer service are **not** proven. A passing old allowlisted Windows test is not proof of #3322.
+- The owner Windows Supervisor currently reports **OFFLINE / NO_FRESH_OWNED_HEARTBEAT** on the authenticated Factory observer. The coding worker and independent reviewer service are **not** proven. A passing old allowlisted Windows test is not proof of #3322.
 
 ## Adversarial checks required of independent F00 reviewer
 
@@ -60,3 +60,11 @@ The service-policy test edition above includes negative checks for elevated/admi
 ## 2026-10-27 signed-evidence validation hardening (AUTHOR ONLY)
 
 The receipt verifier now rejects blank, non-string and oversized findings/evidence entries, impossible UTC calendar dates (including normalized February 30), and absent/malformed expected edition maps without throwing. Two negative regression cases were added to the existing unadmitted test source. Author-computed SHA-256 and Git blob IDs above were refreshed for these two files. This does not admit the new edition, grant reviewer credentials or demonstrate native Windows acceptance. An independent reviewer must recompute the exact bytes and sign W8/W9 before protected catalogue updates. No claim of test execution or CI PASS is made here.
+
+## 2026-10-28 signed receipt time-window safety (AUTHOR ONLY)
+
+The receipt verifier previously accepted an otherwise correctly signed ADMIT indefinitely when the exact head and digests remained unchanged. The author now requires `observedAtMs` from the independent caller: a missing, non-safe, or unrepresentable observation clock fails with `TRUSTED_CLOCK_UNAVAILABLE`. A signed timestamp older than 24 hours or more than 60 seconds in the future relative to that supplied observation fails with `RECEIPT_OUTSIDE_TIME_WINDOW`. The verifier does not create an independent clock, prove Windows time integrity, consume replay IDs, activate Lane A, or confer catalogue/merge authority. Production trust still requires a separate reviewer and registrar, external one-use ledger, and protected source-exact test admission.
+
+Author commits: `804d064808b7cb61aa37d6e94930cc5b5f88763f` (receipt verifier), `c101bccf7f6bd2e45850703683423f755cf87fe3` (receipt negative regression), `f88d9f4885fff154a56f9bfc4de98c0971a795d2` (deterministic clock in enrollment chain fixture). A separate local Node 22 time-policy fixture checked four positive/negative boundaries; this is **not** execution of the exact repository tests, exact-head CI, independent W8/W9 admission or owner Windows acceptance. The test and source SHA-256 / Git blob IDs in the tables above were recomputed from exact GitHub content using an author-side SHA-256 implementation checked against the standard `abc` vector and the previously recorded source digest. Independent reviewer must recompute independently.
+
+All three changed test/source editions remain **UNADMITTED**. Do not merge this draft, bypass test-truth governance, install reviewer credentials, or start Lane B based on this packet.

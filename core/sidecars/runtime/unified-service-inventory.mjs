@@ -120,7 +120,11 @@ export function projectUnifiedServiceInventory({
     result.state='STOP_REQUESTED';
     result.evidenceCode='LOCAL_STOP_MARKER_PRESENT';
     result.observationSource='supervisor-stop-marker';
-   }else if(supervisorSnapshot?.stopMarkerState==='UNKNOWN'){
+   }else if(supervisorSnapshot?.stopMarkerState==='UNKNOWN'||
+    (supervisorSnapshot&&Object.hasOwn(supervisorSnapshot,'stopMarkerState')&&
+     supervisorSnapshot.stopMarkerState!=='ABSENT')){
+    // Even direct callers bypassing the CLI's normalization must fail closed
+    // on an explicit malformed or unsupported STOP-marker observation.
     result.state='BLOCKED';
     result.evidenceCode='SUPERVISOR_STOP_MARKER_UNREADABLE';
    }

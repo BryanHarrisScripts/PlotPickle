@@ -89,5 +89,8 @@ jobs:
           if ($LASTEXITCODE -ne 2 -or $r3.state -ne 'BLOCKED_INTAKE_INCOMPLETE' -or $r3.normativeUnchanged) {
             throw 'CHANGED_NORMATIVE_NOT_BLOCKED'
           }
+          # The expected negative test exits 2. GitHub's pwsh wrapper uses
+          # LASTEXITCODE at step end; clear only after the checked assertion.
+          $global:LASTEXITCODE=0
           Write-Output 'NON_RELEASE_IMMUTABLE_GIT_INTAKE_SMOKE_PASSED'
           Write-Output 'NO REVIEWER, NO ADMIT, NO PRIVATE KEYS, NO CATALOGUE WRITE, NO PRODUCT GATE'

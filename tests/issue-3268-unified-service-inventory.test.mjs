@@ -126,7 +126,7 @@ test('local inspection reads only named sources and never declares operating wor
   throw Error('unexpected path');
  };
  const result=await inspectLocalServiceInventory({
-  repo:'/repo',home:'/home',appData:'/local',now:NOW,readJson
+  repo:'/repo',home:'/home',appData:'/local',now:NOW,readJson,readStopMarker:async()=> 'ABSENT'
  });
  assert.equal(calls.length,4);
  assert.equal(result.permissions.start,false);
@@ -138,13 +138,14 @@ test('inspection refuses a rewritten path and returns diagnostics for absent sou
  const noStatus=async filename=>filename.endsWith('runtime-sidecars.json')?sidecars:
   filename.endsWith('runtime-manifest.json')?manifest:null;
  const result=await inspectLocalServiceInventory({
-  repo:'/repo',home:'/home',appData:'/local',now:NOW,readJson:noStatus
+  repo:'/repo',home:'/home',appData:'/local',now:NOW,readJson:noStatus,readStopMarker:async()=> 'ABSENT'
  });
  assert.ok(result.diagnostics.includes('SUPERVISOR_HEARTBEAT_UNAVAILABLE'));
  assert.ok(result.diagnostics.includes('SIDECAR_STATUS_UNAVAILABLE'));
  assert.equal(get(result,'software-factory').state,'BLOCKED');
  await assert.rejects(()=>inspectLocalServiceInventory({
   repo:'/repo',home:'/home',appData:'/local',now:NOW,
+  readStopMarker:async()=> 'ABSENT',
   readJson:async filename=>filename.endsWith('runtime-sidecars.json')?
    {...sidecars,statusFile:'../secrets.json'}:
    filename.endsWith('runtime-manifest.json')?manifest:null
@@ -172,4 +173,53 @@ test('unknown or malicious heartbeat content never leaks into a published observ
  assert.equal(observed.observedState,null);
  assert.equal(JSON.stringify(result).includes('token=abc123'),false);
  assert.equal(observed.independentlyVerified,false);
+});
+
+test('persistent STOP marker overrides fresh RUNNING heartbeat and never grants process authority',()=>{
+ const x=project({expectedHead:SHA,supervisorSnapshot:{
+  state:'RUNNING',sourceHead:SHA,heartbeatFresh:true,stopMarkerState:'PRESENT',
+  workerProcessVerified:true,automaticMergeEnabled:true
+ }});
+ const supervisor=get(x,'independent-windows-supervisor');
+ assert.equal(supervisor.state,'STOP_REQUESTED');
+ assert.equal(supervisor.evidenceCode,'LOCAL_STOP_MARKER_PRESENT');
+ assert.equal(supervisor.processOwnershipVerified,false);
+ assert.equal(supervisor.canStart,false);
+ assert.equal(supervisor.canMerge,false);
+});
+test('unreadable STOP marker fails closed despite otherwise healthy heartbeat',()=>{
+ const x=project({expectedHead:SHA,supervisorSnapshot:{
+  state:'RUNNING',sourceHead:SHA,heartbeatFresh:true,stopMarkerState:'UNKNOWN'
+ }});
+ const supervisor=get(x,'independent-windows-supervisor');
+ assert.equal(supervisor.state,'BLOCKED');
+ assert.equal(supervisor.evidenceCode,'SUPERVISOR_STOP_MARKER_UNREADABLE');
+ assert.equal(supervisor.canStart,false);
+});
+test('fixed Windows status inspector treats STOP marker as present without parsing marker contents',async()=>{
+ const paths=[];
+ const result=await inspectLocalServiceInventory({
+  repo:'/repo',home:'/home',appData:'/local',now:NOW,
+  readJson:async filename=>{
+   if(filename.endsWith('runtime-sidecars.json'))return sidecars;
+   if(filename.endsWith('runtime-manifest.json'))return manifest;
+   if(filename.endsWith('heartbeat.json'))return {state:'RUNNING',sourceHead:SHA,at:NOW-1000};
+   return snapshot();
+  },
+  readStopMarker:async filename=>{paths.push(filename.replaceAll('\\','/'));return 'PRESENT';}
+ });
+ assert.equal(paths.length,1);
+ assert.equal(paths[0].endsWith('/PlotPickle/engineering-team/supervisor/stop-request.json'),true);
+ assert.equal(get(result,'independent-windows-supervisor').state,'STOP_REQUESTED');
+ assert.equal(result.permissions.start,false);
+});
+test('STOP marker remains visible even when supervisor heartbeat is missing',async()=>{
+ const result=await inspectLocalServiceInventory({
+  repo:'/repo',home:'/home',appData:'/local',now:NOW,
+  readJson:async filename=>filename.endsWith('runtime-sidecars.json')?sidecars:
+   filename.endsWith('runtime-manifest.json')?manifest:null,
+  readStopMarker:async()=> 'PRESENT'
+ });
+ assert.equal(get(result,'independent-windows-supervisor').state,'STOP_REQUESTED');
+ assert.ok(result.diagnostics.includes('SUPERVISOR_HEARTBEAT_UNAVAILABLE'));
 });

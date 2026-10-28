@@ -11,6 +11,13 @@ const DIGEST=/^[a-f0-9]{64}$/;
 const SID=/^S-1-(?:[0-9]+-){2,}[0-9]+$/;
 const SIGNATURE=/^[A-Za-z0-9+/]{86}==$/;
 const CAPABILITY='catalogue-admission-review-only';
+// Enrollment dates must be canonical UTC instants, not Date.parse-normalized
+// impossible calendar dates or caller-local timestamps.
+const canonicalUtcMs=value=>{
+ if(typeof value!=='string'||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,3})?Z$/.test(value))return NaN;
+ const parsed=Date.parse(value);
+ return Number.isFinite(parsed)&&new Date(parsed).toISOString().slice(0,19)===value.slice(0,19)?parsed:NaN;
+};
 const ENROLLMENT_FIELDS=[
   'schemaVersion','enrollmentId','roleAlias','actorId','reviewerPrincipal',
   'reviewerSid','hostId','keyId','publicKeyPem','challengeNonce',
@@ -54,7 +61,7 @@ export function possessionPayload(record){
 export function verifyReviewerEnrollment(record,{
  trustedRegistrars,expectedRegistrarId,expectedRegistrarPrincipal,
  expectedHostId,expectedReviewerSid,expectedReviewerPrincipal,expectedCodingSid,
- expectedChallengeNonce,alreadyUsedChallenges,now=Date.now()
+ expectedChallengeNonce,alreadyUsedChallenges,now
 }={}){
  if(!record||record.schemaVersion!=='PP-LANE-A-ENROLL-V1')return deny('SCHEMA_INVALID');
  if(Array.isArray(record)||Object.keys(record).some(field=>!ENROLLMENT_RECEIPT_FIELDS.has(field)))return deny('UNSIGNED_EXTENSION_REJECTED');
@@ -73,8 +80,10 @@ export function verifyReviewerEnrollment(record,{
  if(![record.processTokenEvidenceDigest,record.privateKeyAclEvidenceDigest].every(x=>typeof x==='string'&&DIGEST.test(x)))return deny('ATTESTATION_EVIDENCE_MISSING');
  if(!Array.isArray(record.evidenceRefs)||record.evidenceRefs.length<2||record.evidenceRefs.some(x=>typeof x!=='string'||!x.trim()||x.length>256))return deny('EVIDENCE_REFS_MISSING');
  if(!Array.isArray(record.capabilities)||record.capabilities.length!==1||record.capabilities[0]!==CAPABILITY)return deny('SCOPE_INVALID');
- const issued=Date.parse(record.issuedAtUtc||''),expires=Date.parse(record.expiresAtUtc||'');
- if(!Number.isFinite(now)||!Number.isFinite(issued)||!Number.isFinite(expires)||issued>now+60000||expires<=now||expires<=issued||expires-issued>86400000)return deny('ENROLLMENT_TIME_INVALID');
+ const issued=canonicalUtcMs(record.issuedAtUtc),expires=canonicalUtcMs(record.expiresAtUtc);
+ if(!Number.isSafeInteger(now)||now<0||!Number.isFinite(new Date(now).getTime())||
+  !Number.isFinite(issued)||!Number.isFinite(expires)||issued>now+60000||
+  expires<=now||expires<=issued||expires-issued>86400000)return deny('ENROLLMENT_TIME_INVALID');
  if(record.registrarId!==expectedRegistrarId||record.registrarPrincipal!==expectedRegistrarPrincipal)return deny('REGISTRAR_NOT_AUTHORIZED');
  if(!trustedRegistrars||!Object.hasOwn(trustedRegistrars,record.registrarId))return deny('REGISTRAR_NOT_TRUSTED');
  const registrar=trustedRegistrars[record.registrarId];

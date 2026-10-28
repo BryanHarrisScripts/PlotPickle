@@ -14,6 +14,9 @@ const observed={
  installationChoice:'always-on',interactive:false,sourceHead:HEAD,
  binarySha256:BINARY,processRunning:true,pid:2468,
  processTokenSid:REVIEWER,codingProcessSid:CODER,
+ privilegeObservationState:'COMPLETE',reviewerTokenElevated:false,
+ reviewerTokenAdministratorsEnabled:false,reviewerTokenUnexpectedPrivileges:[],
+ codingCanControlReviewerService:false,reviewerCanControlManagerService:false,
  registrarObservationDigest:REGISTRAR,privateKeyOwnerSid:REVIEWER,
  privateKeyReadAccessibleToCoder:false,privateKeyAclInherited:false,
  githubWriteGranted:false,catalogueEditGranted:false,
@@ -63,6 +66,18 @@ test('missing worker process and missing registrar evidence cannot activate revi
  assert.equal(check({processRunning:false}).code,'REVIEWER_PROCESS_NOT_OBSERVED');
  assert.equal(check({}, {expectedRegistrarObservationDigest:undefined}).code,'EXTERNAL_REGISTRAR_EVIDENCE_MISSING');
  assert.equal(check({registrarObservationDigest:'d'.repeat(64)}).code,'EXTERNAL_REGISTRAR_EVIDENCE_MISSING');
+});
+test('effective token privilege and SCM control isolation must be witnessed, not inferred from SID',()=>{
+ assert.equal(check({privilegeObservationState:'UNKNOWN'}).code,'WINDOWS_TOKEN_PRIVILEGE_ISOLATION_UNPROVEN');
+ assert.equal(check({privilegeObservationState:undefined}).code,'WINDOWS_TOKEN_PRIVILEGE_ISOLATION_UNPROVEN');
+ for(const key of ['reviewerTokenElevated','reviewerTokenAdministratorsEnabled','codingCanControlReviewerService','reviewerCanControlManagerService']){
+  assert.equal(check({[key]:true}).code,'WINDOWS_TOKEN_PRIVILEGE_ISOLATION_UNPROVEN',key);
+  assert.equal(check({[key]:undefined}).code,'WINDOWS_TOKEN_PRIVILEGE_ISOLATION_UNPROVEN',key);
+ }
+ assert.equal(check({reviewerTokenUnexpectedPrivileges:['SeDebugPrivilege']}).code,'WINDOWS_TOKEN_PRIVILEGE_ISOLATION_UNPROVEN');
+ assert.equal(check({reviewerTokenUnexpectedPrivileges:undefined}).code,'WINDOWS_TOKEN_PRIVILEGE_ISOLATION_UNPROVEN');
+ assert.equal(check({reviewerTokenUnexpectedPrivileges:'none'}).code,'WINDOWS_TOKEN_PRIVILEGE_ISOLATION_UNPROVEN');
+ assert.equal(check().status,'CANDIDATE_ONLY');
 });
 test('private signing key must be isolated from coding identity',()=>{
  assert.equal(check({privateKeyOwnerSid:CODER}).code,'KEY_ACL_ISOLATION_UNPROVEN');

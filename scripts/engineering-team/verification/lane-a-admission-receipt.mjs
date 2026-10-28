@@ -4,6 +4,10 @@ const hex=/^[a-f0-9]{64}$/;
 const commit=/^[a-f0-9]{40}$/;
 const id=/^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/;
 const verdicts=new Set(['ADMIT','FIX','REJECT','UNPROVEN']);
+// A signed review is not perpetual authority: the independent caller must
+// supply a trusted observation clock. Never infer freshness from the signer.
+const MAX_RECEIPT_AGE_MS=86_400_000;
+const MAX_FUTURE_SKEW_MS=60_000;
 const SIGNED_FIELDS=['schemaVersion','reviewId','reviewerPrincipal','authorPrincipal','credentialKeyId','candidateHead','testDigests','inputDigests','truthRefs','findings','disposition','evidence','timestampUtc'];
 const RECEIPT_FIELDS=new Set([...SIGNED_FIELDS,'signatureBase64']);
 export function canonicalPayload(receipt){
@@ -11,7 +15,7 @@ export function canonicalPayload(receipt){
  for(const field of SIGNED_FIELDS){if(!Object.hasOwn(receipt,field))throw new Error('MISSING_FIELD:'+field);body[field]=receipt[field];}
  return Buffer.from(JSON.stringify(body),'utf8');
 }
-export function verifyAdmissionReceipt(receipt,{trustedReviewers,expectedHead,expectedTestDigests,expectedInputDigests,allowedTruthRefs,expectedAuthorPrincipal}){
+export function verifyAdmissionReceipt(receipt,{trustedReviewers,expectedHead,expectedTestDigests,expectedInputDigests,allowedTruthRefs,expectedAuthorPrincipal,observedAtMs}){
  const deny=(code)=>({accepted:false,code,mayUpdateCatalogue:false,mayRunLaneB:false});
  if(!receipt||typeof receipt!=='object'||Array.isArray(receipt)||receipt.schemaVersion!=='PP-TEST-ADMISSION-V1')return deny('SCHEMA_INVALID');
  if(Object.keys(receipt).some(field=>!RECEIPT_FIELDS.has(field)))return deny('UNSIGNED_EXTENSION_REJECTED');
@@ -28,6 +32,10 @@ export function verifyAdmissionReceipt(receipt,{trustedReviewers,expectedHead,ex
  const timestamp=receipt.timestampUtc;
  const parsed=typeof timestamp==='string'?Date.parse(timestamp):NaN;
  if(typeof timestamp!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(timestamp)||!Number.isFinite(parsed)||new Date(parsed).toISOString().slice(0,19)!==timestamp.slice(0,19))return deny('TIMESTAMP_INVALID');
+ if(!Number.isSafeInteger(observedAtMs)||observedAtMs<0||
+  !Number.isFinite(new Date(observedAtMs).getTime()))return deny('TRUSTED_CLOCK_UNAVAILABLE');
+ if(parsed>observedAtMs+MAX_FUTURE_SKEW_MS||
+  observedAtMs-parsed>MAX_RECEIPT_AGE_MS)return deny('RECEIPT_OUTSIDE_TIME_WINDOW');
  if(typeof receipt.credentialKeyId!=='string'||!id.test(receipt.credentialKeyId)||!trustedReviewers||!Object.hasOwn(trustedReviewers,receipt.credentialKeyId))return deny('REVIEWER_NOT_TRUSTED');
  const trusted=trustedReviewers[receipt.credentialKeyId];
  if(!trusted||trusted.principal!==receipt.reviewerPrincipal||trusted.revoked)return deny('REVIEWER_NOT_TRUSTED');

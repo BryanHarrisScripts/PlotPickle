@@ -4,12 +4,12 @@
 
 ## Exact source editions before this packet
 
-The author-proposed branch was pinned at `ddb39d627d447cff2226f324e9c231c6d8f82bfd` before adding this packet. Re-fetch the current PR SHA and verify Git blob IDs and **independent SHA-256** of each file at review time. The source contents are not permitted to drift silently.
+The latest source and regression editions were pinned at `7ac842687f6497c2f18b441b0952267803f156f9` before this packet update; the current PR head must still be rechecked. Re-fetch the current PR SHA and verify Git blob IDs and **independent SHA-256** of each file at review time. The source contents are not permitted to drift silently.
 
 | Scope | File | Git blob SHA |
 | --- | --- | --- |
-| New test | `tests/issue-3268-unified-service-inventory.test.mjs` | `58691d2801034c77b6f0eb6381de13bfdc5f481f` |
-| Implementation | `core/sidecars/runtime/unified-service-inventory.mjs` | `2850ae554c7034b192ffe5cd079150d1b58873f1` |
+| New test | `tests/issue-3268-unified-service-inventory.test.mjs` | `a613f6761f5c7aacfbb0f5554e032f1bee292633` |
+| Implementation | `core/sidecars/runtime/unified-service-inventory.mjs` | `270b77182bd87df36b8021eff4732d527e632cb1` |
 | Read-only CLI | `scripts/engineering-team/windows/services/inspect-unified-services.mjs` | `b939957c37c06ab696e79bbde2a145585f664388` |
 | Existing dependency | `core/sidecars/runtime/service-registry.mjs` | `021dbf1d9a729109d3fa2eae55034be20b31e29a` |
 | Existing source inventory | `config/runtime-sidecars.json` | `cc60ff0815f712fcaa7ce6653d693ee0c1780d2d` |
@@ -21,7 +21,7 @@ The author-proposed branch was pinned at `ddb39d627d447cff2226f324e9c231c6d8f82b
 - **W9 preserved obligations/stale evidence:** Unrecognized IDs, malformed status, stale/incorrect exact head, invalid data, replay/unknown process state and duplicate source entries must not turn a component READY or silently alter established approved tests. A planned factory listing is not an operational claim.
 - **Existing runtime contract:** #2693/#2694 six governed sidecars remain owned by the current sidecar supervisor, and `config/runtime-manifest.json` owns the broader managed component declarations. No extra launcher, credential store, headless model dispatcher or second tunnel.
 
-The 20 source-linked test cases cover registry composition, default unproven status, fresh-but-untrusted sidecar `ready`, forged supervisor acceptance, stale head/heartbeat, forged remote tunnel authorization, stale status, duplicate/unknown reports, duplicate/malformed service IDs, unsafe sidecar entrypoint, fixed-source CLI no-elevation inspection, unavailable sources, and actual six-sidecar/four-factory inventory without extra execution capability.
+The 21 source-linked test cases cover registry composition, default unproven status, fresh-but-untrusted sidecar `ready`, forged supervisor acceptance, stale head/heartbeat, forged remote tunnel authorization, stale status, duplicate/unknown reports, duplicate/malformed service IDs, unsafe sidecar entrypoint, fixed-source CLI no-elevation inspection, unavailable sources, and actual six-sidecar/four-factory inventory without extra execution capability.
 
 ## Known limitations the independent reviewer must inspect
 
@@ -46,8 +46,8 @@ The following SHA-256 values were calculated from the exact GitHub UTF-8 file co
 
 | Evidence file | SHA-256 |
 | --- | --- |
-| `tests/issue-3268-unified-service-inventory.test.mjs` | `d928de26a22c665b31d2c10da1d2e3aec7fa8119c1dbe2736834856b9e30b1fa` |
-| `core/sidecars/runtime/unified-service-inventory.mjs` | `ad9351152e98b2f93be2c851cb3d61431eeec7fc08c117f1a092a5b131aff238` |
+| `tests/issue-3268-unified-service-inventory.test.mjs` | `868a22fb0910b05041464350755976641b112fc5524d1f591cb42a6638ad6434` |
+| `core/sidecars/runtime/unified-service-inventory.mjs` | `81d4fe5e52c6b8dce243605c075d2dabf2a1d94ca3d63fd07b4c201ce0a3370a` |
 | `scripts/engineering-team/windows/services/inspect-unified-services.mjs` | `efdabe90b98d6c508ef09d1c70f0d3e0c83e8f02191240e4abfe48af4dde5224` |
 | `core/sidecars/runtime/service-registry.mjs` | `64f4d72796a55d9bb535913035aed1d5a7f32d979354636650f44b1cc1c618a2` |
 | `config/runtime-sidecars.json` | `3f9a5f25f916ccf295441e7c005a88c0edb19f66961b1db94a70dec6a6c648c8` |
@@ -63,4 +63,8 @@ The real F00 reviewer must independently recompute all digests, inspect assertio
 
 ## Supervisor pause/stop status extension
 
-Two additional negative tests ensure already-existing `PAUSE_REQUESTED`, `PAUSED`, `STOP_REQUESTED`, and `STOPPED` supervisor statuses are represented conservatively, not silently discarded; owner STOP marker presence still overrides even an apparently PAUSED heartbeat. No state confers process owner verification, a start command, or acknowledgement of true Windows teardown. These remain author-generated in-memory source-equivalent assertions, **not** native Windows proof. Source editions and 20/20 fixture count above supersede earlier packet SHA values.
+Two additional negative tests ensure already-existing `PAUSE_REQUESTED`, `PAUSED`, `STOP_REQUESTED`, and `STOPPED` supervisor statuses are represented conservatively, not silently discarded; owner STOP marker presence still overrides even an apparently PAUSED heartbeat. No state confers process owner verification, a start command, or acknowledgement of true Windows teardown. These remain author-generated in-memory source-equivalent assertions, **not** native Windows proof. The historical 20/20 fixture count predates the new 21st regression; current source/test digests in this packet supersede earlier packet SHA values.
+
+## October 27 — third duplicate observation quarantine
+
+The original sidecar status projection cleared an ID on its second occurrence but a third occurrence could restore an apparently fresh `observedState`. The source now records duplicated IDs in a separate set and keeps all subsequent occurrences quarantined, while unaffected service observations remain visible. Added one negative regression for three reports of the same ID, including preservation of `capabilityReady:false` and `provenOperational:0`. The new test edition is **21 test cases, NOT EXECUTED OR INDEPENDENTLY ADMITTED**. Prior 20/20 in-memory fixture results do not cover this fix. Source/test SHA-256 values and Git blob IDs above are author-prepared candidates for independent recomputation. Do not promote these to trusted truth or merge before external W8/W9 review and exact-head CI/Windows gates.

@@ -28,6 +28,17 @@ The receipt verifier is now **permission-neutral**: an authentic ADMIT signature
 4. Cryptographically signed `PP-LANE-A-ENROLL-V1` and `PP-TEST-ADMISSION-V1` fixtures: prove signature verification logic *only*, not an independent review or proof that installer created accounts.
 5. The first actual installer PR will consume the fixed profile and register a native service with signed executable, minimal privileges, tested uninstall/upgrade/reboot and independent token witness. No source controlled by an unverified PR may alter the trust root.
 
+### Effective token and SCM permission witness required for the next slice
+
+The candidate-only service policy now fails closed with `WINDOWS_TOKEN_PRIVILEGE_ISOLATION_UNPROVEN` unless the separately collected observation explicitly reports:
+
+- `privilegeObservationState: COMPLETE` based on actual owner-Windows token inspection, not an author-supplied policy string.
+- `reviewerTokenElevated: false` and `reviewerTokenAdministratorsEnabled: false`, based on effective token elevation/group attributes.
+- `reviewerTokenUnexpectedPrivileges: []`, based on a reviewed allowlist of the restricted service token's actual enabled privileges.
+- `codingCanControlReviewerService: false` and `reviewerCanControlManagerService: false`, based on Windows SCM access checks for the **actual separately operated tokens**.
+
+No existing reviewer SCM service, Windows witness, or token-access broker is installed. `Inspect-PlotPickleLaneAService.ps1` currently proves neither effective token privileges nor SCM access control; its process owner SID observation cannot substitute for these checks. The next bounded native-Windows implementation must collect these facts through a supported, read-only Windows security API with explicit denied/unknown outcomes, separate identity and registrar verification, and a distinct reviewer/admission decision. Do not populate these fields from fixture constants, self-signed observations or service names. Missing inspection must stay BLOCKED; diagnostics must not start a reviewer, modify service ACLs, read signing-key bytes, alter STOP, create an authority or grant catalogue admission.
+
 ### Windows native acceptance before production activation
 
 - [ ] Clean-install single mode with owner-approved UAC consent, signed/verified binaries, trusted installation root, rollback on partial install and no conflict with existing Task Scheduler Supervisor/tunnel.

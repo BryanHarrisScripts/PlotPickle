@@ -158,7 +158,7 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
   const legacyPaths = ['.coding-stage-budget.lock', '.coding-stage-owner.lock'];
   let ownership = null, lock = null, lockPath = null, guardPath = null;
   let identity = null, guardCreated = false, safeRelease = true;
-  let executionStarted = false, completed = null;
+  let executionStarted = false, completed = null, ownershipLost = false;
   const matches = async filename => {
     if (!identity || !filename) return false;
     try {
@@ -235,7 +235,7 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
     if (lock) {
       // Do not delete a shared or per-attempt pathname. Even deliberate
       // pathname replacement cannot make this process unlink another file.
-      if (guardCreated && !await owns()) safeRelease = false;
+      if (guardCreated && !await owns()) { ownershipLost = true; safeRelease = false; }
       else if (!guardCreated && !await matches(lockPath)) safeRelease = false;
       try { await lock.close(); } catch { safeRelease = false; }
     }
@@ -272,11 +272,13 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
           if (!saved) safeRelease = false;
         } catch { safeRelease = false; }
       }
-      if (!safeRelease) return block(!outcomeSettled
-        ? 'CODING_OUTCOME_UNCERTAIN_RECONCILIATION_REQUIRED'
-        : executionStarted
-          ? 'CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE'
-          : 'CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
+      if (!safeRelease) return block(ownershipLost && executionStarted
+        ? 'CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE'
+        : !outcomeSettled
+          ? 'CODING_OUTCOME_UNCERTAIN_RECONCILIATION_REQUIRED'
+          : executionStarted
+            ? 'CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE'
+            : 'CODING_STAGE_BUDGET_LOCKED_OR_UNVERIFIABLE');
     }
   }
 }

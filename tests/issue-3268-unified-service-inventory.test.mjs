@@ -196,6 +196,19 @@ test('unreadable STOP marker fails closed despite otherwise healthy heartbeat',(
  assert.equal(supervisor.evidenceCode,'SUPERVISOR_STOP_MARKER_UNREADABLE');
  assert.equal(supervisor.canStart,false);
 });
+test('explicit malformed STOP-marker states fail closed even for direct projection callers',()=>{
+ for(const stopMarkerState of [null,false,0,'INVALID','PENDING']){
+  const result=project({expectedHead:SHA,supervisorSnapshot:{
+   state:'RUNNING',sourceHead:SHA,heartbeatFresh:true,stopMarkerState
+  }});
+  const supervisor=get(result,'independent-windows-supervisor');
+  assert.equal(supervisor.state,'BLOCKED');
+  assert.equal(supervisor.evidenceCode,'SUPERVISOR_STOP_MARKER_UNREADABLE');
+  assert.equal(supervisor.canStart,false);
+  assert.equal(supervisor.canMerge,false);
+ }
+});
+
 test('fixed Windows status inspector treats STOP marker as present without parsing marker contents',async()=>{
  const paths=[];
  const result=await inspectLocalServiceInventory({

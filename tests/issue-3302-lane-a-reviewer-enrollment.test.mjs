@@ -110,7 +110,7 @@ test('signed enrollment plus signed admission verdict is a verifiable but non-op
   credentialKeyId:'reviewer-key-1',candidateHead:'a'.repeat(40),
   testDigests:{'tests/review.test.mjs':'b'.repeat(64)},
   inputDigests:{'scripts/review.mjs':'c'.repeat(64)},
-  truthRefs:['WHITE-PAPER-V3/W8'],findings:['Exact negative assertion inspected'],
+  truthRefs:['WHITE-PAPER-V3/W8','WHITE-PAPER-V3/W9'],findings:['Exact negative assertion inspected'],
   disposition:'ADMIT',evidence:['review-evidence-sha256:abc'],
   timestampUtc:'2026-10-27T23:20:00Z'
  };
@@ -120,7 +120,8 @@ test('signed enrollment plus signed admission verdict is a verifiable but non-op
   receiptExpectations:{
    expectedAuthorPrincipal:'CoderWindows01',expectedHead:receipt.candidateHead,
    expectedTestDigests:receipt.testDigests,expectedInputDigests:receipt.inputDigests,
-   allowedTruthRefs:['WHITE-PAPER-V3/W8'],observedAtMs:now
+   allowedTruthRefs:['WHITE-PAPER-V3/W8','WHITE-PAPER-V3/W9'],
+    requiredTruthRefs:['WHITE-PAPER-V3/W8','WHITE-PAPER-V3/W9'],observedAtMs:now
   }
  };
  const outcome=inspectLaneAAdmissionChain(arg);

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {generateKeyPairSync,sign} from 'node:crypto';
 import {enrollmentPayload,possessionPayload,verifyReviewerEnrollment} from '../scripts/engineering-team/verification/lane-a-reviewer-enrollment.mjs';
 import {inspectLaneAAdmissionChain} from '../scripts/engineering-team/verification/lane-a-admission-chain.mjs';
+import {laneAReviewerServiceProfile} from '../scripts/engineering-team/verification/lane-a-service-identity-policy.mjs';
 import {canonicalPayload} from '../scripts/engineering-team/verification/lane-a-admission-receipt.mjs';
 
 const registrar=generateKeyPairSync('ed25519'),reviewer=generateKeyPairSync('ed25519');
@@ -117,4 +118,16 @@ test('signed enrollment plus signed admission verdict is a verifiable but non-op
  assert.equal(inspectLaneAAdmissionChain({...arg,receipt:swapped}).code,'RECEIPT_KEY_IDENTITY_MISMATCH');
  const untrusted=inspectLaneAAdmissionChain({...arg,registrationAuthority:{...options,trustedRegistrars:{}}});
  assert.equal(untrusted.code,'REVIEWER_IDENTITY_REGISTRAR_NOT_TRUSTED');
+});
+
+test('installer-managed Windows service binds canonical reviewer actor, not a privileged Windows account string',()=>{
+ const candidate=signed({reviewerPrincipal:laneAReviewerServiceProfile.actorId});
+ const result=verifyReviewerEnrollment(candidate,{
+  ...options,expectedReviewerPrincipal:laneAReviewerServiceProfile.actorId
+ });
+ assert.equal(result.verified,true);
+ assert.equal(result.reviewerPrincipal,'PP-F00-D02-W0001');
+ assert.equal(result.mayAdmit,false);
+ assert.equal(result.productionActivated,false);
+ assert.equal(laneAReviewerServiceProfile.serviceAccount,'NT SERVICE\\PlotPickleLaneA');
 });

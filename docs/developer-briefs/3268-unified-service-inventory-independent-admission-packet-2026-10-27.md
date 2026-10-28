@@ -39,3 +39,24 @@ The 18 source-linked test cases cover registry composition, default unproven sta
 Four additional cases cover a **present** existing `engineering-team/supervisor/stop-request.json` marker winning over an otherwise fresh RUNNING heartbeat; an unreadable marker remaining BLOCKED; the fixed-path read-only inspector observing STOP without parsing marker secrets; and STOP persisting in the inventory when no heartbeat exists. The marker is not cleared, modified or treated as an independent process-ownership receipt. A read of `PRESENT` is conservatively blocking; `ABSENT` is never permission to start.
 
 The recorded 18/18 result is an *author-run in-memory V8 source-equivalent fixture*, not the Node test runner or an independent W8/W9 ADMIT. Review the four new assertions and source editions above prior to any catalogue update.
+
+## Candidate exact-source SHA-256 digest set (author-calculated, independently recompute)
+
+The following SHA-256 values were calculated from the exact GitHub UTF-8 file contents (not from git blob IDs). This aids a separate reviewer but **does not constitute an independent signature or ADMIT**.
+
+| Evidence file | SHA-256 |
+| --- | --- |
+| `tests/issue-3268-unified-service-inventory.test.mjs` | `8e5ca19b1855c543807045e50bf23cc1c23ef9d03172bf2e9afe48ea05c4c8a7` |
+| `core/sidecars/runtime/unified-service-inventory.mjs` | `78aed48e1f26635dfb2a3229f3dd9ddca5230404f2c81a1a853a2b9e3a815572` |
+| `scripts/engineering-team/windows/services/inspect-unified-services.mjs` | `efdabe90b98d6c508ef09d1c70f0d3e0c83e8f02191240e4abfe48af4dde5224` |
+| `core/sidecars/runtime/service-registry.mjs` | `64f4d72796a55d9bb535913035aed1d5a7f32d979354636650f44b1cc1c618a2` |
+| `config/runtime-sidecars.json` | `3f9a5f25f916ccf295441e7c005a88c0edb19f66961b1db94a70dec6a6c648c8` |
+| `config/runtime-manifest.json` | `cc9c40bbab3c416e2106aaa8e98cea0dad83c5f09810cb4f64416736bd40aadf` |
+
+**Approved normative source:** `WHITE-PAPER-V3` version 3.0, `docs/white-papers/AI_Programming_Evolution_White_Paper.md`; recomputed SHA-256 `7fd538b813014cf94505903a32e171fca344068d67d15036fbe0fdcb7859c27d` **matches** the already approved `config/verification/test-catalog.json` truth's `sourceDigest`. The obligations are W8 and W9; these are *candidate mappings only*. No bound edition exists for this new test yet.
+
+**Review-only candidate binding:** `target` equals the new test path above; `targetDigest` equals its SHA-256 above; proposed `truthRefs` are `[{truthId:"WHITE-PAPER-V3",obligationId:"W8"},{truthId:"WHITE-PAPER-V3",obligationId:"W9"}]`. The source `inputs` list contains all five other SHA-256 files in this table. Potential existing owner catalogue IDs for independent consideration are `production.modular-runtime-2697`, `agent.persistent-windows-supervisor-3110`, and `agent.settings-compute-tunnel-3254`; the reviewer/maintainer must decide accurate owner mapping without inventing a new approved suite. Scope should be limited to `unit-fixture` and `static-source`. No OS service ownership, native Windows STOP, remote ChatGPT authentication, actual factory work or GitHub merge is proved by those fixtures.
+
+**Owner Windows preflight note:** An authenticated read-only `factory-pr-head` check of the candidate was `BLOCKED / CANDIDATE_BASE_MISMATCH` because the current owner checkout was `8a6bec0b1137adf6d515f8314d158df155357b9d`, five commits behind GitHub MAIN `8a122d9984760a86faa20a6b8210459896d70b17`; no source staging occurred. A separately allowlisted `factory-qa-handoff` Node suite **did pass** on that older Windows source head, with `independentVerification:false`; that is proof only of the old Windows test route, not this exact new test or Product Gate.
+
+The real F00 reviewer must independently recompute all digests, inspect assertions and source consequences, and write an attributable signed `ADMIT/FIX/REJECT/UNPROVEN` receipt. The author must not edit the protected catalogue.

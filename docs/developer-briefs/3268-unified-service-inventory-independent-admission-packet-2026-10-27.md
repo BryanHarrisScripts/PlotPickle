@@ -4,13 +4,13 @@
 
 ## Exact source editions before this packet
 
-The latest source and regression editions were pinned at `83d12dfbc2ac371d19a291895919659b7e24b6d9` before this packet update; the current PR head must still be rechecked. Re-fetch the current PR SHA and verify Git blob IDs and **independent SHA-256** of each file at review time. The source contents are not permitted to drift silently.
+The latest inspected implementation source edition is PR head `723c285886785c4413380dd1b282c0f1e3372f7a` before this packet correction; the current PR head must still be rechecked. This packet is an author-prepared request, not independently verified evidence. Re-fetch the current PR SHA and verify Git blob IDs and **independent SHA-256** of each file at review time. The source contents are not permitted to drift silently.
 
 | Scope | File | Git blob SHA |
 | --- | --- | --- |
 | New test | `tests/issue-3268-unified-service-inventory.test.mjs` | `b12eed2cbf37fb1cb52a030d32ef96c748c4d984` |
 | Implementation | `core/sidecars/runtime/unified-service-inventory.mjs` | `c4d3b3ac0f1e7392deebd9c6f89bd714ded51a40` |
-| Read-only CLI | `scripts/engineering-team/windows/services/inspect-unified-services.mjs` | `b939957c37c06ab696e79bbde2a145585f664388` |
+| Read-only CLI | `scripts/engineering-team/windows/services/inspect-unified-services.mjs` | `5e73c8afc0867dd652fb317e2da98482943fe9c9` |
 | Existing dependency | `core/sidecars/runtime/service-registry.mjs` | `021dbf1d9a729109d3fa2eae55034be20b31e29a` |
 | Existing source inventory | `config/runtime-sidecars.json` | `cc60ff0815f712fcaa7ce6653d693ee0c1780d2d` |
 | Existing managed components | `config/runtime-manifest.json` | `bdf403244ee36ee180c40dd1ad4de6bf6fffb961` |
@@ -48,7 +48,7 @@ The following SHA-256 values were calculated from the exact GitHub UTF-8 file co
 | --- | --- |
 | `tests/issue-3268-unified-service-inventory.test.mjs` | `f3c53fa592fd2fda51b5a1d959098e3f6e66b5dbda7caf3fb639d4bef6220a27` |
 | `core/sidecars/runtime/unified-service-inventory.mjs` | `10eadf51cff4ede8bd404bcc16ccdd49ec3832829420eee6faee54d5610db261` |
-| `scripts/engineering-team/windows/services/inspect-unified-services.mjs` | `efdabe90b98d6c508ef09d1c70f0d3e0c83e8f02191240e4abfe48af4dde5224` |
+| `scripts/engineering-team/windows/services/inspect-unified-services.mjs` | `PENDING_RECOMPUTATION_AFTER_STOP_MARKER_FIX` |
 | `core/sidecars/runtime/service-registry.mjs` | `64f4d72796a55d9bb535913035aed1d5a7f32d979354636650f44b1cc1c618a2` |
 | `config/runtime-sidecars.json` | `3f9a5f25f916ccf295441e7c005a88c0edb19f66961b1db94a70dec6a6c648c8` |
 | `config/runtime-manifest.json` | `cc9c40bbab3c416e2106aaa8e98cea0dad83c5f09810cb4f64416736bd40aadf` |
@@ -68,3 +68,7 @@ Two additional negative tests ensure already-existing `PAUSE_REQUESTED`, `PAUSED
 ## October 27 — canonical UTC status freshness
 
 A status observation was accepted as fresh when its timestamp was parseable but noncanonical (for example `2026-10-27T23:00:00+00:00`). The source now requires a normalized UTC `Z` timestamp and rejects impossible calendar dates before projecting sidecar observations. Added a negative regression for an offset timestamp and a positive canonical UTC control. **Correction:** a preliminary author-side change treated third duplicate IDs as a gap, but the existing `Map.has` already quarantined them; that redundant change and its test were removed before this packet. The final new test edition contains **21 test cases, NOT EXECUTED OR INDEPENDENTLY ADMITTED**. Prior 20/20 in-memory fixture results do not cover this change. The current source/test SHA-256 values and Git blob IDs above are author-prepared candidates for independent recomputation. Do not promote these to trusted truth or merge before external W8/W9 review and exact-head CI/Windows gates.
+
+## October 28 — stale inspector evidence corrected (author-side)
+
+The STOP-marker normalization change in commit `723c285886785c4413380dd1b282c0f1e3372f7a` changed `scripts/engineering-team/windows/services/inspect-unified-services.mjs` after the earlier digest table was prepared. The previous Git blob `b939957c37c06ab696e79bbde2a145585f664388` and SHA-256 `efdabe90b98d6c508ef09d1c70f0d3e0c83e8f02191240e4abfe48af4dde5224` are superseded and MUST NOT be used to admit the current source edition. The exact current Git blob observed through GitHub at that commit is `5e73c8afc0867dd652fb317e2da98482943fe9c9`. Its UTF-8 SHA-256 is explicitly **PENDING independent recomputation**; no digest has been guessed or reused. The independent F00 reviewer must recompute it from the current PR head, verify all other source/input digests and the 21-case test edition, then issue a separately signed W8/W9 verdict. This correction is documentation only: it neither admits the test nor claims any native Windows, service, coding or plugin recovery proof. The PR remains DRAFT and blocked by test-truth governance.

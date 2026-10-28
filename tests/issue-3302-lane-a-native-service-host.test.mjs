@@ -70,6 +70,26 @@ test('native diagnostic wrapper refuses to equate compiler or SCM configuration 
   'New-Item -ItemType User','Set-Service','sc.exe start','git push'])
   assert.equal(ps.includes(forbidden),false,forbidden);
 });
+test('ephemeral SCM canary cannot be mistaken for an owner Windows or admitted reviewer service',async()=>{
+ const ps=await read('Test-PlotPickleLaneAScmCanary.CI.ps1');
+ for(const term of [
+  "EPHEMERAL_WINDOWS_CI_ONLY",
+  "$env:GITHUB_ACTIONS -ne 'true'",
+  "$env:RUNNER_OS -ne 'Windows'",
+  "$env:PLOTPICKLE_LANE_A_EPHEMERAL_CI -ne '1'",
+  "EXISTING_SERVICE_MUST_NOT_BE_TOUCHED",
+  "'obj=' $account",
+  "sidtype $name restricted",
+  "GetOwnerSid","CANARY_REAL_PROCESS_SID_UNVERIFIED",
+  "scmStartStopVerified=$true",
+  "reviewerKeyProvisioned=$false","w8w9Admitted=$false",
+  "mayAdmit=$false","mayMerge=$false",
+  "delete $name"
+ ])assert.ok(ps.includes(term),term);
+ for(const forbidden of ["Import-PfxCertificate","ConvertTo-SecureString","GenerateKeyPair",
+  "New-LocalUser","New-Item -ItemType User","Set-ExecutionPolicy"])
+  assert.equal(ps.includes(forbidden),false,forbidden);
+});
 test('Windows native C# compile and smoke test are opt-in, never an independent reviewer proof',{
  skip:process.platform!=='win32'||process.env.PLOTPICKLE_LANE_A_NATIVE_TEST!=='1'
 },async()=>{

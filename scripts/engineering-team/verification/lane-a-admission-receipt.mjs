@@ -36,5 +36,5 @@ export function verifyAdmissionReceipt(receipt,{trustedReviewers,expectedHead,ex
  }catch{return deny('SIGNATURE_INVALID');}
  if(!verified)return deny('SIGNATURE_INVALID');
  const digest=createHash('sha256').update(canonicalPayload(receipt)).digest('hex');
- return {accepted:true,code:receipt.disposition==='ADMIT'?'ADMISSION_RECEIPT_VALID':'NON_ADMIT_VERDICT_VALID',disposition:receipt.disposition,receiptDigest:digest,mayUpdateCatalogue:receipt.disposition==='ADMIT',mayRunLaneB:false};
+ return {accepted:true,code:receipt.disposition==='ADMIT'?'ADMISSION_RECEIPT_VALID':'NON_ADMIT_VERDICT_VALID',disposition:receipt.disposition,receiptDigest:digest,mayUpdateCatalogue:false,mayRunLaneB:false,requiresSeparateCatalogueMaintainer:receipt.disposition==='ADMIT'};
 }

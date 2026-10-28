@@ -72,6 +72,8 @@ export function projectUnifiedServiceInventory({
  };
  const sidecarKnown=registry.services.filter(x=>x.source==='runtime-sidecars').map(x=>x.id);
  const snapshots=new Map();
+ // Once an ID is duplicated, later entries cannot restore its reported state.
+ const duplicateSidecars=new Set();
  let sidecarFresh=false;
  if(sidecarSnapshot?.schemaVersion===1&&Array.isArray(sidecarSnapshot.services)&&
     safeTimestamp(sidecarSnapshot.observedAt,now)!==null){
@@ -80,8 +82,13 @@ export function projectUnifiedServiceInventory({
    if(!item||typeof item.id!=='string'||!sidecarKnown.includes(item.id)){
     diagnostics.push('UNKNOWN_SIDECAR_OBSERVATION');continue;
    }
-   if(snapshots.has(item.id)){diagnostics.push('DUPLICATE_SIDECAR_OBSERVATION');snapshots.set(item.id,null);continue;}
-   snapshots.set(item.id,safeReported(item.state));
+   if(snapshots.has(item.id)){
+    diagnostics.push('DUPLICATE_SIDECAR_OBSERVATION');
+    duplicateSidecars.add(item.id);
+    snapshots.set(item.id,null);
+    continue;
+   }
+   snapshots.set(item.id,duplicateSidecars.has(item.id)?null:safeReported(item.state));
   }
  }else if(sidecarSnapshot){diagnostics.push('SIDECAR_STATUS_STALE_OR_INVALID');}
  const supervisorState=SUPERVISOR_STATES.has(supervisorSnapshot?.state)?supervisorSnapshot.state:null;

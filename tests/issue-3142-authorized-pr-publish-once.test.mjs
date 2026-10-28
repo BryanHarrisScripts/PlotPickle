@@ -298,3 +298,36 @@ test('publication requires an exact coding-ownership release witness rather than
     assert.equal(validateCodingReleaseWitness(release, f.grant,
       { ...f.prepared, state: 'CODING_OUTCOME_UNCERTAIN' }), false);
   }));
+
+
+test('operator STOP blocks draft publishing before any GitHub API or reservation', () =>
+  fixture(async f => {
+    const gh = fakeGitHub(f);
+    const r = await publishAuthorizedDraftOnce({
+      ...options(f, gh.fetchImpl), operatorReady: async () => false,
+    });
+    assert.equal(r.code, 'PUBLISH_OWNER_STOP_PAUSE_OR_HEARTBEAT_UNVERIFIABLE');
+    assert.equal(r.pullRequestCreated, false);
+    assert.equal(gh.calls.length, 0);
+  }));
+
+test('STOP after a GitHub response retains uncertainty and prohibits further API calls', () =>
+  fixture(async f => {
+    const gh = fakeGitHub(f);
+    let operatorRunning = true;
+    const fetchImpl = async (...args) => {
+      const response = await gh.fetchImpl(...args);
+      operatorRunning = false;
+      return response;
+    };
+    const run = () => publishAuthorizedDraftOnce({
+      ...options(f, fetchImpl), operatorReady: async () => operatorRunning,
+    });
+    const first = await run();
+    assert.equal(first.state, 'PUBLISH_STARTED_UNCONFIRMED');
+    assert.equal(first.phase, 'CHECK_BASE');
+    assert.equal(first.replayAuthorized, false);
+    assert.deepEqual(gh.calls.map(x => x.method), ['GET']);
+    assert.equal((await run()).code, 'PUBLISH_OWNER_STOP_PAUSE_OR_HEARTBEAT_UNVERIFIABLE');
+    assert.equal(gh.calls.length, 1);
+  }));

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {laneAReviewerServiceProfile,inspectLaneAServiceIdentity} from '../scripts/engineering-team/verification/lane-a-service-identity-policy.mjs';
 const HEAD='a'.repeat(40),BINARY='b'.repeat(64),REGISTRAR='c'.repeat(64);
 const REVIEWER='S-1-5-21-101-102-103-1002',CODER='S-1-5-21-101-102-103-1001';
@@ -76,4 +77,16 @@ test('extra GitHub, catalogue, model or merge powers always fail closed',()=>{
 test('invalid, uninstalled or missing observed contract is blocked',()=>{
  assert.equal(inspectLaneAServiceIdentity(null,expectations).code,'SERVICE_OBSERVATION_MISSING');
  assert.equal(check({schemaVersion:2}).code,'SERVICE_OBSERVATION_MISSING');
+});
+
+test('read-only Windows preflight pins the service and never acts as a registrar',async()=>{
+ const ps=await readFile(new URL('../scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneAService.ps1',import.meta.url),'utf8');
+ assert.ok(ps.includes("$serviceName = 'PlotPickleLaneA'"));
+ assert.ok(ps.includes("Get-CimInstance -ClassName Win32_Service"));
+ assert.ok(ps.includes("Invoke-CimMethod -InputObject $process -MethodName GetOwnerSid"));
+ assert.ok(ps.includes("independentlyAttested = $false"));
+ assert.ok(ps.includes("canAdmit = $false"));
+ assert.ok(ps.includes("canMerge = $false"));
+ for(const forbidden of ['New-Service','Set-Service','Start-Service','Remove-Service','Invoke-Expression','ConvertTo-SecureString','Start-Process'])
+  assert.equal(ps.includes(forbidden),false,forbidden);
 });

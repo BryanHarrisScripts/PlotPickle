@@ -92,3 +92,77 @@ test('owner STOP and unreadable STOP take precedence over all signatures',()=>{
 test('registrar and publisher principal names must be distinct',()=>{
  assert.equal(check({signedPolicy:policy({registrarPrincipal:'IndependentRootPublisher'})}).code,'POLICY_SCOPE_OR_SCHEMA_INVALID');
 });
+
+
+// Proposed registrar nonce-ledger regression input: author-side unit fixtures.
+// This source edition is NOT independently W8/W9 ADMITTED.
+const nonceFs = await import('node:fs/promises');
+const nonceOS = await import('node:os');
+const noncePath = await import('node:path');
+const {issueLaneAChallenge,spendLaneAChallengeOnce} =
+ await import('../scripts/engineering-team/verification/lane-a-nonce-ledger.mjs');
+const nonceScope={registrarId:'Registrar001',hostId:'Host001',
+ reviewerPrincipal:'IndependentReviewer001',reviewerSid:'S-1-5-80-123456',
+ requestId:'Request001'};
+async function newNonceFixture(){
+ const dir=await nonceFs.mkdtemp(noncePath.join(nonceOS.tmpdir(),'f00-nonce-'));
+ await nonceFs.mkdir(noncePath.join(dir,'issued'));
+ await nonceFs.mkdir(noncePath.join(dir,'spent'));
+ return dir;
+}
+test('registrar nonce candidate permits one spent claim without review grants',async()=>{
+ const root=await newNonceFixture();
+ try{
+  const issued=await issueLaneAChallenge({root,...nonceScope});
+  assert.equal(issued.status,'ISSUED_CANDIDATE_ONLY');
+  assert.match(issued.challengeNonce,/^[a-f0-9]{64}$/);
+  const args={root,challengeNonce:issued.challengeNonce,...nonceScope};
+  const first=await spendLaneAChallengeOnce(args);
+  assert.equal(first.status,'SPENT_CANDIDATE_ONLY');
+  assert.equal(first.nonceConsumedForProduction,false);
+  assert.equal(first.mayAdmit,false);
+  assert.equal((await spendLaneAChallengeOnce(args)).status,'BLOCKED');
+ }finally{await nonceFs.rm(root,{recursive:true,force:true});}
+});
+test('registrar nonce concurrent contenders have exactly one local winner',async()=>{
+ const root=await newNonceFixture();
+ try{
+  const issued=await issueLaneAChallenge({root,...nonceScope});
+  const args={root,challengeNonce:issued.challengeNonce,...nonceScope};
+  const results=await Promise.all(Array.from({length:16},()=>spendLaneAChallengeOnce(args)));
+  assert.equal(results.filter(r=>r.status==='SPENT_CANDIDATE_ONLY').length,1);
+  assert.equal(results.filter(r=>r.status==='BLOCKED').length,15);
+ }finally{await nonceFs.rm(root,{recursive:true,force:true});}
+});
+test('registrar nonce rejects mismatched identity and missing protected storage',async()=>{
+ const root=await newNonceFixture();
+ try{
+  const issued=await issueLaneAChallenge({root,...nonceScope});
+  const args={root,challengeNonce:issued.challengeNonce,...nonceScope};
+  assert.equal((await spendLaneAChallengeOnce({...args,hostId:'Wrong001'})).code,
+    'ISSUED_CHALLENGE_CONTENT_MISMATCH');
+  assert.equal((await spendLaneAChallengeOnce({...args,root:root+'-missing'})).code,
+    'PROTECTED_REGISTRAR_STORAGE_UNVERIFIABLE');
+  assert.equal((await spendLaneAChallengeOnce(args)).status,'SPENT_CANDIDATE_ONLY');
+ }finally{await nonceFs.rm(root,{recursive:true,force:true});}
+});
+test('registrar spent marker survives corruption and never auto-replays',async()=>{
+ const root=await newNonceFixture();
+ try{
+  const issued=await issueLaneAChallenge({root,...nonceScope});
+  const spentPath=noncePath.join(root,'spent',issued.challengeNonce+'.json');
+  await nonceFs.writeFile(spentPath,'');
+  const result=await spendLaneAChallengeOnce({root,challengeNonce:issued.challengeNonce,...nonceScope});
+  assert.equal(result.code,'CHALLENGE_ALREADY_SPENT_OR_DURABILITY_UNVERIFIABLE');
+  assert.equal(result.replayAuthorized,false);
+ }finally{await nonceFs.rm(root,{recursive:true,force:true});}
+});
+test('registrar nonce does not traverse symlinked spent directory',async()=>{
+ const root=await newNonceFixture();
+ try{
+  await nonceFs.rm(noncePath.join(root,'spent'),{recursive:true});
+  await nonceFs.symlink(noncePath.join(root,'issued'),noncePath.join(root,'spent'),'dir');
+  const result=await issueLaneAChallenge({root,...nonceScope});
+  assert.equal(result.code,'PROTECTED_REGISTRAR_STORAGE_UNVERIFIABLE');
+ }finally{await nonceFs.rm(root,{recursive:true,force:true});}
+});

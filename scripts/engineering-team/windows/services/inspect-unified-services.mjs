@@ -49,7 +49,8 @@ export async function inspectLocalServiceInventory({
   state:heartbeat.state,sourceHead:heartbeat.sourceHead,stopMarkerState,
   heartbeatFresh:Number.isSafeInteger(heartbeat.at)&&
    heartbeat.at<=now+30000&&now-heartbeat.at<=120000
- }:{state:null,sourceHead:null,heartbeatFresh:false,stopMarkerState};
+ }:stopMarkerState==='ABSENT'?null:
+  {state:null,sourceHead:null,heartbeatFresh:false,stopMarkerState};
  const result=projectUnifiedServiceInventory({
   registry,sidecarSnapshot,supervisorSnapshot,now
  });

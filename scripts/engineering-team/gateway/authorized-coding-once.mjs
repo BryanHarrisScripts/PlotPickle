@@ -167,9 +167,11 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
         current.dev === identity.dev && current.ino === identity.ino;
     } catch { return false; }
   };
+  const operatorOk = async () => { try { return await operatorReady() === true; }
+    catch { return false; } };
   const owns = async () => Boolean(guardCreated) && ownership?.owned() &&
     await matches(lockPath) && await matches(guardPath) && ownership.owned() &&
-    await operatorReady().catch(() => false);
+    await operatorOk();
   try {
     ownership = claimCodingOwnership(receipts, grant.grantId, at);
     for (const name of legacyPaths) {
@@ -362,7 +364,9 @@ export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, g
   catch (error) {
     if (error?.code !== 'ENOENT') return block('CODING_ALREADY_RESERVED_OR_UNVERIFIABLE');
   }
-  if (!await operatorReady().catch(() => false)) return block('CODING_OWNER_STOP_PAUSE_OR_HEARTBEAT_UNVERIFIABLE');
+  let initialOperatorReady = false;
+  try { initialOperatorReady = await operatorReady() === true; } catch { /* deny */ }
+  if (!initialOperatorReady) return block('CODING_OWNER_STOP_PAUSE_OR_HEARTBEAT_UNVERIFIABLE');
   return reserveCodingStage(stages, receipts, grant, at, checkCapacity, async owns => {
   const guarded = async fn => {
     if (!await owns()) throw Error('CODING_STAGE_OWNERSHIP_LOST');

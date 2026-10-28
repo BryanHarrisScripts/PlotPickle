@@ -12,7 +12,7 @@ This packet requests genuinely independent examination of three NEW test edition
 
 | Test target | SHA-256 content digest | Git blob ID | Proposed truth obligation |
 | --- | --- | --- | --- |
-| `tests/issue-3302-lane-a-admission-receipt.test.mjs` | `8bd678493cdfd433b0a443d65bbe1c7c14c8f1f15d719d56536c4d1ff3e9c4f8` | `84b9378cf651653053a748d129fa3e4105d1ee10` | WHITE-PAPER-V3 W8 + W9 |
+| `tests/issue-3302-lane-a-admission-receipt.test.mjs` | `becd18bcaf621ef6fd371afd1f8aacb2e8e87dd21a1e40172cab40439fd2f29f` | `b17dae061b22e06d4f280ee9b91391a8d61a80ca` | WHITE-PAPER-V3 W8 + W9 |
 | `tests/issue-3302-lane-a-reviewer-enrollment.test.mjs` | `5e6769c3d67fca127142acf1320e2484164d35f4fadfea8b3f9fa1c306cf3eea` | `524ec800b05356d0f8798400736e711d1b5fcc57` | WHITE-PAPER-V3 W8 + W9 |
 | `tests/issue-3302-lane-a-service-identity-policy.test.mjs` | `111cb146ddf8713601402f604733e86e182f4615b74705f127d413d4e8939ebf` | `54ef181f259660027cf51fe368eec43abb0cd430` | WHITE-PAPER-V3 W8 + W9 |
 
@@ -22,7 +22,7 @@ This packet requests genuinely independent examination of three NEW test edition
 
 | Input | Exact SHA-256 | Git blob |
 | --- | --- | --- |
-| `scripts/engineering-team/verification/lane-a-admission-receipt.mjs` | `3b00a47641f1d6a27a42dbf31a233f208b960dd6527af59dd8f9c47543437b67` | `252dbb7907f61b870dea0360ba6c778fac5ef571` |
+| `scripts/engineering-team/verification/lane-a-admission-receipt.mjs` | `25d730b5c08194cfa0a55e6bdb3dbe45fe9d063089945a14029472ccd18afd70` | `dd656e8de93289641cdac5d76a7f52568b267c6f` |
 | `scripts/engineering-team/verification/lane-a-reviewer-enrollment.mjs` | `421870e19b224ac41ca9ff998722c0b858fa2a79035af8b06d14f80c229f92d7` | `6856a5eaf6c31dbb51e7403e64400e8f3b2e4ed1` |
 | `scripts/engineering-team/verification/lane-a-admission-chain.mjs` | `de5369c7f881afc83a6695a1b82ccd4d266969f87f76aea9b311708afcd6f173` | `0572e93e888306397235fbc348105b9be73a6fb5` |
 | `scripts/engineering-team/verification/lane-a-service-identity-policy.mjs` | `260f982e24ba6e8b87f90974554ea95d1cab35094be5b24c1cd754d69a612dbd` | `ad5db88e457d6b82e6bf38868f4376b9bd7aa764` |
@@ -56,3 +56,7 @@ The enrollment verifier now rejects any unrecognized top-level field, including 
 PR #3322 now requires explicit observed effective-token and service-control facts before the fixed reviewer identity can even be a nonoperational candidate: a completed privilege observation, no elevated reviewer token, no enabled Administrators group, no unexpected token privileges, no coding-worker control of the reviewer SCM service, and no reviewer control of the manager SCM service. A process owner SID alone cannot prove least privilege. Missing, false-format, or adverse facts produce `WINDOWS_TOKEN_PRIVILEGE_ISOLATION_UNPROVEN`, not a candidate. The candidate response still grants no execution, ADMIT, catalogue editing, coding, or merge. The existing read-only Windows inspector does not yet collect these extra effective-token/SCM permissions; real Windows privilege and ACL witnessing remains required and is **not** being inferred from a synthetic fixture.
 
 The service-policy test edition above includes negative checks for elevated/admin tokens, unexpected privileges, missing observations and cross-service SCM control. The above SHA-256 editions and Git blob IDs are the new candidate inputs. No independent signed W8/W9 review, catalogue admission, actual owner-Windows token observation or native service enrollment has occurred from this author-side change. If any further source/test bytes change, the hashes must be recomputed again before review.
+
+## 2026-10-27 signed-evidence validation hardening (AUTHOR ONLY)
+
+The receipt verifier now rejects blank, non-string and oversized findings/evidence entries, impossible UTC calendar dates (including normalized February 30), and absent/malformed expected edition maps without throwing. Two negative regression cases were added to the existing unadmitted test source. Author-computed SHA-256 and Git blob IDs above were refreshed for these two files. This does not admit the new edition, grant reviewer credentials or demonstrate native Windows acceptance. An independent reviewer must recompute the exact bytes and sign W8/W9 before protected catalogue updates. No claim of test execution or CI PASS is made here.

@@ -8,8 +8,8 @@ The latest inspected implementation source edition is PR head `723c285886785c441
 
 | Scope | File | Git blob SHA |
 | --- | --- | --- |
-| New test | `tests/issue-3268-unified-service-inventory.test.mjs` | `b12eed2cbf37fb1cb52a030d32ef96c748c4d984` |
-| Implementation | `core/sidecars/runtime/unified-service-inventory.mjs` | `c4d3b3ac0f1e7392deebd9c6f89bd714ded51a40` |
+| New test | `tests/issue-3268-unified-service-inventory.test.mjs` | `4111aed33a0e11b4d137d41a7810b7dca4bea2c7` |
+| Implementation | `core/sidecars/runtime/unified-service-inventory.mjs` | `57263b4288abfc8f017fead6a26c0aa87dce87bb` |
 | Read-only CLI | `scripts/engineering-team/windows/services/inspect-unified-services.mjs` | `5e73c8afc0867dd652fb317e2da98482943fe9c9` |
 | Existing dependency | `core/sidecars/runtime/service-registry.mjs` | `021dbf1d9a729109d3fa2eae55034be20b31e29a` |
 | Existing source inventory | `config/runtime-sidecars.json` | `cc60ff0815f712fcaa7ce6653d693ee0c1780d2d` |
@@ -72,3 +72,10 @@ A status observation was accepted as fresh when its timestamp was parseable but 
 ## October 28 — stale inspector evidence corrected (author-side)
 
 The STOP-marker normalization change in commit `723c285886785c4413380dd1b282c0f1e3372f7a` changed `scripts/engineering-team/windows/services/inspect-unified-services.mjs` after the earlier digest table was prepared. The previous Git blob `b939957c37c06ab696e79bbde2a145585f664388` and SHA-256 `efdabe90b98d6c508ef09d1c70f0d3e0c83e8f02191240e4abfe48af4dde5224` are superseded and MUST NOT be used to admit the current source edition. The exact current Git blob observed through GitHub at that commit is `5e73c8afc0867dd652fb317e2da98482943fe9c9`. Its UTF-8 SHA-256 is explicitly **PENDING independent recomputation**; no digest has been guessed or reused. The independent F00 reviewer must recompute it from the current PR head, verify all other source/input digests and the 21-case test edition, then issue a separately signed W8/W9 verdict. This correction is documentation only: it neither admits the test nor claims any native Windows, service, coding or plugin recovery proof. The PR remains DRAFT and blocked by test-truth governance.
+
+
+## October 28 — explicit malformed STOP-marker projection repair (author-prepared)
+
+At source commit `c9702497a7aff3486da562af4e3ba4d42636898d`, the exported read-only projector was hardened to classify explicitly malformed STOP-marker observations as `BLOCKED / SUPERVISOR_STOP_MARKER_UNREADABLE` even when callers bypass the CLI's normalization. The direct-projection negative regression was committed at `1f7d2db9e2edc00b08a957c62a90f3a13a7808d7`. This does not alter local STOP state or enable start, code, admission or merge.
+
+The implementation blob is `57263b4288abfc8f017fead6a26c0aa87dce87bb`; the test blob is `4111aed33a0e11b4d137d41a7810b7dca4bea2c7`. Previous source/test SHA-256 editions and any earlier approvals must be treated as superseded. Independently computed exact UTF-8 SHA-256 values, W8/W9 test admission, current-head CI and native Windows acceptance remain PENDING. This paragraph is not a reviewer signature or test result.

@@ -2154,7 +2154,8 @@
           "tests/issue-2732-startup-status-messaging.test.mjs",
           "tests/issue-2698-runtime-shutdown.test.mjs",
           "tests/issue-2698-launcher-probe.test.mjs",
-          "tests/issue-2698-media-retention.test.mjs"
+          "tests/issue-2698-media-retention.test.mjs",
+          "tests/issue-3268-unified-service-inventory.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4326,7 +4327,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-3110-persistent-local-supervisor.test.mjs"
+          "tests/issue-3110-persistent-local-supervisor.test.mjs",
+          "tests/issue-3268-unified-service-inventory.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4683,7 +4685,8 @@
         "targets": [
           "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs",
           "tests/issue-3268-owned-tunnel-controls.test.mjs",
-          "tests/issue-3142-tunnel-watchdog-policy.test.mjs"
+          "tests/issue-3142-tunnel-watchdog-policy.test.mjs",
+          "tests/issue-3268-unified-service-inventory.test.mjs"
         ]
       },
       "cost": "fast",
@@ -11777,6 +11780,52 @@
           {
             "path": "config/oss-radar/adaptive-intelligence.json",
             "digest": "1787646a9c824a21cc593b7a9d8faae66321846aa910dd96f3ff4c612aad3ffb"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3268-unified-service-inventory.test.mjs",
+        "targetDigest": "6b8e1173edb1cc8948ddfa9030130114342e1b3a8c298b75a7e4124a027ead60",
+        "catalogueIds": [
+          "production.modular-runtime-2697",
+          "agent.persistent-windows-supervisor-3110",
+          "agent.settings-compute-tunnel-3254"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Source-level read-only unified service inventory and fixed-path status inspector assertions only; synthetic unit fixtures and static-source checks. Does not establish native Windows service/process ownership, reparse/junction defense, ACL or service-token identity, restart/crash recovery, authenticated remote ChatGPT transport, actual Factory execution, independent Windows Product Gate, signed verification or merge authority.",
+        "inputs": [
+          {
+            "path": "core/sidecars/runtime/unified-service-inventory.mjs",
+            "digest": "fd6b2de13bb4352748b53b895b4dbce12d62e07acfc430ebaa67a6d183f9b4b7"
+          },
+          {
+            "path": "scripts/engineering-team/windows/services/inspect-unified-services.mjs",
+            "digest": "367dc9b897787393244a8c0f84f10d83857df75a542bda2cb4ad518ddb069078"
+          },
+          {
+            "path": "core/sidecars/runtime/service-registry.mjs",
+            "digest": "64f4d72796a55d9bb535913035aed1d5a7f32d979354636650f44b1cc1c618a2"
+          },
+          {
+            "path": "config/runtime-sidecars.json",
+            "digest": "3f9a5f25f916ccf295441e7c005a88c0edb19f66961b1db94a70dec6a6c648c8"
+          },
+          {
+            "path": "config/runtime-manifest.json",
+            "digest": "cc9c40bbab3c416e2106aaa8e98cea0dad83c5f09810cb4f64416736bd40aadf"
           }
         ]
       }

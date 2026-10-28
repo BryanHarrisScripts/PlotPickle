@@ -12,7 +12,7 @@ This packet requests genuinely independent examination of three NEW test edition
 
 | Test target | SHA-256 content digest | Git blob ID | Proposed truth obligation |
 | --- | --- | --- | --- |
-| `tests/issue-3302-lane-a-admission-receipt.test.mjs` | `0aa2fc50d0c3bd09a94003e1b2b388ba9ba07623c913aa21d1758caee982cfb0` | `5476015f2fef2d2f9277b0554997f8f088e47a45` | WHITE-PAPER-V3 W8 + W9 |
+| `tests/issue-3302-lane-a-admission-receipt.test.mjs` | `PENDING-INDEPENDENT-RECOMPUTATION` | `8f45b63742bf7c9587f690317e9e2ba1b4c5bf85` | WHITE-PAPER-V3 W8 + W9 |
 | `tests/issue-3302-lane-a-reviewer-enrollment.test.mjs` | `PENDING-INDEPENDENT-RECOMPUTATION` | `9c4aa21ef4f169f203b7a24bf1423cf6ec0ca001` | WHITE-PAPER-V3 W8 + W9 |
 | `tests/issue-3302-lane-a-service-identity-policy.test.mjs` | `111cb146ddf8713601402f604733e86e182f4615b74705f127d413d4e8939ebf` | `54ef181f259660027cf51fe368eec43abb0cd430` | WHITE-PAPER-V3 W8 + W9 |
 
@@ -22,7 +22,7 @@ This packet requests genuinely independent examination of three NEW test edition
 
 | Input | Exact SHA-256 | Git blob |
 | --- | --- | --- |
-| `scripts/engineering-team/verification/lane-a-admission-receipt.mjs` | `2e3f2e21ed5a60e5978ee85ab74ccda814fa62eda9eb6c3f2cc83066f2852f7a` | `89e4b09401baf0b32429a1cd9d14b3a6c03d27b2` |
+| `scripts/engineering-team/verification/lane-a-admission-receipt.mjs` | `PENDING-INDEPENDENT-RECOMPUTATION` | `6062c823dace5583789f1ec73c39956c8c570815` |
 | `scripts/engineering-team/verification/lane-a-reviewer-enrollment.mjs` | `PENDING-INDEPENDENT-RECOMPUTATION` | `5bf2ac5399545c25f0164ad2115fc97b0af2b77b` |
 | `scripts/engineering-team/verification/lane-a-admission-chain.mjs` | `de5369c7f881afc83a6695a1b82ccd4d266969f87f76aea9b311708afcd6f173` | `0572e93e888306397235fbc348105b9be73a6fb5` |
 | `scripts/engineering-team/verification/lane-a-service-identity-policy.mjs` | `260f982e24ba6e8b87f90974554ea95d1cab35094be5b24c1cd754d69a612dbd` | `ad5db88e457d6b82e6bf38868f4376b9bd7aa764` |
@@ -74,3 +74,9 @@ All three changed test/source editions remain **UNADMITTED**. Do not merge this 
 The reviewer enrollment verifier previously used permissive `Date.parse` for signed issued/expires timestamps, allowing normalized impossible calendar dates, and silently defaulted the verification clock to the local process time when no caller observation was supplied. The current source proposal rejects noncanonical UTC timestamps and impossible calendar dates, requires an explicit representable safe-integer observation clock, and keeps the enrollment result inert. The new negative regression cases cover normalized February 30, timezone-offset text, missing/NaN clocks, and out-of-range clocks.
 
 Source commit `7640fba4273b1ce28f91195e2dee736d15d5e733`; test proposal commit `6b536b5b94883cf8eaf287aa2529ee3c7ab775a0`. Current Git blob IDs are recorded in the table above. The two prior SHA-256 entries were explicitly invalidated and marked PENDING-INDEPENDENT-RECOMPUTATION; no digest, W8/W9 approval, test execution, or independent Windows receipt is asserted. The exact branch head and all transitive inputs must be re-fetched before any independent review. This candidate is NOT ADMITTED and must not merge.
+
+## 2026-10-28 independent truth-scope completeness repair (AUTHOR ONLY; UNADMITTED)
+
+A signed `ADMIT` previously passed when its `truthRefs` named only W8, even though the candidate's required obligations are W8 AND W9. The verifier now requires an externally supplied nonempty `requiredTruthRefs` list for ADMIT, validates its entries against the allowed normative scope, rejects duplicate truth references, and rejects any ADMIT omitting a required obligation. FIX/REJECT/UNPROVEN remain nonpromoting evidence and may cite a narrower allowed scope. This prevents a partial signed review from masquerading as a complete W8/W9 admission. The separate reviewer, registrar, catalogue maintainer, actual Windows identity and signature checks are still required.
+
+Source commit `6544a549d2bbf6eed055c851f17e1720ea5a25ad`; proposed test-edition commit `b6c5475c7e999f09298b8398305589e00e8ea6ff`. The new regression proposal covers omitted W9, missing/untrusted required obligations, duplicate references and nonpromoting FIX. The two superseded SHA-256 entries in the tables above are deliberately invalidated; the new Git blob IDs are recorded but independent SHA-256 recomputation and signed W8/W9 admission are PENDING. Do not execute the revised unadmitted test edition as an approved test, alter protected truth bindings, or merge this draft based on this author change. Exact-head CI and owner Windows Product Gate remain required.

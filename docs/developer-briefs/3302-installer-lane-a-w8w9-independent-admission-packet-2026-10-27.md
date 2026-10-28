@@ -13,7 +13,7 @@ This packet requests genuinely independent examination of three NEW test edition
 | Test target | SHA-256 content digest | Git blob ID | Proposed truth obligation |
 | --- | --- | --- | --- |
 | `tests/issue-3302-lane-a-admission-receipt.test.mjs` | `0aa2fc50d0c3bd09a94003e1b2b388ba9ba07623c913aa21d1758caee982cfb0` | `5476015f2fef2d2f9277b0554997f8f088e47a45` | WHITE-PAPER-V3 W8 + W9 |
-| `tests/issue-3302-lane-a-reviewer-enrollment.test.mjs` | `9c972ec94d8aaca7b29c04c0382943e90099801faa0e095127ab1e112219a0e5` | `5f396d822673a5b279fe8763c98b8b0c890be3ff` | WHITE-PAPER-V3 W8 + W9 |
+| `tests/issue-3302-lane-a-reviewer-enrollment.test.mjs` | `PENDING-INDEPENDENT-RECOMPUTATION` | `9c4aa21ef4f169f203b7a24bf1423cf6ec0ca001` | WHITE-PAPER-V3 W8 + W9 |
 | `tests/issue-3302-lane-a-service-identity-policy.test.mjs` | `111cb146ddf8713601402f604733e86e182f4615b74705f127d413d4e8939ebf` | `54ef181f259660027cf51fe368eec43abb0cd430` | WHITE-PAPER-V3 W8 + W9 |
 
 **Approved normative source** `docs/white-papers/AI_Programming_Evolution_White_Paper.md`: SHA-256 `7fd538b813014cf94505903a32e171fca344068d67d15036fbe0fdcb7859c27d`, independently matched by author to `config/verification/test-catalog.json`'s already approved WHITE-PAPER-V3 3.0 sourceDigest. W8 = independent verification as acceptance; W9 = preserve source obligations, prevent repeated repair and unexpected changes. Author-computed match is not a reviewer-issued ADMIT.
@@ -23,7 +23,7 @@ This packet requests genuinely independent examination of three NEW test edition
 | Input | Exact SHA-256 | Git blob |
 | --- | --- | --- |
 | `scripts/engineering-team/verification/lane-a-admission-receipt.mjs` | `2e3f2e21ed5a60e5978ee85ab74ccda814fa62eda9eb6c3f2cc83066f2852f7a` | `89e4b09401baf0b32429a1cd9d14b3a6c03d27b2` |
-| `scripts/engineering-team/verification/lane-a-reviewer-enrollment.mjs` | `421870e19b224ac41ca9ff998722c0b858fa2a79035af8b06d14f80c229f92d7` | `6856a5eaf6c31dbb51e7403e64400e8f3b2e4ed1` |
+| `scripts/engineering-team/verification/lane-a-reviewer-enrollment.mjs` | `PENDING-INDEPENDENT-RECOMPUTATION` | `5bf2ac5399545c25f0164ad2115fc97b0af2b77b` |
 | `scripts/engineering-team/verification/lane-a-admission-chain.mjs` | `de5369c7f881afc83a6695a1b82ccd4d266969f87f76aea9b311708afcd6f173` | `0572e93e888306397235fbc348105b9be73a6fb5` |
 | `scripts/engineering-team/verification/lane-a-service-identity-policy.mjs` | `260f982e24ba6e8b87f90974554ea95d1cab35094be5b24c1cd754d69a612dbd` | `ad5db88e457d6b82e6bf38868f4376b9bd7aa764` |
 | `scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneAService.ps1` | `ea73e47509dee34eefec7fcd8dee81f4a4b5627f960289492561db4d7763b352` | `9972479edbc6346360cff42e4076bb206272b7fb` |
@@ -68,3 +68,9 @@ The receipt verifier previously accepted an otherwise correctly signed ADMIT ind
 Author commits: `804d064808b7cb61aa37d6e94930cc5b5f88763f` (receipt verifier), `c101bccf7f6bd2e45850703683423f755cf87fe3` (receipt negative regression), `f88d9f4885fff154a56f9bfc4de98c0971a795d2` (deterministic clock in enrollment chain fixture). A separate local Node v22.16.0 `node --test` run executed **8/8 PASS, 0 FAIL** focused Ed25519 positive/negative cases against the exact source bytes of `lane-a-admission-receipt.mjs` (SHA-256 `2e3f2e21ed5a60e5978ee85ab74ccda814fa62eda9eb6c3f2cc83066f2852f7a` matched GitHub). This is **not** execution of the complete changed repository test files, exact-head CI, independent W8/W9 admission or owner Windows acceptance. The test and source SHA-256 / Git blob IDs in the tables above were recomputed from exact GitHub content using an author-side SHA-256 implementation checked against the standard `abc` vector and the previously recorded source digest. Independent reviewer must recompute independently.
 
 All three changed test/source editions remain **UNADMITTED**. Do not merge this draft, bypass test-truth governance, install reviewer credentials, or start Lane B based on this packet.
+
+## 2026-10-28 enrollment timestamp and clock regression (AUTHOR ONLY)
+
+The reviewer enrollment verifier previously used permissive `Date.parse` for signed issued/expires timestamps, allowing normalized impossible calendar dates, and silently defaulted the verification clock to the local process time when no caller observation was supplied. The current source proposal rejects noncanonical UTC timestamps and impossible calendar dates, requires an explicit representable safe-integer observation clock, and keeps the enrollment result inert. The new negative regression cases cover normalized February 30, timezone-offset text, missing/NaN clocks, and out-of-range clocks.
+
+Source commit `7640fba4273b1ce28f91195e2dee736d15d5e733`; test proposal commit `6b536b5b94883cf8eaf287aa2529ee3c7ab775a0`. Current Git blob IDs are recorded in the table above. The two prior SHA-256 entries were explicitly invalidated and marked PENDING-INDEPENDENT-RECOMPUTATION; no digest, W8/W9 approval, test execution, or independent Windows receipt is asserted. The exact branch head and all transitive inputs must be re-fetched before any independent review. This candidate is NOT ADMITTED and must not merge.

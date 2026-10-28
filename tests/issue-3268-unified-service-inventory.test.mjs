@@ -244,3 +244,17 @@ test('a durable STOP marker wins over a reported PAUSED supervisor',()=>{
  assert.equal(get(result,'independent-windows-supervisor').state,'STOP_REQUESTED');
  assert.equal(get(result,'independent-windows-supervisor').evidenceCode,'LOCAL_STOP_MARKER_PRESENT');
 });
+
+test('three or more reports for one sidecar remain quarantined after the first duplicate',()=>{
+ const result=project({sidecarSnapshot:snapshot({services:[
+  {id:'dsdd',state:'ready'},
+  {id:'dsdd',state:'failed'},
+  {id:'dsdd',state:'ready'},
+  {id:'media-runtime',state:'degraded'}
+ ]})});
+ assert.equal(get(result,'dsdd').observedState,null);
+ assert.equal(get(result,'dsdd').capabilityReady,false);
+ assert.equal(get(result,'media-runtime').observedState,'degraded');
+ assert.equal(result.diagnostics.filter(x=>x==='DUPLICATE_SIDECAR_OBSERVATION').length,2);
+ assert.equal(result.summary.provenOperational,0);
+});

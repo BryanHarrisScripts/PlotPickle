@@ -75,6 +75,15 @@ test('external registrar fingerprint must match separately pinned exact Ed25519 
  assert.equal(check({externalRegistrar:null}).code,'EXTERNAL_REGISTRAR_TRUST_PIN_MISSING');
 });
 
+test('registrar revocation state must be explicitly false (missing or malformed fails closed)',()=>{
+ const registrarRecord=argumentsFor().externalRegistrar;
+ for(const revoked of [undefined,null,'false',true]){
+  const result=check({externalRegistrar:{...registrarRecord,revoked}});
+  assert.equal(result.code,'EXTERNAL_REGISTRAR_TRUST_PIN_MISSING',String(revoked));
+  assert.equal(result.cryptographicCandidate,false);
+  assert.equal(result.mayAdmit,false);
+ }
+});
 test('registrar and reviewer must have different signing keys',()=>{
  const alternative=signedEnrollment({publicKeyPem:registrarPem});
  assert.equal(inspectLaneAExternalTrustCandidate(argumentsFor(alternative)).code,

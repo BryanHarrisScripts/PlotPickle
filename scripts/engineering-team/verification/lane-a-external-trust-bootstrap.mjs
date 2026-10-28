@@ -36,7 +36,7 @@ export function inspectLaneAExternalTrustCandidate({
   'INTENTIONAL_STOP':'STOP_UNVERIFIABLE');
  if(!externalRegistrar||typeof externalRegistrar!=='object'||
   typeof externalRegistrar.id!=='string'||typeof externalRegistrar.principal!=='string'||
-  typeof externalRegistrar.publicKeyPem!=='string'||externalRegistrar.revoked===true||
+  typeof externalRegistrar.publicKeyPem!=='string'||externalRegistrar.revoked!==false||
   !HASH.test(externallyPinnedRegistrarFingerprint||''))return deny('EXTERNAL_REGISTRAR_TRUST_PIN_MISSING');
  let trustedFingerprint,reviewerFingerprint;
  try{

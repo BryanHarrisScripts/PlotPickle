@@ -64,3 +64,13 @@ test('malformed base64 and inherited key registry entries fail closed',()=>{
 });
 
 test('non-ADMIT receipt cannot request a catalogue maintainer',()=>{const r=verifyAdmissionReceipt(signed({disposition:'UNPROVEN'}),opts);assert.equal(r.accepted,true);assert.equal(r.requiresSeparateCatalogueMaintainer,false);assert.equal(r.mayUpdateCatalogue,false);});
+
+test('extra unsigned receipt fields never influence accepted admission',()=>{
+ const receipt=signed();
+ receipt.canMerge=true;
+ assert.equal(verifyAdmissionReceipt(receipt,opts).code,'UNSIGNED_EXTENSION_REJECTED');
+});
+test('syntactically plausible but invalid signed timestamps are rejected',()=>{
+ assert.equal(verifyAdmissionReceipt(signed({timestampUtc:'2026-99-99T22:00:00Z'}),opts).code,'TIMESTAMP_INVALID');
+ assert.equal(verifyAdmissionReceipt(signed({timestampUtc:'2026-10-27T22:00:00+00:00'}),opts).code,'TIMESTAMP_INVALID');
+});

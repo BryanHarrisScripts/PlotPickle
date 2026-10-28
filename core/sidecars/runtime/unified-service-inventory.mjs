@@ -8,7 +8,7 @@ import {createRuntimeServiceRegistry} from './service-registry.mjs';
 const ID=/^[a-z0-9][a-z0-9-]{1,63}$/;
 const SHA=/^[a-f0-9]{40}$/;
 const MAX_AGE_MS=120_000;
-const SUPERVISOR_STATES=new Set(['RUNNING','PAUSED','BLOCKED','OFFLINE','STOPPED','STOP_REQUESTED','OFF','UNKNOWN']);
+const SUPERVISOR_STATES=new Set(['RUNNING','PAUSED','PAUSE_REQUESTED','RESUME_REQUESTED','BLOCKED','OFFLINE','STOPPED','STOP_REQUESTED','ENABLED_NOT_RUNNING','OFF','UNKNOWN']);
 const freeze=x=>Object.freeze(x);
 const GROUPS=freeze([
  {id:'independent-windows-supervisor',label:'Independent Windows Supervisor',group:'supervisors',state:'UNPROVEN'},
@@ -103,6 +103,14 @@ export function projectUnifiedServiceInventory({
    result.evidenceCode=supervisorFresh?'HEARTBEAT_IS_NOT_PROCESS_OWNERSHIP':'SUPERVISOR_HEAD_OR_HEARTBEAT_UNVERIFIED';
    if(supervisorSnapshot&&(supervisorSnapshot.heartbeatFresh!==true||
     (SHA.test(expectedHead||'')&&supervisorSnapshot.sourceHead!==expectedHead)))result.state='STALE';
+   if(supervisorState==='STOP_REQUESTED'||supervisorState==='STOPPED'){
+    // A reported STOP is a conservative blocker, not confirmation of owned teardown.
+    result.state='STOP_REQUESTED';
+    result.evidenceCode='SUPERVISOR_REPORTED_STOP_NOT_PROCESS_PROOF';
+   }else if(supervisorState==='PAUSE_REQUESTED'||supervisorState==='PAUSED'){
+    result.state='BLOCKED';
+    result.evidenceCode='SUPERVISOR_REPORTED_PAUSE_NOT_PROCESS_PROOF';
+   }
    // An owner STOP marker wins over a heartbeat even when the marker is malformed.
    // Unknown marker access is a blocker, not permission to resume.
    if(supervisorSnapshot?.stopMarkerState==='PRESENT'){

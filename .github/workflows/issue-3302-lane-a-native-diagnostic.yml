@@ -15,6 +15,8 @@ on:
       - "tests/issue-3302-lane-a-external-trust-bootstrap.test.mjs"
       - "scripts/engineering-team/verification/lane-a-automated-reviewer.mjs"
       - "tests/issue-3302-lane-a-automated-reviewer.test.mjs"
+      - "scripts/engineering-team/verification/lane-a-automated-reviewer-cli.mjs"
+      - "tests/issue-3302-lane-a-automated-reviewer-cli.test.mjs"
       - "scripts/engineering-team/verification/lane-a-signed-registrar-policy.mjs"
       - "tests/issue-3302-lane-a-signed-registrar-policy.test.mjs"
       - "docs/developer-briefs/3302-installer-lane-a-w8w9-independent-admission-packet-2026-10-27.md"
@@ -104,7 +106,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          node --test tests/issue-3302-lane-a-external-trust-bootstrap.test.mjs tests/issue-3302-lane-a-native-service-host.test.mjs tests/issue-3302-lane-a-automated-reviewer.test.mjs tests/issue-3302-lane-a-signed-registrar-policy.test.mjs
+          node --test tests/issue-3302-lane-a-external-trust-bootstrap.test.mjs tests/issue-3302-lane-a-native-service-host.test.mjs tests/issue-3302-lane-a-automated-reviewer.test.mjs tests/issue-3302-lane-a-signed-registrar-policy.test.mjs tests/issue-3302-lane-a-automated-reviewer-cli.test.mjs
           if ($LASTEXITCODE -ne 0) { throw "LANE_A_DIAGNOSTIC_NODE_TESTS_FAILED" }
           Write-Output "AUTHOR_SIDE_DIAGNOSTIC_TESTS_PASS_NOT_INDEPENDENT_ADMISSION"
 

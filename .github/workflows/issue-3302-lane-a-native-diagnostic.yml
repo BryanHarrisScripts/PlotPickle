@@ -8,6 +8,7 @@ on:
       - "scripts/engineering-team/windows/verification/Build-PlotPickleLaneAService.ps1"
       - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneAHost.ps1"
       - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneAScmCanary.CI.ps1"
+      - "scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneAOwnerAcceptance.ps1"
       - "tests/issue-3302-lane-a-native-service-host.test.mjs"
       - "docs/developer-briefs/3302-installer-lane-a-w8w9-independent-admission-packet-2026-10-27.md"
       - "scripts/engineering-team/windows/verification/Install-PlotPickleLaneAService.ps1"
@@ -72,3 +73,22 @@ jobs:
           }
           Write-Output "INERT_SCM_VIRTUAL_ACCOUNT_CANARY_PASS"
           Write-Output "EPHEMERAL_CI_ONLY; NO REVIEWER KEY; NO W8/W9 ADMISSION"
+
+      - name: Owner acceptance collector must reject missing external trust pins (read only)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $raw = & "./scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneAOwnerAcceptance.ps1"
+          $report = $raw | ConvertFrom-Json
+          if ($report.schemaVersion -ne "PP-LANE-A-OWNER-ACCEPTANCE-OBSERVATION-V1" -or
+              $report.code -ne "EXTERNAL_POLICY_PINS_REQUIRED" -or
+              $report.ownerStopMarker -ne "UNKNOWN" -or
+              $report.canStart -ne $false -or
+              $report.canAdmit -ne $false -or
+              $report.canMerge -ne $false -or
+              $report.independentRegistrar -ne "UNPROVEN" -or
+              $report.windowsProductGate -ne "UNPROVEN") {
+            throw "OWNER_ACCEPTANCE_DEFAULT_NOT_FAIL_CLOSED"
+          }
+          Write-Output "READ_ONLY_OWNER_ACCEPTANCE_FAIL_CLOSED_PASS"
+          Write-Output "NOT OWNER WINDOWS; NOT TRUST BOOTSTRAP; NOT REVIEWER ADMIT"

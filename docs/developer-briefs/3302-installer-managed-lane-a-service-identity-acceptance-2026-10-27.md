@@ -54,3 +54,23 @@ No existing reviewer SCM service, Windows witness, or token-access broker is ins
 ### Known blockers — do not misrepresent as complete
 
 #3321/#3322/#3325 contain new **unadmitted** test editions and exact-head Architecture Verification presently rejects them at protected test-truth preflight. The existing authenticated tunnel can run previously allowlisted tests on an older Windows MAIN; it cannot provision a service account/key or independently sign an admission. An owner saying “approved” authorizes continuing engineering, **not** impersonation of a separate F00 principal. Preserve the old Windows Supervisor until the replacement lifecycle/STOP is natively accepted. No live service migration is authorized by this document.
+
+### Native Windows evidence ladder — use the existing installer, not a new user choice
+
+**Stage 0 — Source lock:** An independently authorized Windows verifier must have an isolated exact-PR-head checkout approved by the existing Factory ownership/STOP protections. The owner machine is currently on an older clean MAIN and its Supervisor has no fresh owned heartbeat; the authenticated `factory-pr-head` request for this PR returned `CANDIDATE_BASE_MISMATCH`. Do **not** force-sync the live installation or copy an unknown executable into Program Files.
+
+**Stage 1 — Non-admin native compiler smoke test:** From that isolated Windows checkout, after W8/W9 source review admission, run the reviewed command:
+
+```powershell
+powershell.exe -NoProfile -NonInteractive -File .\scripts\engineering-team\windows\verification\Test-PlotPickleLaneAHost.ps1 -RunNativeCompile
+```
+
+It compiles the .NET Framework `ServiceBase` source using the Windows native `Framework64\v4.0.30319\csc.exe` under a temporary directory, runs the executable's **inert** `--self-test`, removes the temporary binary, and emits bounded JSON. Expected **scope-limited** result is `nativeCompile: INERT_CSC_SELF_TEST_PASS`; the very same JSON must still show `independentTokenWitness: UNPROVEN`, `signingKeyProvisioned: UNPROVEN`, `w8w9TestAdmission: UNPROVEN`, `canAdmit: false`. A compiler pass is **not** a production signer, SCM identity, independently admitted test or Product Gate receipt.
+
+**Stage 2 — Native SCM and token acceptance:** Separately approved, Authenticode-signed package and external trusted publisher/release policy must first exist. The internal `Install-PlotPickleLaneAService.ps1` defaults to a read-only PLAN; its mutating `-Apply` is an **installer-controlled later acceptance step**, not an instruction for an end user or coding agent to run. It may install only an inert, demand-start service under `NT SERVICE\PlotPickleLaneA` with restricted SID; no auto-start or reviewer key. After owner-approved SCM diagnostic start, use the read-only `Inspect-PlotPickleLaneAService.ps1` and independent registrar witness to prove *actual* process token SID, privileges, no unrelated process disruption, persistent STOP and managed owner identity. STOP remains a barrier to startup; no local probe may clear it.
+
+**Stage 3 — Protected signer and external registrar:** The restricted reviewer identity creates/holds an Ed25519 key using an independently accepted Windows-compatible mechanism; no private key is supplied to ChatGPT/GitHub or accessible to F01/Service Manager. Independent registrar (not this coding principal) observes the actual token, verifies ACL and possession, issues a fresh challenge and signs the bounded enrollment. The existing `PP-LANE-A-ENROLL-V1` verifier is only a candidate validator until that real evidence is independently authenticated.
+
+**Stage 4 — Out-of-band W8/W9 bootstrap and CI:** Because the F00 signer itself is **not yet qualified**, the first four #3322 test editions cannot self-admit. A genuinely separate authorised reviewer must examine the exact SHA-256 packet and issue an attributable ADMIT/FIX/REJECT/UNPROVEN; a **different authorised catalogue maintainer** may then bind W8/W9 test truth. Only then rerun unchanged exact-head Architecture Verification and native owner-Windows Product Gate. No CI rerun with failed truth is evidence of readiness; never disable the gate.
+
+**No native Windows stage above was executed by the assistant.** The existing authenticated tunnel has only allowlisted test suites and does not provide arbitrary C# compilation, SCM registration or credential-store operations. The first native test on an actual Windows machine remains pending.

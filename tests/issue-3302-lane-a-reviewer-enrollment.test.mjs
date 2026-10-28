@@ -111,7 +111,7 @@ test('signed enrollment plus signed admission verdict is a verifiable but non-op
   receiptExpectations:{
    expectedAuthorPrincipal:'CoderWindows01',expectedHead:receipt.candidateHead,
    expectedTestDigests:receipt.testDigests,expectedInputDigests:receipt.inputDigests,
-   allowedTruthRefs:['WHITE-PAPER-V3/W8']
+   allowedTruthRefs:['WHITE-PAPER-V3/W8'],observedAtMs:now
   }
  };
  const outcome=inspectLaneAAdmissionChain(arg);

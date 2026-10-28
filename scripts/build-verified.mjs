@@ -107,7 +107,7 @@ async function validateArtifact(env) {
   const hasFetchShape = /\bfetch\s*(?:[:(])/u.test(bundledSource);
   if (!hasDefaultExport || !hasFetchShape) {
     console.log("PLOTPICKLE_BUILD_ARTIFACT_STAGE=invalid-worker-export");
-    throw new Error("Packaged Sites Worker graph must expose a default export with fetch.");
+    throw new Error("dist/server/index.js must contain a valid default Worker export with fetch.");
   }
 
   console.log("Validated Sites artifact: Worker default/fetch shape and hosting manifest are present.");

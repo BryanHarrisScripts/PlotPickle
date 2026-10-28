@@ -9,7 +9,7 @@ function signed(overrides={}){
  const r={schemaVersion:'PP-TEST-ADMISSION-V1',reviewId:'review1',reviewerPrincipal:'PP-F00-LA-W0001',authorPrincipal:'PP-F01-ENG-W0001',credentialKeyId:'qa-key-1',candidateHead:sha,testDigests:digests,inputDigests:inputs,truthRefs:['WHITE-PAPER-V3/W8'],findings:['Assertion reviewed'],disposition:'ADMIT',evidence:['immutable-review-evidence'],timestampUtc:'2026-10-27T22:00:00Z',...overrides};
  r.signatureBase64=sign(null,canonicalPayload(r),privateKey).toString('base64');return r;
 }
-test('valid independently keyed ADMIT is a catalogue candidate, never Lane B execution',()=>{const r=verifyAdmissionReceipt(signed(),opts);assert.equal(r.mayUpdateCatalogue,true);assert.equal(r.mayRunLaneB,false);});
+test('signed ADMIT is review evidence, never direct catalogue authority or Lane B execution',()=>{const r=verifyAdmissionReceipt(signed(),opts);assert.equal(r.accepted,true);assert.equal(r.mayUpdateCatalogue,false);assert.equal(r.requiresSeparateCatalogueMaintainer,true);assert.equal(r.mayRunLaneB,false);});
 test('self-review is rejected even with valid cryptographic signature',()=>assert.equal(verifyAdmissionReceipt(signed({authorPrincipal:'PP-F00-LA-W0001'}),opts).code,'SELF_REVIEW'));
 test('tampering after signing invalidates receipt',()=>{const r=signed();r.findings=['altered'];assert.equal(verifyAdmissionReceipt(r,opts).code,'SIGNATURE_INVALID');});
 test('stale head, input digests and unknown truth obligations are rejected',()=>{
@@ -62,3 +62,5 @@ test('malformed base64 and inherited key registry entries fail closed',()=>{
  const noOwnKey=Object.create({'qa-key-1':opts.trustedReviewers['qa-key-1']});
  assert.equal(verifyAdmissionReceipt(signed(),{...opts,trustedReviewers:noOwnKey}).code,'REVIEWER_NOT_TRUSTED');
 });
+
+test('non-ADMIT receipt cannot request a catalogue maintainer',()=>{const r=verifyAdmissionReceipt(signed({disposition:'UNPROVEN'}),opts);assert.equal(r.accepted,true);assert.equal(r.requiresSeparateCatalogueMaintainer,false);assert.equal(r.mayUpdateCatalogue,false);});

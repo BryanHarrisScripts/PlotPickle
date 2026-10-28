@@ -1,9 +1,5 @@
 name: F00 Immutable Source Intake Diagnostic (NON-RELEASE)
 on:
-  pull_request:
-    paths:
-      - "scripts/engineering-team/verification/f00-source-intake.mjs"
-      - ".github/workflows/issue-3302-source-intake-diagnostic.yml"
   workflow_dispatch:
 
 permissions:

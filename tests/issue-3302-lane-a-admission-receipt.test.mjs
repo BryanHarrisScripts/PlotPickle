@@ -4,9 +4,9 @@ import {generateKeyPairSync,sign} from 'node:crypto';
 import {canonicalPayload,verifyAdmissionReceipt} from '../scripts/engineering-team/verification/lane-a-admission-receipt.mjs';
 const {publicKey,privateKey}=generateKeyPairSync('ed25519');
 const sha='a'.repeat(40),digests={'tests/one.test.mjs':'b'.repeat(64)},inputs={'scripts/one.mjs':'c'.repeat(64)};
-const opts={trustedReviewers:{'qa-key-1':{principal:'PP-F00-LA-W0001',publicKeyPem:publicKey.export({format:'pem',type:'spki'})}},expectedHead:sha,expectedTestDigests:digests,expectedInputDigests:inputs,expectedAuthorPrincipal:'PP-F01-ENG-W0001',observedAtMs:Date.parse('2026-10-27T22:00:30Z'),allowedTruthRefs:['WHITE-PAPER-V3/W8','WHITE-PAPER-V3/W9']};
+const opts={trustedReviewers:{'qa-key-1':{principal:'PP-F00-LA-W0001',publicKeyPem:publicKey.export({format:'pem',type:'spki'})}},expectedHead:sha,expectedTestDigests:digests,expectedInputDigests:inputs,expectedAuthorPrincipal:'PP-F01-ENG-W0001',observedAtMs:Date.parse('2026-10-27T22:00:30Z'),allowedTruthRefs:['WHITE-PAPER-V3/W8','WHITE-PAPER-V3/W9'],requiredTruthRefs:['WHITE-PAPER-V3/W8','WHITE-PAPER-V3/W9']};
 function signed(overrides={}){
- const r={schemaVersion:'PP-TEST-ADMISSION-V1',reviewId:'review1',reviewerPrincipal:'PP-F00-LA-W0001',authorPrincipal:'PP-F01-ENG-W0001',credentialKeyId:'qa-key-1',candidateHead:sha,testDigests:digests,inputDigests:inputs,truthRefs:['WHITE-PAPER-V3/W8'],findings:['Assertion reviewed'],disposition:'ADMIT',evidence:['immutable-review-evidence'],timestampUtc:'2026-10-27T22:00:00Z',...overrides};
+ const r={schemaVersion:'PP-TEST-ADMISSION-V1',reviewId:'review1',reviewerPrincipal:'PP-F00-LA-W0001',authorPrincipal:'PP-F01-ENG-W0001',credentialKeyId:'qa-key-1',candidateHead:sha,testDigests:digests,inputDigests:inputs,truthRefs:['WHITE-PAPER-V3/W8','WHITE-PAPER-V3/W9'],findings:['Assertion reviewed'],disposition:'ADMIT',evidence:['immutable-review-evidence'],timestampUtc:'2026-10-27T22:00:00Z',...overrides};
  r.signatureBase64=sign(null,canonicalPayload(r),privateKey).toString('base64');return r;
 }
 test('signed ADMIT is review evidence, never direct catalogue authority or Lane B execution',()=>{const r=verifyAdmissionReceipt(signed(),opts);assert.equal(r.accepted,true);assert.equal(r.mayUpdateCatalogue,false);assert.equal(r.requiresSeparateCatalogueMaintainer,true);assert.equal(r.mayRunLaneB,false);});
@@ -94,4 +94,12 @@ test('invalid calendar dates and missing expected edition maps fail closed witho
  assert.equal(verifyAdmissionReceipt(signed({timestampUtc:'2026-02-30T22:00:00Z'}),opts).code,'TIMESTAMP_INVALID');
  assert.equal(verifyAdmissionReceipt(signed(),{...opts,expectedInputDigests:null}).code,'EDITION_MISMATCH');
  assert.equal(verifyAdmissionReceipt(signed(),{...opts,expectedTestDigests:null}).code,'EDITION_MISMATCH');
+});
+
+test('ADMIT requires every independently expected W8/W9 obligation; duplicates and missing expectations fail closed',()=>{
+ assert.equal(verifyAdmissionReceipt(signed({truthRefs:['WHITE-PAPER-V3/W8']}),opts).code,'REQUIRED_TRUTH_REFS_MISSING');
+ assert.equal(verifyAdmissionReceipt(signed(),{...opts,requiredTruthRefs:undefined}).code,'REQUIRED_TRUTH_REFS_UNATTESTED');
+ assert.equal(verifyAdmissionReceipt(signed(),{...opts,requiredTruthRefs:['WHITE-PAPER-V3/W8','UNKNOWN']}).code,'REQUIRED_TRUTH_REFS_UNATTESTED');
+ assert.equal(verifyAdmissionReceipt(signed({truthRefs:['WHITE-PAPER-V3/W8','WHITE-PAPER-V3/W8']}),opts).code,'TRUTH_REF_UNAPPROVED');
+ assert.equal(verifyAdmissionReceipt(signed({disposition:'FIX',truthRefs:['WHITE-PAPER-V3/W8']}),opts).accepted,true);
 });

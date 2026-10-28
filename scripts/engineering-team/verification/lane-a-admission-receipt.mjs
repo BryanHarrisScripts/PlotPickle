@@ -48,7 +48,7 @@ export function verifyAdmissionReceipt(receipt,{trustedReviewers,expectedHead,ex
   observedAtMs-parsed>MAX_RECEIPT_AGE_MS)return deny('RECEIPT_OUTSIDE_TIME_WINDOW');
  if(typeof receipt.credentialKeyId!=='string'||!id.test(receipt.credentialKeyId)||!trustedReviewers||!Object.hasOwn(trustedReviewers,receipt.credentialKeyId))return deny('REVIEWER_NOT_TRUSTED');
  const trusted=trustedReviewers[receipt.credentialKeyId];
- if(!trusted||trusted.principal!==receipt.reviewerPrincipal||trusted.revoked)return deny('REVIEWER_NOT_TRUSTED');
+ if(!trusted||trusted.principal!==receipt.reviewerPrincipal||trusted.revoked!==false)return deny('REVIEWER_NOT_TRUSTED');
  if(typeof receipt.signatureBase64!=='string')return deny('SIGNATURE_MISSING');
  if(!/^[A-Za-z0-9+/]{86}==$/.test(receipt.signatureBase64))return deny('SIGNATURE_FORMAT_INVALID');
  let verified=false;

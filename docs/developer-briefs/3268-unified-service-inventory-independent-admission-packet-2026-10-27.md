@@ -1,81 +1,48 @@
-# Independent admission packet — #3268 unified read-only service inventory
+# #3268 unified service inventory — one-edition independent admission request
 
-**Request:** Independent WHITE-PAPER-V3 W8/W9 test-truth admission for one new test edition; reviewer must not be the author of this PR. This is a **request for review, not an ADMIT verdict**. Owner: #3268; related independent QA #3302, Software Factory #3142.
+**Disposition:** AUTHOR-PREPARED / NOT ADMITTED. Review requested from `PP-QA-A-W1` (Lane A); the author is `PP-ENG-W1` and cannot issue an independent verdict. This packet does not grant signing, catalogue, test-execution, Windows, coding, service, or merge authority.
 
-## Exact source editions before this packet
+**Issue:** #3268; trust-governance dependency #3302; **draft PR:** #3325.
+**Exact implementation-and-test source head:** `66a980f74c2b34194202e12ee6958abde3bda19d`.
+**Source identity rule:** All test and binding-input blobs below were fetched from that exact commit. This packet-only revision creates a newer Git PR head without changing these seven evidence files. The durable SHT-C on PR #3325 must pin the final packet commit SHA and packet blob/digest; reviewers must check the live PR head against that SHT-C and re-fetch all paths before issuing any verdict. Any subsequent input/test mutation invalidates this edition. A Git commit cannot contain its own SHA.
 
-The latest inspected implementation source edition is PR head `723c285886785c4413380dd1b282c0f1e3372f7a` before this packet correction; the current PR head must still be rechecked. This packet is an author-prepared request, not independently verified evidence. Re-fetch the current PR SHA and verify Git blob IDs and **independent SHA-256** of each file at review time. The source contents are not permitted to drift silently.
+## Proposed single current source/test edition
 
-| Scope | File | Git blob SHA |
+Digests are SHA-256 of **UTF-8 bytes after CRLF/CR-to-LF normalization**, not Git blob IDs. The author computed these from the exact GitHub file contents. They are evidence for independent recomputation, not a reviewer signature.
+
+| Role | Path | Git blob SHA-1 | LF UTF-8 SHA-256 |
+| --- | --- | --- | --- |
+| Governed test target | `tests/issue-3268-unified-service-inventory.test.mjs` | `4111aed33a0e11b4d137d41a7810b7dca4bea2c7` | `6b8e1173edb1cc8948ddfa9030130114342e1b3a8c298b75a7e4124a027ead60` |
+| Implementation input 1 | `core/sidecars/runtime/unified-service-inventory.mjs` | `57263b4288abfc8f017fead6a26c0aa87dce87bb` | `fd6b2de13bb4352748b53b895b4dbce12d62e07acfc430ebaa67a6d183f9b4b7` |
+| Read-only inspector input 2 | `scripts/engineering-team/windows/services/inspect-unified-services.mjs` | `5e73c8afc0867dd652fb317e2da98482943fe9c9` | `367dc9b897787393244a8c0f84f10d83857df75a542bda2cb4ad518ddb069078` |
+| Existing runtime registry input 3 | `core/sidecars/runtime/service-registry.mjs` | `021dbf1d9a729109d3fa2eae55034be20b31e29a` | `64f4d72796a55d9bb535913035aed1d5a7f32d979354636650f44b1cc1c618a2` |
+| Sidecar configuration input 4 | `config/runtime-sidecars.json` | `cc60ff0815f712fcaa7ce6653d693ee0c1780d2d` | `3f9a5f25f916ccf295441e7c005a88c0edb19f66961b1db94a70dec6a6c648c8` |
+| Managed component configuration input 5 | `config/runtime-manifest.json` | `bdf403244ee36ee180c40dd1ad4de6bf6fffb961` | `cc9c40bbab3c416e2106aaa8e98cea0dad83c5f09810cb4f64416736bd40aadf` |
+| Approved normative source (not an implementation input) | `docs/white-papers/AI_Programming_Evolution_White_Paper.md` | `1d3d49300d04f9784d94568d9cb36348eb290ba3` | `7fd538b813014cf94505903a32e171fca344068d67d15036fbe0fdcb7859c27d` |
+
+**Import/input boundary:** The test imports the two new modules; the inventory module imports the existing `service-registry.mjs`; the test reads both configuration JSON files. The inspector imports the inventory module. Node built-ins are runtime dependencies, not proposed repository source-edition bindings. No other repository binding input is proposed for this edition. A reviewer must independently confirm the dependency closure.
+
+## Exact test count and proposed W8/W9 mapping
+
+**22 top-level `node:test` cases**, counted from the exact test file at the source head above. This count supersedes earlier author fixture counts. **Do not execute this unadmitted test as part of this review-preparation work order.**
+
+Approved truth: `WHITE-PAPER-V3`, version `3.0`, in the existing protected `config/verification/test-catalog.json`; the approved `sourceDigest` is `7fd538b813014cf94505903a32e171fca344068d67d15036fbe0fdcb7859c27d`, matching the normative source above.
+
+| Proposed obligation | Specific cases (1-based order in test file) | Intended independent review question |
 | --- | --- | --- |
-| New test | `tests/issue-3268-unified-service-inventory.test.mjs` | `4111aed33a0e11b4d137d41a7810b7dca4bea2c7` |
-| Implementation | `core/sidecars/runtime/unified-service-inventory.mjs` | `57263b4288abfc8f017fead6a26c0aa87dce87bb` |
-| Read-only CLI | `scripts/engineering-team/windows/services/inspect-unified-services.mjs` | `5e73c8afc0867dd652fb317e2da98482943fe9c9` |
-| Existing dependency | `core/sidecars/runtime/service-registry.mjs` | `021dbf1d9a729109d3fa2eae55034be20b31e29a` |
-| Existing source inventory | `config/runtime-sidecars.json` | `cc60ff0815f712fcaa7ce6653d693ee0c1780d2d` |
-| Existing managed components | `config/runtime-manifest.json` | `bdf403244ee36ee180c40dd1ad4de6bf6fffb961` |
+| `WHITE-PAPER-V3/W8` — independent verification | 2, 3, 4, 6, 11, 13, 14, 15, 18, 20, 21 | Do reported heartbeat, READY, local listener, STOP and source observations remain untrusted without separate evidence of actual process, authentication, execution, Windows acceptance and authority? |
+| `WHITE-PAPER-V3/W9` — preserve obligations / prevent unexpected regressions | 1, 5, 7, 8, 9, 10, 12, 15, 16, 17, 18, 19, 20, 21, 22 | Do duplicate IDs, malformed timestamps, stale heads, invalid entrypoints, absent sources, PAUSE/STOP and malformed marker states fail closed without changing existing runtime ownership? |
 
-## Normative scope and proposed assertions
+The mapping is a **candidate whole-file `truthRefs` binding** to W8 and W9; overlap is intentional. No source-author ADMIT, independent signed reviewer receipt or protected catalogue change exists.
 
-- **W8 independent verification:** Do not confuse a source-local heartbeat, local listener or status file with independently verified process ownership, model execution, remote authentication, coding, signed test admission or Windows Product Gate. No self-assigned PASS/ADMIT.
-- **W9 preserved obligations/stale evidence:** Unrecognized IDs, malformed status, stale/incorrect exact head, invalid data, replay/unknown process state and duplicate source entries must not turn a component READY or silently alter established approved tests. A planned factory listing is not an operational claim.
-- **Existing runtime contract:** #2693/#2694 six governed sidecars remain owned by the current sidecar supervisor, and `config/runtime-manifest.json` owns the broader managed component declarations. No extra launcher, credential store, headless model dispatcher or second tunnel.
+**Candidate binding fields for the separate catalogue maintainer after actual independent ADMIT:** `target` is the test path in row 1; `targetDigest` is its SHA-256; `inputs` are precisely the five implementation/configuration input rows with their SHA-256 values; `truthRefs` are `[{"truthId":"WHITE-PAPER-V3","obligationId":"W8"},{"truthId":"WHITE-PAPER-V3","obligationId":"W9"}]`. Candidate existing owner entries to inspect are `production.modular-runtime-2697` (production-harness), `agent.persistent-windows-supervisor-3110` (agent-runtime), and `agent.settings-compute-tunnel-3254` (agent-runtime). These are alternatives for reviewer/maintainer determination, not approved ownership or permission to add a new suite. Proposed scope: `unit-fixture` and `static-source`, with `network=false`, `native=false`, `secrets=false`.
 
-The 21 source-linked test cases cover registry composition, default unproven status, fresh-but-untrusted sidecar `ready`, forged supervisor acceptance, stale head/heartbeat, forged remote tunnel authorization, stale status, duplicate/unknown reports, duplicate/malformed service IDs, unsafe sidecar entrypoint, fixed-source CLI no-elevation inspection, unavailable sources, and actual six-sidecar/four-factory inventory without extra execution capability.
+## Limits and reviewer obligations
 
-## Known limitations the independent reviewer must inspect
+The implementation is a **read-only inventory and fixed-path `--status` inspector**, not a Windows Service Manager installation or an execution API. Its six governed sidecars, five managed components, four planned factories and coordinator remain separately owned. No reported component becomes independently READY, no worker is launched, no credentials or remote authorization are inferred, and no STOP marker is cleared.
 
-1. The author's in-memory V8 fixture execution registered 20/20 PASS; this was a **source-equivalent simulation**, **not Node's actual test runner**, hosted exact-head CI, independent QA or native Windows owner-product evidence.
-2. The file/status sources are read-only projections and **do not cryptographically attest** to process ownership or remote plugin authorization. The inventory consequently returns zero proven-operational components, even for reported `ready` or `RUNNING` states.
-3. `inspect-unified-services.mjs` is a fixed `--status` diagnostic, not the always-on Windows Service Manager or an installer. It does not replace existing supervisors or modify the owner's current tasks, tunnel or machine.
-4. Direct file symlinks are rejected in the CLI. Windows parent-directory reparse-point handling, packaging, SCM identity/process-tree, restart/STOP and source-head witness are **not proved**. Read-only status alone must not become an action authorization or standalone verifier credential.
-5. The new test is **not in the protected test-truth catalogue**. Do not mutate `config/verification/test-catalog.json` based on the author's review or bypass the admission gate. Independent reviewer must produce attributable `ADMIT`, `FIX`, `REJECT`, or `UNPROVEN` for exact assertions and input digests before an independently authorized maintainer adds bindings.
-6. The shared factory lifecycle brief specifies common work-order stages while keeping Software, Learning, Story and Game domain acceptance distinct. The implementation only inventories those factories; no work-order engine or factory worker has been activated.
+The test edition includes negative checks for untrusted READY/remote authentication, stale and noncanonical UTC observations, duplicate/unknown IDs, malformed marker states, PAUSE/STOP precedence, read-only path restrictions and the absence of coding/merge capability. Those source-level assertions do **not** establish native Windows reparse/junction defenses, ACL/service-token identity, restart/crash recovery, real process ownership, trusted signed admission, independent Windows Product Gate or a running coding worker.
 
-**Requested review outcome:** test edition truth/inputs, domain ownership/privilege boundary, and negative evidence scope. Until independently admitted, keep the implementation PR **DRAFT, unmerged and with no service installation or work authorization**.
+Earlier in-memory V8 author fixture results were **not** the Node test runner or independent evidence for this exact 22-case edition. No `node --test` execution is claimed here; the new test is deliberately unadmitted. The existing protected catalogue is unchanged. Hosted CI may remain BLOCKED at the approved-truth gate; that is not an invitation to bypass it. The Factory's existing STOP/no-replay rules remain in force.
 
-## STOP-marker extension
-
-Four additional cases cover a **present** existing `engineering-team/supervisor/stop-request.json` marker winning over an otherwise fresh RUNNING heartbeat; an unreadable marker remaining BLOCKED; the fixed-path read-only inspector observing STOP without parsing marker secrets; and STOP persisting in the inventory when no heartbeat exists. The marker is not cleared, modified or treated as an independent process-ownership receipt. A read of `PRESENT` is conservatively blocking; `ABSENT` is never permission to start.
-
-The recorded 18/18 result is an *author-run in-memory V8 source-equivalent fixture*, not the Node test runner or an independent W8/W9 ADMIT. Review the four new assertions and source editions above prior to any catalogue update.
-
-## Candidate exact-source SHA-256 digest set (author-calculated, independently recompute)
-
-The following SHA-256 values were calculated from the exact GitHub UTF-8 file contents (not from git blob IDs). This aids a separate reviewer but **does not constitute an independent signature or ADMIT**.
-
-| Evidence file | SHA-256 |
-| --- | --- |
-| `tests/issue-3268-unified-service-inventory.test.mjs` | `f3c53fa592fd2fda51b5a1d959098e3f6e66b5dbda7caf3fb639d4bef6220a27` |
-| `core/sidecars/runtime/unified-service-inventory.mjs` | `10eadf51cff4ede8bd404bcc16ccdd49ec3832829420eee6faee54d5610db261` |
-| `scripts/engineering-team/windows/services/inspect-unified-services.mjs` | `PENDING_RECOMPUTATION_AFTER_STOP_MARKER_FIX` |
-| `core/sidecars/runtime/service-registry.mjs` | `64f4d72796a55d9bb535913035aed1d5a7f32d979354636650f44b1cc1c618a2` |
-| `config/runtime-sidecars.json` | `3f9a5f25f916ccf295441e7c005a88c0edb19f66961b1db94a70dec6a6c648c8` |
-| `config/runtime-manifest.json` | `cc9c40bbab3c416e2106aaa8e98cea0dad83c5f09810cb4f64416736bd40aadf` |
-
-**Approved normative source:** `WHITE-PAPER-V3` version 3.0, `docs/white-papers/AI_Programming_Evolution_White_Paper.md`; recomputed SHA-256 `7fd538b813014cf94505903a32e171fca344068d67d15036fbe0fdcb7859c27d` **matches** the already approved `config/verification/test-catalog.json` truth's `sourceDigest`. The obligations are W8 and W9; these are *candidate mappings only*. No bound edition exists for this new test yet.
-
-**Review-only candidate binding:** `target` equals the new test path above; `targetDigest` equals its SHA-256 above; proposed `truthRefs` are `[{truthId:"WHITE-PAPER-V3",obligationId:"W8"},{truthId:"WHITE-PAPER-V3",obligationId:"W9"}]`. The source `inputs` list contains all five other SHA-256 files in this table. Potential existing owner catalogue IDs for independent consideration are `production.modular-runtime-2697`, `agent.persistent-windows-supervisor-3110`, and `agent.settings-compute-tunnel-3254`; the reviewer/maintainer must decide accurate owner mapping without inventing a new approved suite. Scope should be limited to `unit-fixture` and `static-source`. No OS service ownership, native Windows STOP, remote ChatGPT authentication, actual factory work or GitHub merge is proved by those fixtures.
-
-**Owner Windows preflight note:** An authenticated read-only `factory-pr-head` check of the candidate was `BLOCKED / CANDIDATE_BASE_MISMATCH` because the current owner checkout was `8a6bec0b1137adf6d515f8314d158df155357b9d`, five commits behind GitHub MAIN `8a122d9984760a86faa20a6b8210459896d70b17`; no source staging occurred. A separately allowlisted `factory-qa-handoff` Node suite **did pass** on that older Windows source head, with `independentVerification:false`; that is proof only of the old Windows test route, not this exact new test or Product Gate.
-
-The real F00 reviewer must independently recompute all digests, inspect assertions and source consequences, and write an attributable signed `ADMIT/FIX/REJECT/UNPROVEN` receipt. The author must not edit the protected catalogue.
-
-## Supervisor pause/stop status extension
-
-Two additional negative tests ensure already-existing `PAUSE_REQUESTED`, `PAUSED`, `STOP_REQUESTED`, and `STOPPED` supervisor statuses are represented conservatively, not silently discarded; owner STOP marker presence still overrides even an apparently PAUSED heartbeat. No state confers process owner verification, a start command, or acknowledgement of true Windows teardown. These remain author-generated in-memory source-equivalent assertions, **not** native Windows proof. The historical 20/20 fixture count predates the new 21st regression; current source/test digests in this packet supersede earlier packet SHA values.
-
-## October 27 — canonical UTC status freshness
-
-A status observation was accepted as fresh when its timestamp was parseable but noncanonical (for example `2026-10-27T23:00:00+00:00`). The source now requires a normalized UTC `Z` timestamp and rejects impossible calendar dates before projecting sidecar observations. Added a negative regression for an offset timestamp and a positive canonical UTC control. **Correction:** a preliminary author-side change treated third duplicate IDs as a gap, but the existing `Map.has` already quarantined them; that redundant change and its test were removed before this packet. The final new test edition contains **21 test cases, NOT EXECUTED OR INDEPENDENTLY ADMITTED**. Prior 20/20 in-memory fixture results do not cover this change. The current source/test SHA-256 values and Git blob IDs above are author-prepared candidates for independent recomputation. Do not promote these to trusted truth or merge before external W8/W9 review and exact-head CI/Windows gates.
-
-## October 28 — stale inspector evidence corrected (author-side)
-
-The STOP-marker normalization change in commit `723c285886785c4413380dd1b282c0f1e3372f7a` changed `scripts/engineering-team/windows/services/inspect-unified-services.mjs` after the earlier digest table was prepared. The previous Git blob `b939957c37c06ab696e79bbde2a145585f664388` and SHA-256 `efdabe90b98d6c508ef09d1c70f0d3e0c83e8f02191240e4abfe48af4dde5224` are superseded and MUST NOT be used to admit the current source edition. The exact current Git blob observed through GitHub at that commit is `5e73c8afc0867dd652fb317e2da98482943fe9c9`. Its UTF-8 SHA-256 is explicitly **PENDING independent recomputation**; no digest has been guessed or reused. The independent F00 reviewer must recompute it from the current PR head, verify all other source/input digests and the 21-case test edition, then issue a separately signed W8/W9 verdict. This correction is documentation only: it neither admits the test nor claims any native Windows, service, coding or plugin recovery proof. The PR remains DRAFT and blocked by test-truth governance.
-
-
-## October 28 — explicit malformed STOP-marker projection repair (author-prepared)
-
-At source commit `c9702497a7aff3486da562af4e3ba4d42636898d`, the exported read-only projector was hardened to classify explicitly malformed STOP-marker observations as `BLOCKED / SUPERVISOR_STOP_MARKER_UNREADABLE` even when callers bypass the CLI's normalization. The direct-projection negative regression was committed at `1f7d2db9e2edc00b08a957c62a90f3a13a7808d7`. This does not alter local STOP state or enable start, code, admission or merge.
-
-The implementation blob is `57263b4288abfc8f017fead6a26c0aa87dce87bb`; the test blob is `4111aed33a0e11b4d137d41a7810b7dca4bea2c7`. Previous source/test SHA-256 editions and any earlier approvals must be treated as superseded. Independently computed exact UTF-8 SHA-256 values, W8/W9 test admission, current-head CI and native Windows acceptance remain PENDING. This paragraph is not a reviewer signature or test result.
+**Required next role:** `PP-QA-A-W1` must independently recompute the exact digests and source closure, inspect the 22 assertions against W8/W9, verify the current PR head and reviewer independence, and issue an attributable source-specific `ADMIT`, `FIX`, `REJECT` or `UNPROVEN`. Only a separately authorized catalogue maintainer may apply an admitted binding. Thereafter `PP-TST-W1` may run admitted tests, followed by `PP-QA-B-W1`, `PP-WIN-W1` and `PP-REL-W1` according to their distinct gates. This packet itself is **NOT** a gate receipt.

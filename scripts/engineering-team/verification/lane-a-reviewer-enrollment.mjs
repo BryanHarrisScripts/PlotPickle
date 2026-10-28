@@ -18,6 +18,7 @@ const ENROLLMENT_FIELDS=[
   'privateKeyAclEvidenceDigest','evidenceRefs','capabilities','issuedAtUtc',
   'expiresAtUtc','possessionSignatureBase64'
 ];
+const ENROLLMENT_RECEIPT_FIELDS=new Set([...ENROLLMENT_FIELDS,'registrarSignatureBase64']);
 const POSSESSION_FIELDS=[
   'schemaVersion','enrollmentId','roleAlias','actorId','reviewerPrincipal',
   'reviewerSid','hostId','keyId','publicKeyFingerprint','challengeNonce'
@@ -56,6 +57,7 @@ export function verifyReviewerEnrollment(record,{
  expectedChallengeNonce,alreadyUsedChallenges,now=Date.now()
 }={}){
  if(!record||record.schemaVersion!=='PP-LANE-A-ENROLL-V1')return deny('SCHEMA_INVALID');
+ if(Array.isArray(record)||Object.keys(record).some(field=>!ENROLLMENT_RECEIPT_FIELDS.has(field)))return deny('UNSIGNED_EXTENSION_REJECTED');
  if(![record.enrollmentId,record.actorId,record.keyId,record.registrarId].every(x=>typeof x==='string'&&ID.test(x)))return deny('ID_INVALID');
  if(record.roleAlias!=='PP-F00-LA-W0001'||record.actorId!=='PP-F00-D02-W0001')return deny('ROLE_MISMATCH');
  if(![record.reviewerPrincipal,record.registrarPrincipal,record.hostId].every(x=>typeof x==='string'&&x.length>2&&x.length<192))return deny('PRINCIPAL_INVALID');

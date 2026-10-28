@@ -11,6 +11,8 @@
  * credential loading, source writes, catalogue edits or PR merges.
  */
 import process from 'node:process';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {inspectAutomatedLaneAReview} from './lane-a-automated-reviewer.mjs';
 
 const MAX_INPUT_BYTES=3*1024*1024;
@@ -77,7 +79,7 @@ async function main(){
  if(result.status==='BLOCKED')process.exitCode=2;
 }
 
-if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1].replace(/\\/g,'/')).href){
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  main().catch(()=>{
   process.stdout.write(JSON.stringify(denied('REVIEWER_IO_ERROR'))+'\n');
   process.exitCode=2;

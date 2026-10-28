@@ -147,9 +147,10 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $raw = & "./scripts/engineering-team/windows/verification/Test-PlotPickleLaneANonceJournal.CI.ps1"
-          if ($LASTEXITCODE -ne 0) { throw "NON_RELEASE_JOURNAL_PROBE_EXECUTION_FAILED" }
+          if (@($raw).Count -ne 1) { throw "NON_RELEASE_JOURNAL_PROBE_OUTPUT_INVALID" }
           $receipt = $raw | ConvertFrom-Json
           if ($receipt.schemaVersion -ne "PP-F00-NONRELEASE-JOURNAL-PROBE-V1" -or
+              $receipt.code -notin @("PRIMITIVES_OBSERVED","PRIMITIVES_UNPROVEN","WINDOWS_JOURNAL_PRIMITIVE_ERROR") -or
               $receipt.powerLossDurabilityVerified -ne $false -or
               $receipt.atomicNonceConsumptionVerified -ne $false -or
               $receipt.independentlyAttested -ne $false -or

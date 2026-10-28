@@ -103,6 +103,16 @@ export function projectUnifiedServiceInventory({
    result.evidenceCode=supervisorFresh?'HEARTBEAT_IS_NOT_PROCESS_OWNERSHIP':'SUPERVISOR_HEAD_OR_HEARTBEAT_UNVERIFIED';
    if(supervisorSnapshot&&(supervisorSnapshot.heartbeatFresh!==true||
     (SHA.test(expectedHead||'')&&supervisorSnapshot.sourceHead!==expectedHead)))result.state='STALE';
+   // An owner STOP marker wins over a heartbeat even when the marker is malformed.
+   // Unknown marker access is a blocker, not permission to resume.
+   if(supervisorSnapshot?.stopMarkerState==='PRESENT'){
+    result.state='STOP_REQUESTED';
+    result.evidenceCode='LOCAL_STOP_MARKER_PRESENT';
+    result.observationSource='supervisor-stop-marker';
+   }else if(supervisorSnapshot?.stopMarkerState==='UNKNOWN'){
+    result.state='BLOCKED';
+    result.evidenceCode='SUPERVISOR_STOP_MARKER_UNREADABLE';
+   }
    // Never take supervisor's self-reported "workerProcessVerified" as independent proof.
   }
   if(service.id==='factory-mcp-tunnel'){

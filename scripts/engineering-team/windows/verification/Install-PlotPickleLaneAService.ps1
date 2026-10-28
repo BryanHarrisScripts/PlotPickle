@@ -62,9 +62,39 @@ if (Get-Service -Name $serviceName -ErrorAction SilentlyContinue) {
 }
 if (Test-Path -LiteralPath $destination) { throw 'REVIEWER_BINARY_ALREADY_STAGED' }
 
+# Never follow a pre-existing junction or broad-write folder while elevated.
+# A user-writable service image path would defeat the isolated SCM token.
+$installRoot=[IO.Path]::GetFullPath($env:ProgramFiles).TrimEnd('\')
+$expectedA=Join-Path $installRoot 'PlotPickle'
+$expectedB=Join-Path $expectedA 'ServiceManager'
+foreach ($candidate in @($installRoot,$expectedA,$expectedB,$installDir)) {
+  if (Test-Path -LiteralPath $candidate) {
+    $item=Get-Item -LiteralPath $candidate -Force -ErrorAction Stop
+    if (-not $item.PSIsContainer -or
+        (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0)) {
+      throw 'INSTALL_DIRECTORY_REPARSE_OR_FILE_REJECTED'
+    }
+  }
+}
 # The manager's installer is elevated but may not turn a review proposal into
 # a trusted identity. The restricted service is demand-start, not boot-start.
 New-Item -Path $installDir -ItemType Directory -Force -ErrorAction Stop | Out-Null
+foreach ($candidate in @($expectedA,$expectedB,$installDir)) {
+  $folder=Get-Item -LiteralPath $candidate -Force
+  if (($folder.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+    throw 'INSTALL_DIRECTORY_REPARSE_OR_FILE_REJECTED'
+  }
+  $acl=Get-Acl -LiteralPath $candidate
+  $rights=$acl.GetAccessRules($true,$true,[Security.Principal.SecurityIdentifier])
+  foreach ($rule in $rights) {
+    if ($rule.AccessControlType -eq [Security.AccessControl.AccessControlType]::Allow -and
+        @('S-1-1-0','S-1-5-11','S-1-5-32-545') -contains $rule.IdentityReference.Value -and
+        (($rule.FileSystemRights -band [Security.AccessControl.FileSystemRights]::Write) -ne 0 -or
+         ($rule.FileSystemRights -band [Security.AccessControl.FileSystemRights]::Modify) -ne 0)) {
+      throw 'INSTALL_DIRECTORY_BROAD_WRITE_ACCESS'
+    }
+  }
+}
 $installed=$false
 try {
   Copy-Item -LiteralPath $source -Destination $destination -ErrorAction Stop

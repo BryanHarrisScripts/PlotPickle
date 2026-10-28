@@ -60,6 +60,11 @@ test('concurrent same-job attempts have exactly one winner and preserve no-repla
     operatorReady: good, independentReleaseReady: good,
     runAuthorizedOnce: async () => { calls++; await pending;
       return { state:'DRAFT_PR_CREATED', engineeringReceiptId:'f'.repeat(64),
+        grantId:order.grantId, publicationId:order.publicationId,
+        issueNumber:order.issueNumber, sourceHead:head,
+        pullRequestCreated:true, focusedTestExecuted:false,
+        independentVerification:false, automaticMergeAuthorized:false,
+        replayAuthorized:false,
         remoteCommit:'b'.repeat(40), prNumber:3333 }; } };
   try {
     const a = claimAndRunOwnerJobOnce(opts);
@@ -88,4 +93,33 @@ test('execution uncertainty retains permanent reservation, no retries or merger'
     assert.equal(calls,1);
     assert.equal(first.mergeAuthorized,false);
   } finally { await rm(root,{recursive:true,force:true}); }
+});
+
+test('a published-looking result for the wrong issue, grant, source or merge permission cannot complete a claimed job', async () => {
+  const valid = { state:'DRAFT_PR_CREATED', engineeringReceiptId:'f'.repeat(64),
+    grantId:order.grantId, publicationId:order.publicationId,
+    issueNumber:order.issueNumber, sourceHead:head,
+    pullRequestCreated:true, focusedTestExecuted:false,
+    independentVerification:false, automaticMergeAuthorized:false,
+    replayAuthorized:false,
+    remoteCommit:'b'.repeat(40), prNumber:3333 };
+  for (const field of ['grantId','publicationId','issueNumber','sourceHead',
+    'pullRequestCreated','focusedTestExecuted','independentVerification',
+    'automaticMergeAuthorized','replayAuthorized']) {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'pp-pool-'));
+    try {
+      const bad = { ...valid, [field]:
+        typeof valid[field] === 'boolean' ? !valid[field] :
+        typeof valid[field] === 'number' ? valid[field] + 1 : 'c'.repeat(40) };
+      let invoked = 0;
+      const attempt = await claimAndRunOwnerJobOnce({
+        order, expectedHead:head, privateRoot:root,
+        operatorReady:good, independentReleaseReady:good,
+        runAuthorizedOnce:async () => { invoked++; return bad; },
+      });
+      assert.equal(attempt.code,'CLAIM_RETAINED_CODING_OR_PUBLICATION_UNPROVEN',field);
+      assert.equal(attempt.replayAuthorized,false,field);
+      assert.equal(invoked,1,field);
+    } finally { await rm(root,{recursive:true,force:true}); }
+  }
 });

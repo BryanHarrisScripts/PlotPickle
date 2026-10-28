@@ -116,6 +116,15 @@ export async function claimAndRunOwnerJobOnce({
     if (await operatorReady() !== true || await independentReleaseReady() !== true)
       return fail('CLAIM_RETAINED_AUTHORITY_CHANGED_AFTER_EXECUTION');
     if (result?.state !== 'DRAFT_PR_CREATED' ||
+      result.grantId !== order.grantId ||
+      result.publicationId !== order.publicationId ||
+      result.issueNumber !== order.issueNumber ||
+      result.sourceHead !== expectedHead ||
+      result.pullRequestCreated !== true ||
+      result.focusedTestExecuted !== false ||
+      result.independentVerification !== false ||
+      result.automaticMergeAuthorized !== false ||
+      result.replayAuthorized !== false ||
       !SHA.test(result.remoteCommit || '') ||
       !Number.isSafeInteger(result.prNumber) || result.prNumber <= 0 ||
       !/^[a-f0-9]{64}$/.test(result.engineeringReceiptId || ''))

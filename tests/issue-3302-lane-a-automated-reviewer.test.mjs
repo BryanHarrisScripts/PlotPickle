@@ -82,7 +82,7 @@ test('scope must contain both and only W8 and W9',()=>{
 });
 
 test('normative source digest must match independently pinned external policy',()=>{
- assert.equal(check({workOrder:{...workOrder,inputDigests:{[implPath]:digest(bytes[implPath])}}}).code,'NORMATIVE_SOURCE_NOT_EXTERNALLY_PINNED');
+ assert.equal(check({workOrder:{...workOrder,inputDigests:{[implPath]:digest(bytes[implPath])}},sourceBlobs:{[testPath]:bytes[testPath],[implPath]:bytes[implPath]}}).code,'NORMATIVE_SOURCE_NOT_EXTERNALLY_PINNED');
  assert.equal(check({independentlyPinnedPolicy:{...policy,normativeDigest:'a'.repeat(64)}}).code,'NORMATIVE_SOURCE_NOT_EXTERNALLY_PINNED');
 });
 

@@ -33,7 +33,7 @@ The proposed F00 reviewer `PP-F00-D02-W0001` / alias `PP-F00-LA-W0001` has **not
 | `scripts/engineering-team/verification/lane-a-reviewer-enrollment.mjs` | `5b2bf3418d374326cf828d58bc3c1631fca4e154273e0aa5ac55341c2711937d` | `21793efc2667776ec240853ad15675a7610074d1` |
 | `scripts/engineering-team/verification/lane-a-admission-chain.mjs` | `de5369c7f881afc83a6695a1b82ccd4d266969f87f76aea9b311708afcd6f173` | `0572e93e888306397235fbc348105b9be73a6fb5` |
 | `scripts/engineering-team/verification/lane-a-service-identity-policy.mjs` | `260f982e24ba6e8b87f90974554ea95d1cab35094be5b24c1cd754d69a612dbd` | `ad5db88e457d6b82e6bf38868f4376b9bd7aa764` |
-| `scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneAService.ps1` | `ea73e47509dee34eefec7fcd8dee81f4a4b5627f960289492561db4d7763b352` | `9972479edbc6346360cff42e4076bb206272b7fb` |
+| `scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneAService.ps1` | `49d085966c86f517c032e2a9da3ccfd6856f1d091fdbc6302f7e150419ec6a53` | `1cff4fd3ec05f0a1f1280799fa172bccf06dff5c` |
 | `scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneAIdentity.ps1` | `c1f73f1fa6b1bb1495a63b4aeca0027aea25c290addd75b839af1ec8c4f430be` | `fd704743a5a020320108d572434b02ddd35528cd` |
 | `scripts/engineering-team/windows/verification/PlotPickleLaneAService.cs` | `e7ca01301248cabcfc75d7cada4826587efec5b0b53aa824886d8303028044c5` | `92a488a759db8c9d931ce2c157513736a2ddaafb` |
 | `scripts/engineering-team/windows/verification/Build-PlotPickleLaneAService.ps1` | `3a2ff59a9774b0f2376bf614ac2ce73032f0517b720774e4de162fea77100e29` | `c2666545a40763a3f41d5c8127e43fb63937bead` |
@@ -57,3 +57,5 @@ A separate qualified reviewer must recompute all digests from trusted source, in
 Admissible reviewer verdicts are **ADMIT, FIX, REJECT, UNPROVEN**, signed with the *reviewer's* separately protected key and tied to the final source head. A verified ADMIT is evidence for a **different** authorized catalogue maintainer; it carries `mayUpdateCatalogue:false` and cannot itself merge or run Lane B.
 
 **STOP state:** reviewer not provisioned, signer absent, test editions unadmitted, native service not installed, release gates blocked. No credential or private key belongs in a PR/comment/ChatGPT log. Keep draft and do not merge.
+
+**Windows case semantics correction:** The fixed SCM inspector now compares Windows account names case-insensitively; the Windows `NT SERVICE\\PlotPickleLaneA` principal is not case sensitive. The exact inspector digest above supersedes the preceding edition; native Windows execution remains unproven.

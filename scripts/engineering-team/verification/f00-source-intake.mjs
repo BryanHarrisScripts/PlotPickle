@@ -7,6 +7,7 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const SHA = /^[a-f0-9]{40}$/;
 const NORMATIVE = 'docs/white-papers/AI_Programming_Evolution_White_Paper.md';
@@ -144,6 +145,6 @@ function main(args = process.argv.slice(2)) {
   if (response.state !== 'IMMUTABLE_INTAKE_READY') process.exitCode = 2;
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)) {
+if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))) {
   main();
 }

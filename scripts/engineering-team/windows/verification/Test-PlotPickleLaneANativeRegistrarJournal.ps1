@@ -76,15 +76,17 @@ try {
   Assert-True ($stop.code -ne 0 -and $stop.line -match 'STOP_OBSERVED') 'STOP_IGNORED'
   Remove-Item -LiteralPath $journal2 -Force
   # Native reparse denial is attempted but Windows privilege may forbid fixture creation.
-  $link=Join-Path $root 'reparse-journal.bin'
+  $link=Join-Path $root 'linked-directory'
   try {
-    New-Item -ItemType SymbolicLink -Path $link -Target $journal -ErrorAction Stop | Out-Null
-    $linkResult=Invoke-Native @('--operate',$link,'ISSUE',$scope,('6'*32))
-    Assert-True ($linkResult.code -ne 0) 'REPARSE_PATH_ACCEPTED'
-    $symlink='REJECTED'
+    New-Item -ItemType Junction -Path $link -Target $root -ErrorAction Stop | Out-Null
+    $linkedJournal=Join-Path $link 'registrar-journal.bin'
+    $linkResult=Invoke-Native @('--operate',$linkedJournal,'ISSUE',$scope,('6'*32))
+    Assert-True ($linkResult.code -ne 0 -and
+      $linkResult.line -match 'REPARSE_POINT_DENIED') 'JUNCTION_REPARSE_NOT_DENIED'
+    $symlink='JUNCTION_REPARSE_DENIED'
   } catch [System.UnauthorizedAccessException] { $symlink='UNPROVEN_WINDOWS_PRIVILEGE' }
   catch [System.Management.Automation.RuntimeException] {
-    if ($_.Exception.Message -match 'privilege|permission|not supported') {
+    if ($_.Exception.Message -match 'privilege|permission|not supported|Junction') {
       $symlink='UNPROVEN_WINDOWS_PRIVILEGE'
     } else { throw }
   }

@@ -55,12 +55,12 @@ An initial real **human or organizationally independent security reviewer** is r
 
 ## Worker identity and QA lane naming — 28 October 2026
 
-The owner-approved production diagram has **two independent quality lanes**, not two names for the coding worker. Keep the existing canonical actor IDs stable; the following display names and aliases make the lane explicit without inventing a new credential or signer.
+The owner-approved production diagram has **two independent quality lanes**, not two names for the coding worker. The canonical display names are `PP-QA-A-W1` and `PP-QA-B-W1`; `PP-QA-LA-W1` and `PP-QA-LB-W1` are deprecated noncanonical spellings and confer no identity or signing authority. Keep the existing canonical actor IDs stable; the following display names and aliases make the lane explicit without inventing a new credential or signer.
 
 | Human-readable worker | Stable actor/alias | Lane responsibility | Activation state |
 | --- | --- | --- | --- |
-| `PP-QA-LA-W1` — Test Catalogue Admission | Existing canonical `PP-F00-D02-W0001`; existing alias `PP-F00-LA-W0001` | Lane A: independently review candidate test truth against W8/W9 and issue source-bound signed ADMIT/FIX/REJECT/UNPROVEN; **cannot edit protected catalogue** | Not independently staffed, enrolled or admitted |
-| `PP-QA-LB-W1` — Independent Verification | Proposed display alias `PP-F00-LB-W0001` **reserved only**, with canonical department/actor ID to be independently registered | Lane B: verify the actual candidate source, admitted tests, security/CI and applicable Windows Product Gate; **cannot self-approve source or merge** | Not commissioned; no signed independent verification receipt |
+| `PP-QA-A-W1` — Test Catalogue Admission | Existing canonical `PP-F00-D02-W0001`; existing alias `PP-F00-LA-W0001` | Lane A: independently review candidate test truth against W8/W9 and issue source-bound signed ADMIT/FIX/REJECT/UNPROVEN; **cannot edit protected catalogue** | Not independently staffed, enrolled or admitted |
+| `PP-QA-B-W1` — Independent Verification | Proposed display alias `PP-F00-LB-W0001` **reserved only**, with canonical department/actor ID to be independently registered | Lane B: verify the actual candidate source, admitted tests, security/CI and applicable Windows Product Gate; **cannot self-approve source or merge** | Not commissioned; no signed independent verification receipt |
 | `PP-ENG-W1` — Coding Engineer | Existing F01 coding identity; do not rename or imply QA authority | Source author through ChatGPT, authenticated tunnel and Engineering Workbench | ChatGPT scheduled role is configured; actual unattended Windows coding identity/claim is unproven |
 | `PP-TST-W1` — Test Executor | Existing test-execution role, **not** Lane A or Lane B signer | Execute already admitted tests and collect exact-head evidence | Scheduled role; not independent admission |
 

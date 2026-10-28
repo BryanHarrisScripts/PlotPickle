@@ -90,6 +90,23 @@ test('ephemeral SCM canary cannot be mistaken for an owner Windows or admitted r
   "New-LocalUser","New-Item -ItemType User","Set-ExecutionPolicy"])
   assert.equal(ps.includes(forbidden),false,forbidden);
 });
+test('owner-machine acceptance collector is strictly read-only, externally pinned and blocks on STOP',async()=>{
+ const ps=await read('Inspect-PlotPickleLaneAOwnerAcceptance.ps1');
+ for(const expected of [
+  "EXTERNAL_POLICY_PINS_REQUIRED","OWNER_STOP_PRESENT_OR_UNREADABLE",
+  "SOURCE_EDITION_NOT_OBSERVED","SOURCE_EDITION_UNVERIFIED",
+  "REVIEWER_SERVICE_NOT_INSTALLED","REVIEWER_IMAGE_NOT_RELEASE_TRUSTED",
+  "REVIEWER_PROCESS_ACCOUNT_MISMATCH","LOCAL_SCM_CANDIDATE_ONLY",
+  "Get-AuthenticodeSignature","Get-FileHash","GetOwnerSid",
+  "ownerStopMarker='UNKNOWN'","independentRegistrar='UNPROVEN'",
+  "w8w9Admission='UNPROVEN'","canStart=$false","canAdmit=$false","canMerge=$false"
+ ])assert.ok(ps.includes(expected),expected);
+ for(const forbidden of ["New-Service","Start-Service","Stop-Service",
+  "Set-Service","sc.exe create","sc.exe start","sc.exe delete",
+  "New-LocalUser","ConvertTo-SecureString","New-SelfSignedCertificate",
+  "Import-PfxCertificate","git checkout","git reset","git fetch"])
+  assert.equal(ps.includes(forbidden),false,forbidden);
+});
 test('Windows native C# compile and smoke test are opt-in, never an independent reviewer proof',{
  skip:process.platform!=='win32'||process.env.PLOTPICKLE_LANE_A_NATIVE_TEST!=='1'
 },async()=>{

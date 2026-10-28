@@ -30,9 +30,9 @@ function Read-TaskState([string]$TaskName) {
     return [pscustomobject]@{ state='NOT_INSTALLED_OR_UNREADABLE'; count=$null; processVerified=$false }
   }
 }
-$head = Read-GitValue @('rev-parse','HEAD')
-$branch = Read-GitValue @('branch','--show-current')
-$dirty = Read-GitValue @('status','--porcelain')
+$head = Read-GitValue -GitArgs @('rev-parse','HEAD')
+$branch = Read-GitValue -GitArgs @('branch','--show-current')
+$dirty = Read-GitValue -GitArgs @('status','--porcelain')
 $sourceObserved = $head -cmatch '^[a-f0-9]{40}$' -and $branch -ceq 'main' -and $null -ne $dirty
 $clean = $sourceObserved -and $dirty.Length -eq 0
 $supervisor = $null

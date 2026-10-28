@@ -79,6 +79,17 @@ jobs:
               $r2.requiredTestEditions[0].sha256 -ne $r.requiredTestEditions[0].sha256) {
             throw 'WORKING_TREE_INFLUENCED_HASH'
           }
+          # A local replace ref must not change the bytes bound to exact $head.
+          git -C $fixture replace $head $base
+          if ($LASTEXITCODE -ne 0) { throw 'REPLACE_FIXTURE_FAILED' }
+          $rReplace=& node $script --repo $fixture --head $head --base $base --scope lane-a | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $rReplace.state -ne 'IMMUTABLE_INTAKE_READY' -or
+              $rReplace.requiredTestEditions[0].sha256 -ne $r.requiredTestEditions[0].sha256 -or
+              $rReplace.changedFileCount -ne $r.changedFileCount) {
+            throw 'GIT_REPLACE_REF_INFLUENCED_EXACT_HEAD'
+          }
+          git -C $fixture replace -d $head
+          if ($LASTEXITCODE -ne 0) { throw 'REPLACE_CLEANUP_FAILED' }
           git -C $fixture reset --hard --quiet
           [System.IO.File]::AppendAllText($normative,' changed in candidate')
           git -C $fixture add .

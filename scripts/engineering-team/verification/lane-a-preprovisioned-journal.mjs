@@ -111,7 +111,7 @@ export async function operateLaneAPreprovisionedJournal({
   const lock=full+'.exclusive-lock';
   try {await mkdir(lock);}
   catch {return deny('JOURNAL_LOCKED_OR_UNVERIFIABLE');}
-  let handle,committed=false,nonce=challengeNonce;
+  let handle,committed=false,failed=false,nonce=challengeNonce;
   try {
     // r+ requires an existing file. Never create or replace registrar storage.
     handle=await open(full,'r+');
@@ -139,12 +139,12 @@ export async function operateLaneAPreprovisionedJournal({
     });
     committed=true;
   } catch {
-    // Intentionally retain lock on any uncertain outcome. No repair/replay.
-    return deny('JOURNAL_UNCERTAIN_OR_REPLAY_DENIED');
+    failed=true;
   } finally {
-    if(handle) await handle.close().catch(()=>{});
+    if(handle) try {await handle.close();} catch {failed=true;}
   }
-  if(!committed) return deny('JOURNAL_UNCERTAIN_OR_REPLAY_DENIED');
+  // Intentionally retain lock on any uncertain write OR close. No repair/replay.
+  if(failed || !committed) return deny('JOURNAL_UNCERTAIN_OR_REPLAY_DENIED');
   try {await rmdir(lock);}
   catch {return deny('JOURNAL_LOCK_RELEASE_UNVERIFIABLE');}
   return Object.freeze({status:operation==='ISSUE'?'ISSUED_CANDIDATE_ONLY':'SPENT_CANDIDATE_ONLY',

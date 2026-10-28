@@ -21,9 +21,9 @@ The proposed F00 reviewer `PP-F00-D02-W0001` / alias `PP-F00-LA-W0001` has **not
 | `tests/issue-3302-lane-a-admission-receipt.test.mjs` | `9e0f34fa6a7fb323463e256bebbe99896db7e6e7fdadbdf59a9df18e266881a7` | `8f45b63742bf7c9587f690317e9e2ba1b4c5bf85` |
 | `tests/issue-3302-lane-a-reviewer-enrollment.test.mjs` | `ae63d4c185b21708483fd6dae00a164735a8d08fcc83c84b9b9c78dc16024ec5` | `804bb2ab708f3971a524f920c860651316735174` |
 | `tests/issue-3302-lane-a-service-identity-policy.test.mjs` | `111cb146ddf8713601402f604733e86e182f4615b74705f127d413d4e8939ebf` | `54ef181f259660027cf51fe368eec43abb0cd430` |
-| `tests/issue-3302-lane-a-native-service-host.test.mjs` | `ab47213c1e2f054b4e8dc8ed29270d429b95aa48b72072ab7efe1c8d9933a5de` | `a68f9ed1e531623950613a1104339f28c0457d34` |
+| `tests/issue-3302-lane-a-native-service-host.test.mjs` | `e23c54f2bc95e647f404aac6aa5c7cf26114cac1b38f8e867fa1d10b80842f59` | `8ed9ccdea8a3e70b24778e13e34d3c191890e55a` |
 
-`tests/issue-3302-lane-a-native-service-host.test.mjs` contains **5 source/static assertions** and **1 opt-in Windows-native build test**. The five were exercised by the author with injected V8 source fixtures. The Windows-only test has **NOT BEEN EXECUTED**. None of those results proves independent review or SCM installation.
+`tests/issue-3302-lane-a-native-service-host.test.mjs` contains **6 source/static assertions** and **1 opt-in Windows-native build test**. The six were exercised by the author with injected V8 source fixtures. The Windows-only test has **NOT BEEN EXECUTED**. None of those results proves independent review or SCM installation.
 
 ## Direct and transitive implementation input editions
 
@@ -38,7 +38,10 @@ The proposed F00 reviewer `PP-F00-D02-W0001` / alias `PP-F00-LA-W0001` has **not
 | `scripts/engineering-team/windows/verification/PlotPickleLaneAService.cs` | `e7ca01301248cabcfc75d7cada4826587efec5b0b53aa824886d8303028044c5` | `92a488a759db8c9d931ce2c157513736a2ddaafb` |
 | `scripts/engineering-team/windows/verification/Build-PlotPickleLaneAService.ps1` | `3a2ff59a9774b0f2376bf614ac2ce73032f0517b720774e4de162fea77100e29` | `c2666545a40763a3f41d5c8127e43fb63937bead` |
 | `scripts/engineering-team/windows/verification/Install-PlotPickleLaneAService.ps1` | `be98e813d583af0d045b891a53fd780aec30f5a165cffa97a8e5942d567c078e` | `0fd189ff2e3dcaa2ae692dd71299bd35c952eddd` |
-| `scripts/engineering-team/windows/verification/Test-PlotPickleLaneAHost.ps1` | `a1f5181fd715dcfc3da6aac526b60df7af47862bd485440677160cba1b106a1c` | `20ec28dce4d87133939611d91a0ce7643be35dad` |
+| `scripts/engineering-team/windows/verification/Test-PlotPickleLaneAHost.ps1` | `87ae1c07b4a896d791816ab37af0856bac930e4069170748626b77b6f5e6ff4f` | `c972337c87d5c0d41c46f33fb755d5411015f35d` |
+
+| `scripts/engineering-team/windows/verification/Test-PlotPickleLaneAScmCanary.CI.ps1` | `ff3fc1254968f503c061f949cf9b4d620c0eb22c0265c17aa55ca4d7b1cb7896` | `71743948a3e8a4c9f57956f4525af10b344904d3` |
+| `.github/workflows/issue-3302-lane-a-native-diagnostic.yml` | `84ffa68e750928190618d31dbbb699332036f28144f820577b9280db1855c6b3` | `ef29061a38805878a1c1e863cb9e9d0517b3e15f` |
 
 The separate maintainer must bind each target to its exact file digest, the actual imported files and static-read inputs, approved `WHITE-PAPER-V3` W8/W9 references, suitable existing test catalogue suites and honest `unit-fixture`/`static-source` scope. **Do not self-edit `config/verification/test-catalog.json` in this PR.**
 
@@ -48,7 +51,7 @@ The separate maintainer must bind each target to its exact file digest, the actu
 * `Build-PlotPickleLaneAService.ps1` defaults to **PLAN_ONLY** and compiles an unsigned diagnostic EXE only with explicit `-Build`; its `--self-test` does not prove the actual service token or qualification.
 * `Install-PlotPickleLaneAService.ps1` is an **internal future one-installer component**; default is PLAN_ONLY. `-Apply` requires Windows elevation, fixed install path, a matching reviewed SHA-256, a Valid Authenticode signature from a separately pinned publisher thumbprint, non-reparse/non-broad-writable install folders, dedicated virtual service account, and `sc.exe sidtype restricted`. It creates an **inert demand-start** service and never auto-starts it, creates a private signing key or authorizes reviews. **No independently approved signed release artifact/trusted publisher exists yet; do not execute -Apply.**
 * `Test-PlotPickleLaneAHost.ps1` returns a bounded, fail-closed Windows diagnostic receipt. With explicit `-RunNativeCompile` it builds and smoke-tests the inert diagnostic host in a temporary folder, then deletes it. The report still sets token attestation, signer key, registrar, W8/W9 admission, CI and Product Gate to **UNPROVEN**.
-* The authenticated Factory tunnel **does not provide arbitrary compilation/SCM installation or secure-key creation**. Its read-only candidate check at owner host source `8a6bec0b1137adf6d515f8314d158df155357b9d` returned `BLOCKED/CANDIDATE_BASE_MISMATCH`; no PR code was staged or executed on Windows. The supervisor has no fresh owned heartbeat as last observed. **No native Windows execution of this PR is claimed.**
+* The authenticated Factory tunnel **does not provide arbitrary compilation/SCM installation or secure-key creation**. Its read-only candidate check at owner host source `8a6bec0b1137adf6d515f8314d158df155357b9d` returned `BLOCKED/CANDIDATE_BASE_MISMATCH`; no PR code was staged or executed on Windows. The supervisor has no fresh owned heartbeat as last observed. **The owner-machine PR has **not** been staged or executed. However, author-originated diagnostic-only GitHub Actions [run #40686680844](https://github.com/BryanHarrisScripts/PlotPickle/actions/runs/40686680844) executed an **ephemeral Windows Server 2022** compiler/self-test and disposable `PlotPickleLaneA` SCM registration/start/virtual-account SID/STOP canary and **PASSED**; private key and W8/W9 trust remained absent. This is not independent verification, not Windows 11 owner acceptance and not approved test truth.**
 
 ## Review conditions
 
@@ -59,3 +62,9 @@ Admissible reviewer verdicts are **ADMIT, FIX, REJECT, UNPROVEN**, signed with t
 **STOP state:** reviewer not provisioned, signer absent, test editions unadmitted, native service not installed, release gates blocked. No credential or private key belongs in a PR/comment/ChatGPT log. Keep draft and do not merge.
 
 **Windows case semantics correction:** The fixed SCM inspector now compares Windows account names case-insensitively; the Windows `NT SERVICE\\PlotPickleLaneA` principal is not case sensitive. The exact inspector digest above supersedes the preceding edition; native Windows execution remains unproven.
+
+## Actual native CI evidence, strict limitations
+
+The earlier author-side native diagnostic [#40686345501](https://github.com/BryanHarrisScripts/PlotPickle/actions/runs/40686345501) passed C# `ServiceBase` compilation + inert self-test. The later source-bound [#40686680844](https://github.com/BryanHarrisScripts/PlotPickle/actions/runs/40686680844) passed **disposable Windows SCM native service registration**, restricted SID configuration, actual `NT SERVICE\\PlotPickleLaneA` process-token check, service start and STOP, and cleanup code. It did **not** generate a signing key, install a production service, prove independent reviewer identity, qualify admission, or exercise the owner Windows 11 Product Gate. The workflow was authored on the same PR branch and is **NOT** an independent W8/W9 reviewer or protected test-catalogue acceptance.
+
+The six new source-level native-safety checks were exercised using injected V8 fixtures: **6/6 pass**. The native test embedded in the Node test suite remains opt-in / not executed under that test runner; the separate Windows workflow above executes the actual C# host smoke and SCM canary instead. Recompute all SHA-256 editions independently at final review because any subsequent source changes supersede this packet.

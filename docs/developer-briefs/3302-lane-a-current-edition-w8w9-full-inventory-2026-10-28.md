@@ -95,3 +95,19 @@ Two separate F00 cryptographic verification paths formerly accepted a purportedl
 | `tests/issue-3302-lane-a-admission-receipt.test.mjs` | `eda0c193605a4b4976dad71306ce93c567ba57faa5d469cc19a4474a0ac4ee8f` | `c9d5c144f7635b4e711d47e14d73429a27130d68` |
 
 **Independent review intake, not a claim of signing:** Review all eight actual current Lane A test edits and the full source/input graph against unchanged WHITE-PAPER-V3 W8+W9. The separate registrar must obtain an out-of-band approved public root fingerprint, demonstrate distinct Windows coder/reviewer tokens and key ACLs, atomically consume the nonce and issue a source-bound signed enrollment. A qualified independent reviewer must issue a signed ADMIT, FIX, REJECT, or UNPROVEN disposition for the exact current digest set. A distinct protected-catalogue maintainer may bind only a legitimate signed ADMIT and must preserve current MAIN approved bindings. Do **not** infer an ADMIT from passing hosted diagnostics, test-fixture Ed25519 keys or a GitHub comment. No private keys or authentication secrets belong in this repository or issue.
+
+
+## October 28 — proposed atomic registrar nonce-ledger candidate (NEW ninth test; no admission)
+
+The earlier eight-test review packet is now incomplete for the final PR edition. The author added:
+
+| File | UTF-8 SHA-256 | Git blob |
+| --- | --- | --- |
+| scripts/engineering-team/verification/lane-a-nonce-ledger.mjs | a9b6a57d1bb09382550c1e97ea99a751f472094e0ad55c0d61aab1ff8406f7fe | c80ca99f82a5d0a6c3b5ff7f76080b7d48b86543 |
+| tests/issue-3302-lane-a-nonce-ledger.test.mjs | 680d3dc072c4b7bccf9e98b7d806347842c53afd3da7b2d199c1f9c667f1897f | 2b301a304aa41ae0eaf8a79aa33c4c01cebdcc6e |
+
+Source/test commit: 24d3d79fa55a9933937912db24a2391f2263c862. Git blob IDs were checked against locally generated Git hash-object output of the exact tested bytes. **Six author-side local Linux Node 22 synthetic tests passed.** Coverage includes one-use spent marker, 16 concurrent contenders yielding one local winner, mismatched identity/host, missing root, pre-existing truncated spent marker, and symlinked protected directory rejection. These DO NOT prove Windows NTFS cross-process crash atomicity, protected registrar ACLs, privileged service custody, independent identity, signing, ADMIT or replay resistance after a hostile deletion of the spent file.
+
+The registrar-source candidate uses atomic wx file creation with file sync and parent-directory sync for issuance/spend. If Windows directory fsync is unsupported or uncertain, the operation FAILS CLOSED and retains any marker. The independent reviewer must evaluate Windows-specific durability, inherited ACLs/ancestor symlinks, hostile tampering and real separate-process contention. Neither API signs enrollment nor activates review. Storage must be pre-provisioned and independently secured under a separate registrar identity. Outputs explicitly set independentAuthorityVerified=false, nonceConsumedForProduction=false, mayAdmit=false, mayEnroll=false, mayEditCatalogue=false, mayCode=false and mayMerge=false.
+
+**Required independent W8/W9 decision:** recompute final PR test/input editions INCLUDING this NEW ninth test, verify the unchanged normative source, issue a source-bound independently signed ADMIT/FIX/REJECT/UNPROVEN for each governed edition. New test is PROPOSED/UNADMITTED, not protected approved truth. Do not author-bind or alter config/verification/test-catalog.json. No signer/root/maintainer has been provisioned by this commit.

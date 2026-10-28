@@ -223,3 +223,24 @@ test('STOP marker remains visible even when supervisor heartbeat is missing',asy
  assert.equal(get(result,'independent-windows-supervisor').state,'STOP_REQUESTED');
  assert.ok(result.diagnostics.includes('SUPERVISOR_HEARTBEAT_UNAVAILABLE'));
 });
+
+test('supervisor PAUSE and STOP observations are visible but never proof of process teardown',()=>{
+ for(const state of ['PAUSE_REQUESTED','PAUSED','STOP_REQUESTED','STOPPED']){
+  const result=project({expectedHead:SHA,supervisorSnapshot:{
+   state,sourceHead:SHA,heartbeatFresh:true,stopMarkerState:'ABSENT'
+  }});
+  const item=get(result,'independent-windows-supervisor');
+  assert.equal(item.observedState,state);
+  assert.equal(item.state,state==='PAUSE_REQUESTED'||state==='PAUSED'?'BLOCKED':'STOP_REQUESTED');
+  assert.equal(item.processOwnershipVerified,false);
+  assert.equal(item.canStart,false);
+  assert.equal(item.canStop,false);
+ }
+});
+test('a durable STOP marker wins over a reported PAUSED supervisor',()=>{
+ const result=project({expectedHead:SHA,supervisorSnapshot:{
+  state:'PAUSED',sourceHead:SHA,heartbeatFresh:true,stopMarkerState:'PRESENT'
+ }});
+ assert.equal(get(result,'independent-windows-supervisor').state,'STOP_REQUESTED');
+ assert.equal(get(result,'independent-windows-supervisor').evidenceCode,'LOCAL_STOP_MARKER_PRESENT');
+});

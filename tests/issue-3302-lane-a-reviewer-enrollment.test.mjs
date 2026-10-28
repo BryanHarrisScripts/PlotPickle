@@ -42,6 +42,14 @@ test('valid fixture signatures prove only an inert candidate, not an operating r
  assert.equal(result.requiresExternalWindowsAclAndPrincipalObservation,true);
  assert.equal(result.candidateRegistryEntry.principal,'WindowsReviewer01');
 });
+test('unsigned enrollment privilege extensions fail closed before identity admission',()=>{
+ const receipt=signed();
+ receipt.mayMerge=true;
+ assert.equal(verifyReviewerEnrollment(receipt,options).code,'UNSIGNED_EXTENSION_REJECTED');
+ const second=signed();
+ second.canEditCatalogue=true;
+ assert.equal(verifyReviewerEnrollment(second,options).code,'UNSIGNED_EXTENSION_REJECTED');
+});
 test('wrong or revoked registrar identity is refused',()=>{
  assert.equal(verifyReviewerEnrollment(signed(),{...options,expectedRegistrarId:'other'}).code,'REGISTRAR_NOT_AUTHORIZED');
  assert.equal(verifyReviewerEnrollment(signed(),{...options,trustedRegistrars:{}}).code,'REGISTRAR_NOT_TRUSTED');

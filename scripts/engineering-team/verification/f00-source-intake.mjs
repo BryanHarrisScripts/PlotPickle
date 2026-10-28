@@ -61,6 +61,9 @@ export function buildSourceIntake({ root, head, base, scope, gitCommand = 'git' 
       !['lane-a', 'coding'].includes(scope)) return deny('INVALID_EXACT_SOURCE_COORDINATES');
   const git = (...args) => execFileSync(gitCommand, ['-C', root, ...args], {
     timeout: 12_000, maxBuffer: MAX_OUTPUT, windowsHide: true,
+    // Git replace refs can silently redirect a pinned commit SHA to other bytes.
+    // Source intake must resolve the actual immutable object, not a local alias.
+    env: { ...process.env, GIT_NO_REPLACE_OBJECTS: '1' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');

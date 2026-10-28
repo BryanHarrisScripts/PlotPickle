@@ -52,3 +52,20 @@ An initial real **human or organizationally independent security reviewer** is r
 - An inability to verify an input is **UNPROVEN/BLOCKED**, not automatic retry or permission to weaken W8/W9.
 
 **Next real external step:** designate and authorize a genuinely separate F00 registrar/reviewer and its out-of-band public-key fingerprint; only then can its key custody and one-use enrollment be truthfully proven. This is an internal trust-bootstrap control, not a second end-user installation choice.
+
+## Worker identity and QA lane naming — 28 October 2026
+
+The owner-approved production diagram has **two independent quality lanes**, not two names for the coding worker. Keep the existing canonical actor IDs stable; the following display names and aliases make the lane explicit without inventing a new credential or signer.
+
+| Human-readable worker | Stable actor/alias | Lane responsibility | Activation state |
+| --- | --- | --- | --- |
+| `PP-QA-LA-W1` — Test Catalogue Admission | Existing canonical `PP-F00-D02-W0001`; existing alias `PP-F00-LA-W0001` | Lane A: independently review candidate test truth against W8/W9 and issue source-bound signed ADMIT/FIX/REJECT/UNPROVEN; **cannot edit protected catalogue** | Not independently staffed, enrolled or admitted |
+| `PP-QA-LB-W1` — Independent Verification | Proposed display alias `PP-F00-LB-W0001` **reserved only**, with canonical department/actor ID to be independently registered | Lane B: verify the actual candidate source, admitted tests, security/CI and applicable Windows Product Gate; **cannot self-approve source or merge** | Not commissioned; no signed independent verification receipt |
+| `PP-ENG-W1` — Coding Engineer | Existing F01 coding identity; do not rename or imply QA authority | Source author through ChatGPT, authenticated tunnel and Engineering Workbench | ChatGPT scheduled role is configured; actual unattended Windows coding identity/claim is unproven |
+| `PP-TST-W1` — Test Executor | Existing test-execution role, **not** Lane A or Lane B signer | Execute already admitted tests and collect exact-head evidence | Scheduled role; not independent admission |
+
+For future workers increment the worker suffix consistently (`W2` in the UI, `W0002` in governed actor records) **within the same role and lane**. A handoff must carry the stable actor ID, display role, explicit `lane: "A" | "B" | "NONE"`, source SHA, work-order ID, evidence references, STOP state and prior-event digest. The display alias is never a bearer credential or proof of organizational independence.
+
+The phrase **“activate Lane B”** means only that the independently gated production-verification stage becomes eligible after Lane A admission; it does not make a coding worker a Lane B verifier. Neither QA lane is allowed to substitute for the distinct protected-catalogue maintainer, owner-Windows acceptance, or release manager. Separate Windows tokens, key custody, qualification and immutable receipts remain mandatory before any role can claim independent authority.
+
+This is a **naming and responsibility contract only**. It does not modify protected tests, W8/W9 truth, a signing registry, the Service Manager, credentials, queue leases, STOP, or merge authorization.

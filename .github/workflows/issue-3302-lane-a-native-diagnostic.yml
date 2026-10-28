@@ -7,6 +7,7 @@ on:
       - "scripts/engineering-team/windows/verification/PlotPickleLaneAService.cs"
       - "scripts/engineering-team/windows/verification/Build-PlotPickleLaneAService.ps1"
       - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneAHost.ps1"
+      - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneAScmCanary.CI.ps1"
       - "scripts/engineering-team/windows/verification/Install-PlotPickleLaneAService.ps1"
   workflow_dispatch:
 
@@ -45,3 +46,27 @@ jobs:
           Write-Output "NATIVE_CSC_SELF_TEST_ONLY_PASS"
           Write-Output "NOT SCM START; NOT OWNER WINDOWS; NOT SIGNER ENROLLMENT"
           Write-Output "NOT W8/W9 ADMISSION; NOT PRODUCT GATE; NOT RELEASE"
+
+      - name: CI-only ephemeral SCM virtual-account start and STOP canary
+        shell: pwsh
+        env:
+          PLOTPICKLE_LANE_A_EPHEMERAL_CI: "1"
+        run: |
+          $ErrorActionPreference = "Stop"
+          $raw = & "./scripts/engineering-team/windows/verification/Test-PlotPickleLaneAScmCanary.CI.ps1"
+          $receipt = $raw | ConvertFrom-Json
+          if ($receipt.schemaVersion -ne "PP-LANE-A-EPHEMERAL-SCM-V1" -or
+              $receipt.status -ne "INERT_SCM_CANARY_PASSED" -or
+              $receipt.virtualAccountTokenVerified -ne $true -or
+              $receipt.restrictedServiceSidConfigured -ne $true -or
+              $receipt.scmStartStopVerified -ne $true -or
+              $receipt.reviewerKeyProvisioned -ne $false -or
+              $receipt.userMachineVerified -ne $false -or
+              $receipt.independentlyAttested -ne $false -or
+              $receipt.w8w9Admitted -ne $false -or
+              $receipt.mayAdmit -ne $false -or
+              $receipt.mayMerge -ne $false) {
+            throw "EPHEMERAL_SCM_TEST_FAILED_OR_OVERSTATED"
+          }
+          Write-Output "INERT_SCM_VIRTUAL_ACCOUNT_CANARY_PASS"
+          Write-Output "EPHEMERAL_CI_ONLY; NO REVIEWER KEY; NO W8/W9 ADMISSION"

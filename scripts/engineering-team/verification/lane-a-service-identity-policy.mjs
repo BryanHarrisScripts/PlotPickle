@@ -43,7 +43,7 @@ export function inspectLaneAServiceIdentity(observation,{
     observation.serviceAccount!==ACCOUNT)return blocked('SERVICE_ACCOUNT_OR_OWNER_MISMATCH');
  if(observation.roleAlias!=='PP-F00-LA-W0001'||observation.actorId!=='PP-F00-D02-W0001')
   return blocked('ROLE_MISMATCH');
- if(observation.installationChoice!=='always-on'||observation.interactive===true)
+ if(observation.installationChoice!=='always-on'||observation.interactive!==false)
   return blocked('NONINTERACTIVE_INSTALL_REQUIRED');
  if(!SHA1.test(expectedHead||'')||observation.sourceHead!==expectedHead)
   return blocked('SOURCE_HEAD_UNATTESTED');

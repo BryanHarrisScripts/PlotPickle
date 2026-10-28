@@ -71,6 +71,12 @@ async function main() {
   let result;
   if (args.length === 1 && args[0] === '--status') {
     result = await inspectOwnerWorkerFleet();
+  } else if (args.length === 2 && args[0] === '--serve' &&
+    FACTORY_WORKERS.some(x => x.id === args[1])) {
+    // Registered task is inert until independently signed F00 admission,
+    // exact-head Product Gate, a separate owner grant broker and two-cycle proof.
+    // No background agent, polling/paid dispatch, STOP clearing or Pi fallback.
+    result = blocked('SCHEDULED_ROLE_NOT_RELEASED_OR_INDEPENDENTLY_ADMITTED');
   } else if (args.length === 3 && args[0] === '--once' &&
     FACTORY_WORKERS.some(x => x.id === args[1])) {
     result = await runOwnerWorkerTicket({ role: args[1], requestId: args[2] });

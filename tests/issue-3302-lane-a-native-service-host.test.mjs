@@ -107,6 +107,22 @@ test('owner-machine acceptance collector is strictly read-only, externally pinne
   "Import-PfxCertificate","git checkout","git reset","git fetch"])
   assert.equal(ps.includes(forbidden),false,forbidden);
 });
+test('separately pinned Windows trust-root registry observation is read only and never grants signing',async()=>{
+ const ps=await read('Inspect-PlotPickleLaneATrustRoot.ps1');
+ for(const required of [
+  'EXTERNAL_ROOT_PIN_REQUIRED','ROOT_NOT_INSTALLED',
+  'ROOT_FINGERPRINT_MISMATCH','TRUST_ROOT_BROAD_WRITE_ACCESS',
+  'LOCAL_TRUST_ROOT_CANDIDATE_ONLY',
+  'publisherKeyFingerprintMatch=$false',
+  'independentPublisherAttestation=','canEnroll=$false',
+  'canAdmit=$false','canEditCatalogue=$false','canMerge=$false',
+  'HKEY_LOCAL_MACHINE\\SOFTWARE\\PlotPickle\\ServiceManager\\Trust\\LaneA'
+ ])assert.ok(ps.includes(required),required);
+ for(const forbidden of ['Set-ItemProperty','New-ItemProperty','Remove-ItemProperty',
+  'New-Service','Start-Service','New-LocalUser',
+  'Import-PfxCertificate','ConvertTo-SecureString'])
+  assert.equal(ps.includes(forbidden),false,forbidden);
+});
 test('Windows native C# compile and smoke test are opt-in, never an independent reviewer proof',{
  skip:process.platform!=='win32'||process.env.PLOTPICKLE_LANE_A_NATIVE_TEST!=='1'
 },async()=>{

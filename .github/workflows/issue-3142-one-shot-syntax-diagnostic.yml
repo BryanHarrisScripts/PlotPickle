@@ -1,0 +1,55 @@
+name: Coding One-Shot Syntax Diagnostic (NON-RELEASE)
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/issue-3142-one-shot-syntax-diagnostic.yml"
+      - "scripts/engineering-team/gateway/owner-runtime-gate.mjs"
+      - "scripts/engineering-team/gateway/authorized-coding-once.mjs"
+      - "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs"
+      - "tests/issue-3142-authorized-coding-once.test.mjs"
+      - "tests/issue-3142-authorized-pr-publish-once.test.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  syntax-only:
+    name: Windows source parser — NOT W8/W9 admission
+    runs-on: windows-2022
+    timeout-minutes: 8
+    steps:
+      - name: Checkout exact candidate without persisted credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install locked Node version for parsing only
+        uses: actions/setup-node@v4
+        with:
+          node-version: '26.12.0'
+
+      - name: Parse fixed source and test files without executing governed tests
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $expectedFiles = @(
+            'scripts/engineering-team/gateway/owner-runtime-gate.mjs',
+            'scripts/engineering-team/gateway/authorized-coding-once.mjs',
+            'scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs',
+            'tests/issue-3142-authorized-coding-once.test.mjs',
+            'tests/issue-3142-authorized-pr-publish-once.test.mjs'
+          )
+          foreach ($file in $expectedFiles) {
+            if (-not (Test-Path -LiteralPath $file -PathType Leaf)) {
+              throw 'MISSING_FIXED_CANDIDATE_FILE'
+            }
+            & node --check $file
+            if ($LASTEXITCODE -ne 0) {
+              throw 'SYNTAX_CHECK_FAILED'
+            }
+          }
+          Write-Output 'SYNTAX_ONLY_PASS'
+          Write-Output 'NO TEST EXECUTION; NO MODEL INVOCATION; NO PR PUBLICATION'
+          Write-Output 'NOT INDEPENDENT W8/W9 ADMISSION OR OWNER WINDOWS PRODUCT GATE'

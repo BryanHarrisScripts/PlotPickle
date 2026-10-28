@@ -32,7 +32,7 @@ function Read-TaskState([string]$TaskName) {
 }
 $head = Read-GitValue -GitArgs @('rev-parse','HEAD')
 $branch = Read-GitValue -GitArgs @('branch','--show-current')
-$dirty = Read-GitValue -GitArgs @('status','--porcelain')
+$dirty = Read-GitValue -GitArgs @('status','--porcelain','--untracked-files=no')
 $sourceObserved = $head -cmatch '^[a-f0-9]{40}$' -and $branch -ceq 'main' -and $null -ne $dirty
 $clean = $sourceObserved -and $dirty.Length -eq 0
 $supervisor = $null

@@ -11575,7 +11575,7 @@
       },
       {
         "target": "tests/issue-1228-security-closeout.test.mjs",
-        "targetDigest": "cb28f5a0d42ccf2a9b9770feff2355eedd293febf23138d6f94f292f12ca3d71",
+        "targetDigest": "8022078428373367cce8864006c43bb03ee4f7f426c0307c23f143c45c88d409",
         "catalogueIds": [
           "verification.phase2-core"
         ],

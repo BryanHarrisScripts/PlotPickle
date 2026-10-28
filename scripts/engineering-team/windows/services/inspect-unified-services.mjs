@@ -22,26 +22,34 @@ async function guardedJson(file){
   return JSON.parse(await readFile(file,'utf8'));
  }catch{return null;}
 }
+/** Marker existence blocks activity even if its contents are invalid or a symlink.
+ * Only ENOENT is proven absent; access errors are UNKNOWN, never permission. */
+async function observeStopMarker(file){
+ try{await lstat(file);return 'PRESENT';}
+ catch(error){return error?.code==='ENOENT'?'ABSENT':'UNKNOWN';}
+}
 export async function inspectLocalServiceInventory({
  repo=REPO,
  home=path.resolve(process.env.PLOTPICKLE_HOME||
    path.join(process.env.LOCALAPPDATA||process.env.USERPROFILE||os.homedir(),'PlotPickle')),
  appData=path.resolve(process.env.LOCALAPPDATA||path.join(os.homedir(),'AppData','Local')),
- now=Date.now(),readJson=guardedJson
+ now=Date.now(),readJson=guardedJson,readStopMarker=observeStopMarker
 }={}){
  const sidecarConfig=await readJson(path.join(repo,'config/runtime-sidecars.json'));
  const managedManifest=await readJson(path.join(repo,'config/runtime-manifest.json'));
  if(sidecarConfig?.statusFile!==STATUS_PATH)throw Error('FIXED_SIDECAR_STATUS_PATH_REQUIRED');
  const registry=createUnifiedServiceRegistry(sidecarConfig,managedManifest);
- const [sidecarSnapshot,heartbeat]=await Promise.all([
+ const supervisorDir=path.join(appData,'PlotPickle','engineering-team','supervisor');
+ const [sidecarSnapshot,heartbeat,stopMarkerState]=await Promise.all([
   readJson(path.join(home,STATUS_PATH)),
-  readJson(path.join(appData,'PlotPickle','engineering-team','supervisor','heartbeat.json'))
+  readJson(path.join(supervisorDir,'heartbeat.json')),
+  readStopMarker(path.join(supervisorDir,'stop-request.json'))
  ]);
  const supervisorSnapshot=heartbeat&&typeof heartbeat==='object'?{
-  state:heartbeat.state,sourceHead:heartbeat.sourceHead,
+  state:heartbeat.state,sourceHead:heartbeat.sourceHead,stopMarkerState,
   heartbeatFresh:Number.isSafeInteger(heartbeat.at)&&
    heartbeat.at<=now+30000&&now-heartbeat.at<=120000
- }:null;
+ }:{state:null,sourceHead:null,heartbeatFresh:false,stopMarkerState};
  const result=projectUnifiedServiceInventory({
   registry,sidecarSnapshot,supervisorSnapshot,now
  });

@@ -35,10 +35,10 @@ try {
     throw 'CANARY_IMAGE_SHA_MISMATCH'
   }
   # Test-only sc.exe registration; never the production signed installer.
-  & $sc create $name 'type=' 'own' 'start=' 'demand' 'binPath=' ('"' + $exe + '"') 'obj=' $account 'DisplayName=' 'PlotPickle CI ephemeral inert reviewer'
+  & $sc create $name 'type=' 'own' 'start=' 'demand' 'binPath=' ('"' + $exe + '"') 'obj=' $account 'DisplayName=' 'PlotPickle CI ephemeral inert reviewer'|Out-Null
   if ($LASTEXITCODE -ne 0) { throw 'CANARY_SCM_CREATE_FAILED' }
   $created=$true
-  & $sc sidtype $name restricted
+  & $sc sidtype $name restricted|Out-Null
   if ($LASTEXITCODE -ne 0) { throw 'CANARY_SCM_RESTRICTED_SID_FAILED' }
   $config=Get-CimInstance -ClassName Win32_Service -Filter "Name='PlotPickleLaneA'"
   if ($null -eq $config -or $config.StartName -ne $account -or

@@ -7,6 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { boundedSourceEdit, runAuthorizedCodingOnce as runCodingNative, validateCodingGrant } from '../scripts/engineering-team/gateway/authorized-coding-once.mjs';
 import { claimCodingOwnership, codingReleaseIsReconciled } from '../scripts/engineering-team/gateway/receipts/atomic-coding-ownership.mjs';
+import { ownerOneShotAllowed } from '../scripts/engineering-team/gateway/owner-runtime-gate.mjs';
 
 const HEAD = 'a'.repeat(40);
 const COMMIT = 'b'.repeat(40);
@@ -649,4 +650,38 @@ test('replacement of the database after completed release cannot reset the persi
     await unlink(path.join(receipts, '.coding-ownership.sqlite'));
     assert.throws(() => claimCodingOwnership(receipts, '2'.repeat(32), Date.now()),
       'database recreation must not reset the independent owner epoch');
+  }));
+
+
+test('one-shot operator gate is only RUNNING on the same head; STOP PAUSE and stale are denied', async () => {
+  const yes = async () => ({ state: 'RUNNING', exactSha: HEAD });
+  assert.equal(await ownerOneShotAllowed(HEAD, { inspect: yes }), true);
+  for (const state of ['STOP_REQUESTED', 'PAUSED', 'PAUSE_REQUESTED', 'OFFLINE', 'BLOCKED']) {
+    assert.equal(await ownerOneShotAllowed(HEAD, {
+      inspect: async () => ({ state, exactSha: HEAD }),
+    }), false, state);
+  }
+  assert.equal(await ownerOneShotAllowed(HEAD, {
+    inspect: async () => ({ state: 'RUNNING', exactSha: 'b'.repeat(40) }),
+  }), false);
+  assert.equal(await ownerOneShotAllowed(HEAD, { inspect: async () => { throw Error('io'); } }), false);
+  assert.equal(await ownerOneShotAllowed('not-a-sha', { inspect: yes }), false);
+});
+
+test('operator STOP or unverified heartbeat blocks a coding grant before any model invocation', () =>
+  work(async ({ repoRoot, privateRoot }) => {
+    const at = Date.now();
+    let modelCalls = 0, gitCalls = 0;
+    for (const operatorReady of [async () => false, () => { throw Error('STOP unreadable'); }]) {
+      const r = await runAuthorizedCodingOnce({
+        repoRoot, privateRoot, source, grant: makeGrant(at),
+        credential: 'fake-test-key-not-real-123456', now: () => at,
+        operatorReady, runGit: async () => { gitCalls++; throw Error('git forbidden'); },
+        requestEdit: async () => { modelCalls++; throw Error('model forbidden'); },
+      });
+      assert.equal(r.code, 'CODING_OWNER_STOP_PAUSE_OR_HEARTBEAT_UNVERIFIABLE');
+      assert.equal(r.replayAuthorized, false);
+    }
+    assert.equal(modelCalls, 0);
+    assert.equal(gitCalls, 0);
   }));

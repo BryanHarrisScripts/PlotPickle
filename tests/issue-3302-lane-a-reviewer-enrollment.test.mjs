@@ -90,6 +90,14 @@ test('malformed or missing evidence and signature are rejected',()=>{
  const forged=signed();forged.registrarSignatureBase64=sign(null,enrollmentPayload(forged),reviewer.privateKey).toString('base64');
  assert.equal(verifyReviewerEnrollment(forged,options).code,'REGISTRAR_SIGNATURE_INVALID');
 });
+test('distinct Windows token and private-key ACL evidence cannot be double-counted',()=>{
+ const repeatedRef=signed({evidenceRefs:['same-observation','same-observation']});
+ assert.equal(verifyReviewerEnrollment(repeatedRef,options).code,'EVIDENCE_REFS_NOT_DISTINCT');
+ const repeatedDigest=signed({privateKeyAclEvidenceDigest:'a'.repeat(64)});
+ assert.equal(verifyReviewerEnrollment(repeatedDigest,options).code,'ATTESTATION_EVIDENCE_NOT_DISTINCT');
+ assert.equal(verifyReviewerEnrollment(signed(),options).verified,true);
+});
+
 test('missing reviewer proof-of-possession cannot impersonate a reviewer',()=>{
  const forged=signed();forged.possessionSignatureBase64=sign(null,possessionPayload(forged),registrar.privateKey).toString('base64');
  forged.registrarSignatureBase64=sign(null,enrollmentPayload(forged),registrar.privateKey).toString('base64');

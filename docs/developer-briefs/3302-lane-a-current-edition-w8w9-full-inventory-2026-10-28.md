@@ -65,3 +65,15 @@ All paths except the workflow below begin with `scripts/engineering-team/windows
 5. Only after those gates and an authorized real coding/publishing worker succeed may issue #3142 attempt a first, then an automatically initiated second, independently verified engineering cycle. Keep #3322 DRAFT, no self-merge or STOP override.
 
 **Observed release state at source checkpoint:** Architecture Verification #40698552779 FAILED protected W8/W9 test admission; native Windows diagnostic #40698552770 PASSED but was NON-RELEASE, with owner acceptance SKIPPED. No approved F00 credential, signed verdict, catalogue change, Product Gate or genuine autonomous cycle. Stop here, retaining all evidence, until independent trust is established.
+
+
+## October 28 Windows tracked-source correction — supersedes two editions above
+
+This is an AUTHOR-SIDE source-edition change, **not** a signed F00 ADMIT. The reviewer must use these NEW editions instead of the old entries above, recompute them independently at the final reviewed PR head and inspect W8/W9 semantics. The owner-Windows acceptance inspector previously used `git status --porcelain`, which reports intentionally untracked local operator startup scripts as dirty. It now uses `git status --porcelain --untracked-files=no`, matching the existing approved independent Supervisor's tracked-clean-MAIN rule. This does not allow modified tracked code, STOP overrides, reviewer self-signing, or any installation.
+
+| Changed item | New UTF-8 SHA-256 (author-side, vector-tested) | New Git blob |
+| --- | --- | --- |
+| `scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneAOwnerAcceptance.ps1` | `9672be7692cc103613efbffeae1b8a48bbc65097db3981e3912fecb219d2244b` | `c2bb65b949111bf585b58836eb98cce84d10d2fc` |
+| `tests/issue-3302-lane-a-native-service-host.test.mjs` | `2bb30b4100f4c28da6e427bf30f7207e08b7c24c6798849f99ecfc9a12b3c8dc` | `c1e57fe7a063e66e4eecb8bc8e5f4f913877712f` |
+
+The proposed regression asserts that the read-only owner acceptance command has tracked-only Git status. It has **not** been executed under a qualified F00 identity or admitted to protected truth. Exact source check before this documentation commit: `0275fe028d292a52e5fa3107900e8dbfb9970675`. CI for this source head: Architecture Verification #40712662099 **FAILED** all seven layers because all eight changed W8/W9 tests remain unadmitted; hosted NON-RELEASE native diagnostic #40712661805 **PASSED**. No owner-Windows Product Gate, signed reviewer, distinct registrar or protected-catalogue maintainer observed. Both results are intentionally non-promotable to ADMIT.

@@ -74,6 +74,15 @@ test('replayed, unapproved or expired challenge cannot enroll',()=>{
  assert.equal(verifyReviewerEnrollment(signed(),{...options,expectedChallengeNonce:'different'}).code,'CHALLENGE_MISMATCH');
  assert.equal(verifyReviewerEnrollment(signed(),{...options,now:Date.parse('2026-10-28T01:00:00Z')}).code,'ENROLLMENT_TIME_INVALID');
 });
+test('signed enrollment cannot normalize impossible dates or trust an absent clock',()=>{
+ assert.equal(verifyReviewerEnrollment(signed({issuedAtUtc:'2026-02-30T23:00:00Z'}),options).code,'ENROLLMENT_TIME_INVALID');
+ assert.equal(verifyReviewerEnrollment(signed({expiresAtUtc:'2026-02-30T23:59:00Z'}),options).code,'ENROLLMENT_TIME_INVALID');
+ assert.equal(verifyReviewerEnrollment(signed({issuedAtUtc:'2026-10-27T19:00:00-04:00'}),options).code,'ENROLLMENT_TIME_INVALID');
+ assert.equal(verifyReviewerEnrollment(signed(),{...options,now:undefined}).code,'ENROLLMENT_TIME_INVALID');
+ assert.equal(verifyReviewerEnrollment(signed(),{...options,now:NaN}).code,'ENROLLMENT_TIME_INVALID');
+ assert.equal(verifyReviewerEnrollment(signed(),{...options,now:Number.MAX_SAFE_INTEGER}).code,'ENROLLMENT_TIME_INVALID');
+});
+
 test('malformed or missing evidence and signature are rejected',()=>{
  assert.equal(verifyReviewerEnrollment(signed({privateKeyAclEvidenceDigest:'not-proof'}),options).code,'ATTESTATION_EVIDENCE_MISSING');
  const missing=signed();delete missing.registrarSignatureBase64;

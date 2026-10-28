@@ -99,6 +99,7 @@ test('owner-machine acceptance collector is strictly read-only, externally pinne
   "REVIEWER_PROCESS_ACCOUNT_MISMATCH","LOCAL_SCM_CANDIDATE_ONLY",
   "Get-AuthenticodeSignature","Get-FileHash","GetOwnerSid",
   "ownerStopMarker='UNKNOWN'","independentRegistrar='UNPROVEN'",
+  "gitCommand.Source -C $root status --porcelain --untracked-files=no",
   "w8w9Admission='UNPROVEN'","canStart=$false","canAdmit=$false","canMerge=$false"
  ])assert.ok(ps.includes(expected),expected);
  for(const forbidden of ["New-Service","Start-Service","Stop-Service",

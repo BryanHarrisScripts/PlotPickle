@@ -42,6 +42,7 @@ test('renamed service, shared manager owner, interactive login and wrong actor b
  assert.equal(check({serviceName:'PlotPickleLaneB'}).code,'SERVICE_ACCOUNT_OR_OWNER_MISMATCH');
  assert.equal(check({managerService:'Unauthorized'}).code,'SERVICE_ACCOUNT_OR_OWNER_MISMATCH');
  assert.equal(check({interactive:true}).code,'NONINTERACTIVE_INSTALL_REQUIRED');
+ assert.equal(check({interactive:undefined}).code,'NONINTERACTIVE_INSTALL_REQUIRED');
  assert.equal(check({installationChoice:'personal'}).code,'NONINTERACTIVE_INSTALL_REQUIRED');
  assert.equal(check({actorId:'PP-F01-D02-W0001'}).code,'ROLE_MISMATCH');
 });

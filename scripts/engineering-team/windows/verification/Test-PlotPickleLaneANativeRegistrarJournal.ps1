@@ -6,7 +6,7 @@
 [CmdletBinding()]
 param([switch]$RunNativeDiagnostic)
 $ErrorActionPreference='Stop'
-if ($env:OS -ne 'Windows_NT') { throw 'WINDOWS_REQUIRED' }
+if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { throw 'WINDOWS_REQUIRED' }
 $source=Join-Path $PSScriptRoot 'LaneARegistrarJournalBoundary.cs'
 $compiler=Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 if (-not (Test-Path -LiteralPath $source -PathType Leaf) -or

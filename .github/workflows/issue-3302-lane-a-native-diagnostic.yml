@@ -9,6 +9,7 @@ on:
       - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneAHost.ps1"
       - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneAScmCanary.CI.ps1"
       - "scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneAOwnerAcceptance.ps1"
+      - "scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneATrustRoot.ps1"
       - "tests/issue-3302-lane-a-native-service-host.test.mjs"
       - "scripts/engineering-team/verification/lane-a-external-trust-bootstrap.mjs"
       - "tests/issue-3302-lane-a-external-trust-bootstrap.test.mjs"
@@ -126,3 +127,21 @@ jobs:
           }
           Write-Output "READ_ONLY_EXACT_COMMIT_UNINSTALLED_SERVICE_PASS"
           Write-Output "NOT OWNER WINDOWS; NOT SIGNED PACKAGE; NOT SERVICE ACCEPTANCE"
+
+      - name: Windows machine trust root observation rejects absent independent fingerprint
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $raw = & "./scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneATrustRoot.ps1"
+          $report = $raw | ConvertFrom-Json
+          if ($report.schemaVersion -ne "PP-LANE-A-TRUST-ROOT-OBSERVATION-V1" -or
+              $report.code -ne "EXTERNAL_ROOT_PIN_REQUIRED" -or
+              $report.independentPublisherAttestation -ne "UNPROVEN" -or
+              $report.canEnroll -ne $false -or
+              $report.canAdmit -ne $false -or
+              $report.canEditCatalogue -ne $false -or
+              $report.canMerge -ne $false) {
+            throw "WINDOWS_TRUST_ROOT_DEFAULT_NOT_BLOCKED"
+          }
+          Write-Output "NO_EXTERNAL_ROOT_PIN_FAIL_CLOSED_PASS"
+          Write-Output "NOT INDEPENDENT TRUST REGISTRATION"

@@ -4,7 +4,7 @@ import {generateKeyPairSync,sign} from 'node:crypto';
 import {canonicalPayload,verifyAdmissionReceipt} from '../scripts/engineering-team/verification/lane-a-admission-receipt.mjs';
 const {publicKey,privateKey}=generateKeyPairSync('ed25519');
 const sha='a'.repeat(40),digests={'tests/one.test.mjs':'b'.repeat(64)},inputs={'scripts/one.mjs':'c'.repeat(64)};
-const opts={trustedReviewers:{'qa-key-1':{principal:'PP-F00-LA-W0001',publicKeyPem:publicKey.export({format:'pem',type:'spki'})}},expectedHead:sha,expectedTestDigests:digests,expectedInputDigests:inputs,expectedAuthorPrincipal:'PP-F01-ENG-W0001',observedAtMs:Date.parse('2026-10-27T22:00:30Z'),allowedTruthRefs:['WHITE-PAPER-V3/W8','WHITE-PAPER-V3/W9'],requiredTruthRefs:['WHITE-PAPER-V3/W8','WHITE-PAPER-V3/W9']};
+const opts={trustedReviewers:{'qa-key-1':{principal:'PP-F00-LA-W0001',publicKeyPem:publicKey.export({format:'pem',type:'spki'}),revoked:false}},expectedHead:sha,expectedTestDigests:digests,expectedInputDigests:inputs,expectedAuthorPrincipal:'PP-F01-ENG-W0001',observedAtMs:Date.parse('2026-10-27T22:00:30Z'),allowedTruthRefs:['WHITE-PAPER-V3/W8','WHITE-PAPER-V3/W9'],requiredTruthRefs:['WHITE-PAPER-V3/W8','WHITE-PAPER-V3/W9']};
 function signed(overrides={}){
  const r={schemaVersion:'PP-TEST-ADMISSION-V1',reviewId:'review1',reviewerPrincipal:'PP-F00-LA-W0001',authorPrincipal:'PP-F01-ENG-W0001',credentialKeyId:'qa-key-1',candidateHead:sha,testDigests:digests,inputDigests:inputs,truthRefs:['WHITE-PAPER-V3/W8','WHITE-PAPER-V3/W9'],findings:['Assertion reviewed'],disposition:'ADMIT',evidence:['immutable-review-evidence'],timestampUtc:'2026-10-27T22:00:00Z',...overrides};
  r.signatureBase64=sign(null,canonicalPayload(r),privateKey).toString('base64');return r;
@@ -16,6 +16,16 @@ test('stale head, input digests and unknown truth obligations are rejected',()=>
  assert.equal(verifyAdmissionReceipt(signed({candidateHead:'d'.repeat(40)}),opts).code,'HEAD_MISMATCH');
  assert.equal(verifyAdmissionReceipt(signed({inputDigests:{'scripts/one.mjs':'e'.repeat(64)}}),opts).code,'EDITION_MISMATCH');
  assert.equal(verifyAdmissionReceipt(signed({truthRefs:['UNKNOWN']}),opts).code,'TRUTH_REF_UNAPPROVED');
+});
+test('missing or malformed reviewer revocation state cannot authorize signed admission',()=>{
+ const reviewer=opts.trustedReviewers['qa-key-1'];
+ for(const revoked of [undefined,null,'false',0,true]) {
+  const changed={...reviewer,revoked};
+  const result=verifyAdmissionReceipt(signed(),{...opts,trustedReviewers:{'qa-key-1':changed}});
+  assert.equal(result.code,'REVIEWER_NOT_TRUSTED',String(revoked));
+  assert.equal(result.accepted,false);
+  assert.equal(result.mayUpdateCatalogue,false);
+ }
 });
 test('untrusted or revoked reviewer key cannot admit',()=>{
  assert.equal(verifyAdmissionReceipt(signed(),{...opts,trustedReviewers:{}}).code,'REVIEWER_NOT_TRUSTED');

@@ -4,12 +4,14 @@
  */
 import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
-import {mkdtemp,writeFile,readFile,appendFile,rm} from 'node:fs/promises';
+import {mkdtemp,mkdir,writeFile,readFile,appendFile,rm} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {JOURNAL_HEADER,operateLaneAPreprovisionedJournal as run}
   from './lane-a-preprovisioned-journal.mjs';
 
+import {issueLaneAChallenge,spendLaneAChallengeOnce}
+  from './lane-a-nonce-ledger.mjs';
 const scope='a'.repeat(64);
 const id=()=>randomBytes(16).toString('hex');
 let passed=0;
@@ -49,6 +51,23 @@ await fixture(async journalPath=>{
     challengeNonce:'b'.repeat(64),scopeDigest:scope,requestId:id()});
   assert.equal(denied.status,'BLOCKED');passed++;
 });
+const integrationRoot=await mkdtemp(path.join(os.tmpdir(),'pp-f00-integration-diag-'));
+try {
+  await mkdir(path.join(integrationRoot,'issued'));
+  await mkdir(path.join(integrationRoot,'spent'));
+  const journalPath=path.join(integrationRoot,'registrar-journal.bin');
+  await writeFile(journalPath,JOURNAL_HEADER,{flag:'wx'});
+  const identity={root:integrationRoot,journalPath,registrarId:'Registrar001',
+    hostId:'Host001',reviewerPrincipal:'Reviewer001',
+    reviewerSid:'S-1-5-80-123456',requestId:'Request001'};
+  const issue=await issueLaneAChallenge(identity);
+  assert.equal(issue.status,'ISSUED_CANDIDATE_ONLY');passed++;
+  const spent=await spendLaneAChallengeOnce({...identity,challengeNonce:issue.challengeNonce});
+  assert.equal(spent.status,'SPENT_CANDIDATE_ONLY');passed++;
+  assert.equal(spent.mayAdmit,false);passed++;
+  assert.equal((await spendLaneAChallengeOnce({...identity,
+    challengeNonce:issue.challengeNonce})).status,'BLOCKED');passed++;
+}finally{await rm(integrationRoot,{recursive:true,force:true});}
 const missing=await run({journalPath:path.join(os.tmpdir(),'pp-f00-nonexistent-journal.bin'),
   operation:'ISSUE',scopeDigest:scope,requestId:id()});
 assert.equal(missing.code,'PREPROVISIONED_JOURNAL_UNVERIFIABLE');passed++;

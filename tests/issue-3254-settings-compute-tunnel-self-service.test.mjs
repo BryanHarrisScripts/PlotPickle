@@ -4,8 +4,10 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
+import { spawn } from "node:child_process";
+import { terminateVerificationProcessTree } from "../scripts/full-verification-process.mjs";
 import { dispatchTunnelRequest } from "../scripts/engineering-team/windows/tunnel/tunnel-http.mjs";
-import { launchOwnTunnel, tunnelLocalStatus, verifiedTunnelLauncher,
+import { createOwnerTunnelController, launchOwnTunnel, tunnelLocalStatus, verifiedTunnelLauncher,
   TUNNEL_LAUNCHER_NAME } from "../scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs";
 
 const ENDPOINT = "http://127.0.0.1:4173/api/factory/tunnel";
@@ -174,4 +176,55 @@ test("#3254 Tunnel includes a visible Dashboard exit inside the scrollable panel
   assert.match(menu, /window\.addEventListener\("plotpickle:return-dashboard", returnDashboard\)/u);
   assert.match(menu, /setTunnelOpen\(false\)/u);
   assert.match(css, /\.backDashboard:focus-visible/u);
+});
+
+
+test("#3254 native Windows canary uses direct PowerShell and owned tree STOP without touching an MCP listener", {
+  skip: process.platform !== "win32",
+}, async () => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), "pp-tunnel-native-canary-"));
+  const launcher = path.join(dir, TUNNEL_LAUNCHER_NAME);
+  const marker = path.join(dir, "started.txt");
+  let child;
+  const quotedMarker = marker.replaceAll("'", "''");
+  await writeFile(launcher, "[IO.File]::WriteAllText('" + quotedMarker +
+    "', 'NATIVE_POWERSHELL_STARTED')\r\nStart-Sleep -Seconds 120\r\n");
+  const controller = createOwnerTunnelController({
+    platform: "win32", repoRoot: dir,
+    verify: async () => launcher,
+    // Isolated canary does not bind the real tunnel port or invoke its launcher.
+    portOccupied: async () => false,
+    launch: (exe, args, opts) => {
+      assert.equal(exe, "powershell.exe");
+      assert.equal(opts.shell, false);
+      assert.equal(opts.detached, true);
+      assert.equal(opts.windowsHide, false);
+      child = spawn(exe, args, opts);
+      return child;
+    },
+  });
+  try {
+    const started = await controller.start({ engineering: false });
+    assert.equal(started.state, "LAUNCH_REQUESTED");
+    let markerContent = null;
+    for (let attempt = 0; attempt < 40; attempt++) {
+      try { markerContent = await readFile(marker, "utf8"); break; }
+      catch (error) { if (error?.code !== "ENOENT") throw error; }
+      await new Promise(resolve => setTimeout(resolve, 250));
+    }
+    assert.equal(markerContent, "NATIVE_POWERSHELL_STARTED",
+      "real Windows PowerShell must execute the isolated, credential-free canary");
+    assert.equal((await controller.status()).launcherOwned, true);
+    const stopped = await controller.stop();
+    assert.equal(stopped.state, "OWNED_LAUNCHER_STOPPED",
+      "native owned PowerShell must exit through the existing taskkill tree-STOP path");
+    assert.equal(child.exitCode !== null || child.signalCode !== null, true);
+    assert.equal((await controller.status()).launcherOwned, false);
+  } finally {
+    // Only the actual locally created canary child is eligible for cleanup.
+    if (child?.pid && child.exitCode === null && child.signalCode === null) {
+      await terminateVerificationProcessTree(child, { stderr: { write() {} } });
+    }
+    await rm(dir, { recursive: true, force: true });
+  }
 });

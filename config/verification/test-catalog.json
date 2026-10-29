@@ -10922,7 +10922,7 @@
       },
       {
         "target": "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs",
-        "targetDigest": "77066ad5aab5c78ac8db8fb5366b34b833e788a3ba093464b12e40ffbbabbdeb",
+        "targetDigest": "d8069aa77119b05585aa3c6ca87306161cd86dc1afecf9f4284722dfbe291b06",
         "catalogueIds": [
           "agent.settings-compute-tunnel-3254"
         ],

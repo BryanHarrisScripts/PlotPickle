@@ -23,7 +23,6 @@ const deny=(code)=>Object.freeze({status:'BLOCKED',code,
   mayAdmit:false,mayEnroll:false,mayEditCatalogue:false,mayCode:false,
   mayMerge:false,replayAuthorized:false});
 
-function digest(buffer){return createHash('sha256').update(buffer).digest();}
 function recordBytes(record){return Buffer.from(JSON.stringify(record),'utf8');}
 function validRecord(record){
   return record && typeof record==='object' && !Array.isArray(record) &&
@@ -49,7 +48,7 @@ async function safePath(p){
 function decode(bytes){
   if(bytes.length<HEADER.length || !bytes.subarray(0,HEADER.length).equals(HEADER))
     throw Error('JOURNAL_HEADER_INVALID');
-  let offset=HEADER.length, previous=digest(HEADER);
+  let offset=HEADER.length, previous=createHash('sha256').update(HEADER).digest();
   const issued=new Map(),spent=new Set(),requests=new Set();
   while(offset<bytes.length){
     if(bytes.length-offset<4) throw Error('JOURNAL_TORN_TAIL');
@@ -58,7 +57,7 @@ function decode(bytes){
       throw Error('JOURNAL_TORN_OR_OVERSIZED_FRAME');
     const payload=bytes.subarray(offset,offset+len);offset+=len;
     const checksum=bytes.subarray(offset,offset+32);offset+=32;
-    const expected=digest(Buffer.concat([previous,payload]));
+    const expected=createHash('sha256').update(Buffer.concat([previous,payload])).digest();
     if(!checksum.equals(expected)) throw Error('JOURNAL_CHAIN_INVALID');
     previous=expected;
     const record=JSON.parse(payload.toString('utf8'));
@@ -82,7 +81,7 @@ async function appendFrame(handle,offset,previous,record){
   const frame=Buffer.allocUnsafe(4+payload.length+32);
   frame.writeUInt32BE(payload.length,0);
   payload.copy(frame,4);
-  digest(Buffer.concat([previous,payload])).copy(frame,4+payload.length);
+  createHash('sha256').update(Buffer.concat([previous,payload])).digest().copy(frame,4+payload.length);
   let written=0;
   while(written<frame.length){
     const r=await handle.write(frame,written,frame.length-written,offset+written);

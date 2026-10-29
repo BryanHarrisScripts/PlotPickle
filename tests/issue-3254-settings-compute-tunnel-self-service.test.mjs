@@ -185,7 +185,7 @@ test("#3254 native Windows canary uses direct PowerShell and owned tree STOP wit
   const dir = await mkdtemp(path.join(os.tmpdir(), "pp-tunnel-native-canary-"));
   const launcher = path.join(dir, TUNNEL_LAUNCHER_NAME);
   const marker = path.join(dir, "started.txt");
-  let child;
+  let child, nativeSpawnError = null, nativeExit = null;
   const quotedMarker = marker.replaceAll("'", "''");
   await writeFile(launcher, "[IO.File]::WriteAllText('" + quotedMarker +
     "', 'NATIVE_POWERSHELL_STARTED')\r\nStart-Sleep -Seconds 120\r\n");
@@ -200,6 +200,8 @@ test("#3254 native Windows canary uses direct PowerShell and owned tree STOP wit
       assert.equal(opts.detached, true);
       assert.equal(opts.windowsHide, false);
       child = spawn(exe, args, opts);
+      child.once("error", error => { nativeSpawnError = error?.code || "UNKNOWN"; });
+      child.once("exit", (code, signal) => { nativeExit = { code, signal }; });
       return child;
     },
   });
@@ -213,7 +215,9 @@ test("#3254 native Windows canary uses direct PowerShell and owned tree STOP wit
       await new Promise(resolve => setTimeout(resolve, 250));
     }
     assert.equal(markerContent, "NATIVE_POWERSHELL_STARTED",
-      "real Windows PowerShell must execute the isolated, credential-free canary");
+      "real Windows PowerShell must execute isolated canary; pid=" + child?.pid +
+      ", exit=" + JSON.stringify(nativeExit) + ", error=" + nativeSpawnError +
+      ", exitCode=" + child?.exitCode + ", signalCode=" + child?.signalCode);
     assert.equal((await controller.status()).launcherOwned, true);
     const stopped = await controller.stop();
     assert.equal(stopped.state, "OWNED_LAUNCHER_STOPPED",

@@ -12369,7 +12369,7 @@
       },
       {
         "target": "tests/issue-3142-factory-worker-pool.test.mjs",
-        "targetDigest": "95198d77a653f66959882dd71254f26c2ecea294296071e9da8fda3651724f3d",
+        "targetDigest": "51c91f45d4ff8a9f65d2cf88c96b5889c0327250e79c4df06020fd97bfd4d154",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],

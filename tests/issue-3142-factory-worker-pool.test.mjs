@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { FACTORY_WORKERS, projectWorkerFleet, validateOwnerWorkOrder,
   claimAndRunOwnerJobOnce } from '../scripts/engineering-team/gateway/worker-pool/worker-pool.mjs';
-import { readOwnerOrder } from '../scripts/engineering-team/gateway/worker-pool/worker-host.mjs';
+import { readOwnerOrder, validOwnerPilotException, readOwnerPilotException } from '../scripts/engineering-team/gateway/worker-pool/worker-host.mjs';
 const head = 'a'.repeat(40);
 const order = { schemaVersion: 1, kind: 'owner-authorized-factory-job',
   requestId: '1'.repeat(32), grantId: '2'.repeat(32),
@@ -143,5 +143,58 @@ test('owner-work-order loader rejects a symlinked parent and reads only a real p
   } finally {
     await rm(root, { recursive: true, force: true });
     await rm(outsider, { recursive: true, force: true });
+  }
+});
+
+test('one-owner exception is pinned to only #3142, exact work order and expiry', () => {
+  const now = Date.now();
+  const permit = { schemaVersion:1, kind:'owner-one-shot-exception',
+    issueNumber:3142, sourceHead:head, requestId:order.requestId,
+    grantId:order.grantId, publicationId:order.publicationId,
+    expiresAt:now + 600_000, maxRequests:1,
+    consent:'AUTHORIZE_ONE_3142_PILOT_NO_F00' };
+  assert.equal(validOwnerPilotException(permit, order, head, now), true);
+  for (const bad of [
+    { ...permit, issueNumber:2955 }, { ...permit, sourceHead:'b'.repeat(40) },
+    { ...permit, requestId:'a'.repeat(32) },
+    { ...permit, grantId:'b'.repeat(32) },
+    { ...permit, publicationId:'c'.repeat(32) },
+    { ...permit, expiresAt:now - 1 },
+    { ...permit, expiresAt:now + 3_700_000 },
+    { ...permit, expiresAt:now + 15_000 },
+    { ...permit, maxRequests:2 }, { ...permit, consent:'AUTHORIZE_UNLIMITED' },
+    { ...permit, canMerge:true },
+  ]) assert.equal(validOwnerPilotException(bad, order, head, now), false);
+  assert.equal(validOwnerPilotException(permit, { ...order, issueNumber:3158 }, head, now), false);
+});
+
+test('owner exception is private-file only; no symlinked parent, symlinked permit or silent release', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'pp-pilot-owner-'));
+  const outsider = await mkdtemp(path.join(os.tmpdir(), 'pp-pilot-outside-'));
+  const dir = path.join(root, 'owner-pilot-exceptions');
+  const now = Date.now();
+  const permit = { schemaVersion:1, kind:'owner-one-shot-exception',
+    issueNumber:3142, sourceHead:head, requestId:order.requestId,
+    grantId:order.grantId, publicationId:order.publicationId,
+    expiresAt:now + 600_000, maxRequests:1,
+    consent:'AUTHORIZE_ONE_3142_PILOT_NO_F00' };
+  const filename = order.requestId + '.json';
+  try {
+    assert.equal(await readOwnerPilotException(root, order, head, now), false);
+    await writeFile(path.join(outsider, filename), JSON.stringify(permit));
+    await symlink(outsider, dir, process.platform === 'win32' ? 'junction' : 'dir');
+    assert.equal(await readOwnerPilotException(root, order, head, now), false);
+    await rm(dir);
+    await mkdir(dir);
+    await symlink(path.join(outsider, filename), path.join(dir, filename));
+    assert.equal(await readOwnerPilotException(root, order, head, now), false);
+    await rm(path.join(dir, filename));
+    await writeFile(path.join(dir, filename), JSON.stringify(permit));
+    assert.equal(await readOwnerPilotException(root, order, head, now), true);
+    assert.equal(await readOwnerPilotException(root, order, 'b'.repeat(40), now), false);
+    assert.equal(await readOwnerPilotException(root, order, head, now + 600_000), false);
+  } finally {
+    await rm(root, { recursive:true, force:true });
+    await rm(outsider, { recursive:true, force:true });
   }
 });

@@ -96,11 +96,15 @@ test('registrar and publisher principal names must be distinct',()=>{
 
 // Proposed registrar nonce-ledger regression input: author-side unit fixtures.
 // This source edition is NOT independently W8/W9 ADMITTED.
+// Windows exercises the existing pre-provisioned regular-file journal; the
+// legacy per-nonce directory-fsync path correctly fails closed on Windows.
 const nonceFs = await import('node:fs/promises');
 const nonceOS = await import('node:os');
 const noncePath = await import('node:path');
 const {issueLaneAChallenge,spendLaneAChallengeOnce} =
  await import('../scripts/engineering-team/verification/lane-a-nonce-ledger.mjs');
+const {JOURNAL_HEADER} =
+ await import('../scripts/engineering-team/verification/lane-a-preprovisioned-journal.mjs');
 const nonceScope={registrarId:'Registrar001',hostId:'Host001',
  reviewerPrincipal:'IndependentReviewer001',reviewerSid:'S-1-5-80-123456',
  requestId:'Request001'};
@@ -108,27 +112,34 @@ async function newNonceFixture(){
  const dir=await nonceFs.mkdtemp(noncePath.join(nonceOS.tmpdir(),'f00-nonce-'));
  await nonceFs.mkdir(noncePath.join(dir,'issued'));
  await nonceFs.mkdir(noncePath.join(dir,'spent'));
+ await nonceFs.writeFile(noncePath.join(dir,'registrar-journal.bin'),
+   JOURNAL_HEADER,{flag:'wx'});
  return dir;
 }
+const nonceArgs=root=>({root,journalPath:noncePath.join(root,'registrar-journal.bin'),
+ ...nonceScope});
 test('registrar nonce candidate permits one spent claim without review grants',async()=>{
  const root=await newNonceFixture();
  try{
-  const issued=await issueLaneAChallenge({root,...nonceScope});
+  const issued=await issueLaneAChallenge(nonceArgs(root));
   assert.equal(issued.status,'ISSUED_CANDIDATE_ONLY');
   assert.match(issued.challengeNonce,/^[a-f0-9]{64}$/);
-  const args={root,challengeNonce:issued.challengeNonce,...nonceScope};
+  const args={...nonceArgs(root),challengeNonce:issued.challengeNonce};
   const first=await spendLaneAChallengeOnce(args);
   assert.equal(first.status,'SPENT_CANDIDATE_ONLY');
   assert.equal(first.nonceConsumedForProduction,false);
   assert.equal(first.mayAdmit,false);
-  assert.equal((await spendLaneAChallengeOnce(args)).status,'BLOCKED');
+  const replay=await spendLaneAChallengeOnce(args);
+  assert.equal(replay.status,'BLOCKED');
+  assert.equal(replay.replayAuthorized,false);
  }finally{await nonceFs.rm(root,{recursive:true,force:true});}
 });
 test('registrar nonce concurrent contenders have exactly one local winner',async()=>{
  const root=await newNonceFixture();
  try{
-  const issued=await issueLaneAChallenge({root,...nonceScope});
-  const args={root,challengeNonce:issued.challengeNonce,...nonceScope};
+  const issued=await issueLaneAChallenge(nonceArgs(root));
+  assert.equal(issued.status,'ISSUED_CANDIDATE_ONLY');
+  const args={...nonceArgs(root),challengeNonce:issued.challengeNonce};
   const results=await Promise.all(Array.from({length:16},()=>spendLaneAChallengeOnce(args)));
   assert.equal(results.filter(r=>r.status==='SPENT_CANDIDATE_ONLY').length,1);
   assert.equal(results.filter(r=>r.status==='BLOCKED').length,15);
@@ -137,32 +148,43 @@ test('registrar nonce concurrent contenders have exactly one local winner',async
 test('registrar nonce rejects mismatched identity and missing protected storage',async()=>{
  const root=await newNonceFixture();
  try{
-  const issued=await issueLaneAChallenge({root,...nonceScope});
-  const args={root,challengeNonce:issued.challengeNonce,...nonceScope};
-  assert.equal((await spendLaneAChallengeOnce({...args,hostId:'Wrong001'})).code,
-    'ISSUED_CHALLENGE_CONTENT_MISMATCH');
+  const issued=await issueLaneAChallenge(nonceArgs(root));
+  assert.equal(issued.status,'ISSUED_CANDIDATE_ONLY');
+  const args={...nonceArgs(root),challengeNonce:issued.challengeNonce};
+  const mismatch=await spendLaneAChallengeOnce({...args,hostId:'Wrong001'});
+  assert.equal(mismatch.status,'BLOCKED');
+  assert.equal(mismatch.code,'JOURNAL_UNCERTAIN_OR_REPLAY_DENIED');
+  assert.equal(mismatch.replayAuthorized,false);
+  assert.equal((await spendLaneAChallengeOnce(args)).status,'BLOCKED');
   assert.equal((await spendLaneAChallengeOnce({...args,root:root+'-missing'})).code,
     'PROTECTED_REGISTRAR_STORAGE_UNVERIFIABLE');
-  assert.equal((await spendLaneAChallengeOnce(args)).status,'SPENT_CANDIDATE_ONLY');
  }finally{await nonceFs.rm(root,{recursive:true,force:true});}
 });
-test('registrar spent marker survives corruption and never auto-replays',async()=>{
+test('registrar torn journal survives corruption and never auto-replays',async()=>{
  const root=await newNonceFixture();
  try{
-  const issued=await issueLaneAChallenge({root,...nonceScope});
-  const spentPath=noncePath.join(root,'spent',issued.challengeNonce+'.json');
-  await nonceFs.writeFile(spentPath,'');
-  const result=await spendLaneAChallengeOnce({root,challengeNonce:issued.challengeNonce,...nonceScope});
-  assert.equal(result.code,'CHALLENGE_ALREADY_SPENT_OR_DURABILITY_UNVERIFIABLE');
+  const issued=await issueLaneAChallenge(nonceArgs(root));
+  assert.equal(issued.status,'ISSUED_CANDIDATE_ONLY');
+  const journalPath=noncePath.join(root,'registrar-journal.bin');
+  await nonceFs.appendFile(journalPath,Buffer.from([0,0,0,40,1,2,3]));
+  const result=await spendLaneAChallengeOnce({
+   ...nonceArgs(root),challengeNonce:issued.challengeNonce});
+  assert.equal(result.status,'BLOCKED');
+  assert.equal(result.code,'JOURNAL_UNCERTAIN_OR_REPLAY_DENIED');
   assert.equal(result.replayAuthorized,false);
+  assert.equal((await nonceFs.lstat(journalPath+'.exclusive-lock')).isDirectory(),true);
  }finally{await nonceFs.rm(root,{recursive:true,force:true});}
 });
-test('registrar nonce does not traverse symlinked spent directory',async()=>{
+test('registrar nonce does not traverse a linked spent directory',async()=>{
  const root=await newNonceFixture();
  try{
   await nonceFs.rm(noncePath.join(root,'spent'),{recursive:true});
-  await nonceFs.symlink(noncePath.join(root,'issued'),noncePath.join(root,'spent'),'dir');
-  const result=await issueLaneAChallenge({root,...nonceScope});
+  // Junctions provide a real Windows reparse-point negative fixture without
+  // requiring the symbolic-link creation privilege.
+  await nonceFs.symlink(noncePath.join(root,'issued'),noncePath.join(root,'spent'),
+    process.platform==='win32'?'junction':'dir');
+  const result=await issueLaneAChallenge(nonceArgs(root));
+  assert.equal(result.status,'BLOCKED');
   assert.equal(result.code,'PROTECTED_REGISTRAR_STORAGE_UNVERIFIABLE');
  }finally{await nonceFs.rm(root,{recursive:true,force:true});}
 });

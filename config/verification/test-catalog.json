@@ -12369,7 +12369,7 @@
       },
       {
         "target": "tests/issue-3142-factory-worker-pool.test.mjs",
-        "targetDigest": "b5d4e0764bb5ca65fa15433904d8fdb3dde0347f98d46a1f3786658d256acdc7",
+        "targetDigest": "31ba1b1ca3d1ad30b13184d8f4b2e4298265308ce45157ed60a9a64e816baa89",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12387,11 +12387,15 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Disposable local filesystem in-process concurrent claim, STOP and owner-grant mismatch fixtures; not real independently signed F00 signer, native Windows Scheduled Task/NTFS crash durability, cross-process race, successful full issue-to-merge cycle, Product Gate or autonomous merge authorization.",
+        "limits": "Human-supervised exact-edition test proposal approved as intent by PlotPickle owner at PR #3335 head c433a99ee8c730baa83d68de8001e6f0072f199c (approval issuecomment 6507560006); does not claim independent W8/W9 signer or Product Gate. Disposable local filesystem in-process concurrent claim, STOP and owner-grant mismatch plus a redirected-parent symlink/junction negative and ordinary private-directory positive fixture; does not prove native Windows Scheduled Task, NTFS crash durability, cross-process race, protected service/registrar, successful full issue-to-merge cycle or autonomous merge authority.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-pool.mjs",
             "digest": "b6eca57b46cf990577694f09b5e183f7a5530ffb467289c46797c65c758dac87"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
+            "digest": "04e8a282a11b88a205ee16812795dd23708cc79342f6fca90535f94f8f5dc358"
           }
         ]
       }

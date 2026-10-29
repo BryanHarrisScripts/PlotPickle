@@ -35,6 +35,45 @@ export async function readOwnerOrder(root, id) {
   } catch { return null; }
 }
 
+/**
+ * #3142 owner's ONE-ISSUE supervised-bootstrap exception. This is a local
+ * human-created work-order consent, not independent F00 or W8/W9 attestation.
+ * It never releases scheduled --serve, a second worker, another issue or merge.
+ * A coding worker cannot issue its own approval from GitHub issue text.
+ */
+export function validOwnerPilotException(value, order, head, at) {
+  const fields = ['schemaVersion', 'kind', 'issueNumber', 'sourceHead',
+    'requestId', 'grantId', 'publicationId', 'expiresAt', 'maxRequests', 'consent'];
+  return value && typeof value === 'object' && !Array.isArray(value) &&
+    Object.keys(value).length === fields.length &&
+    fields.every(field => Object.hasOwn(value, field)) &&
+    value.schemaVersion === 1 && value.kind === 'owner-one-shot-exception' &&
+    value.consent === 'AUTHORIZE_ONE_3142_PILOT_NO_F00' &&
+    value.issueNumber === 3142 && order?.issueNumber === 3142 &&
+    value.sourceHead === head && order.sourceHead === head &&
+    value.requestId === order.requestId && ID.test(value.requestId || '') &&
+    value.grantId === order.grantId && ID.test(value.grantId || '') &&
+    value.publicationId === order.publicationId && ID.test(value.publicationId || '') &&
+    value.maxRequests === 1 && Number.isSafeInteger(at) &&
+    Number.isSafeInteger(value.expiresAt) &&
+    value.expiresAt > at + 30_000 && value.expiresAt <= at + 3_600_000;
+}
+
+export async function readOwnerPilotException(root, order, head, at) {
+  if (!ID.test(order?.requestId || '') || !path.isAbsolute(root || '')) return false;
+  const dir = path.join(root, 'owner-pilot-exceptions');
+  try {
+    const parent = await lstat(dir);
+    if (!parent.isDirectory() || parent.isSymbolicLink()) return false;
+    const p = path.join(dir, order.requestId + '.json');
+    const stat = await lstat(p);
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.size < 2 || stat.size > 4096)
+      return false;
+    return validOwnerPilotException(JSON.parse(await readFile(p, 'utf8')),
+      order, head, at) === true;
+  } catch { return false; }
+}
+
 /** Runtime records are observations, not proof of separate reviewer custody. */
 export async function inspectOwnerWorkerFleet({
   repoRoot = process.cwd(), env = process.env, inspect = supervisorStatus,
@@ -63,10 +102,15 @@ export async function runOwnerWorkerTicket({
   const root = privateGatewayRoot(env);
   const order = await readOwnerOrder(root, requestId);
   if (!order) return blocked('PRIVATE_OWNER_WORK_ORDER_REQUIRED');
+  // Only the explicit owner's #3142 single-use local exception can replace
+  // the unavailable F00 release preflight for this one draft-PR attempt.
+  // All other issues still require the existing independent release callback.
+  const release = async () => await independentReleaseReady() === true ||
+    await readOwnerPilotException(root, order, source.head, Date.now());
   return claimAndRunOwnerJobOnce({
     order, expectedHead: source.head, privateRoot: root,
     operatorReady: () => ownerOneShotAllowed(source.head),
-    independentReleaseReady,
+    independentReleaseReady: release,
     runAuthorizedOnce: code,
   });
 }

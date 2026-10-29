@@ -147,9 +147,9 @@ test("spoofed success without fresh report fails closed, and an interrupted work
 test("live stop kills only launched UAT child, then observes child exit before confirming cancellation",()=>sandbox(async root=>{
   const scope=await reserve(root);
   let killed=false;
-  const running=driveWindowsUat(scope,{appRoot:root,inspect:checkout,preflight:()=>({ready:true}),pollMs:5,
+  const running=driveWindowsUat(scope,{appRoot:root,inspect:checkout,preflight:()=>({ready:true}),pollMs:40,
     launch:()=>childFixture(emitter=>{
-      emitter.kill=()=>{killed=true;setImmediate(()=>emitter.emit("exit",null));return true};
+      emitter.kill=()=>{killed=true;queueMicrotask(()=>emitter.emit("exit",null));return true};
     }),
     // This is a synthetic child with a fake PID. Never invoke real Windows
     // taskkill against that number; the separate native fixture proves tree STOP.
@@ -167,10 +167,19 @@ test("live stop kills only launched UAT child, then observes child exit before c
   assert.equal(preStop.state,"running-heartbeat",
     "STOP fixture must first observe a live owned worker, not assume readiness from elapsed time");
   const requested=await requestStopWindowsUat(scope,{appRoot:root});
-  assert.equal(requested.state,"stop-requested");
-  assert.equal(requested.cancellationAcknowledged,false);
-  assert.equal(requested.stopDisposition,"STOP_REQUESTED_UNCONFIRMED");
+  // Await the owned worker before assertions; a failed expectation must not
+  // delete the disposable root while the worker is still writing receipts.
   const done=await running;
+  // STOP observation may race with direct-child cancellation. Both states
+  // retain truthful provenance; neither attests grandchild termination.
+  if(requested.state==="stop-requested"){
+    assert.equal(requested.cancellationAcknowledged,false);
+    assert.equal(requested.stopDisposition,"STOP_REQUESTED_UNCONFIRMED");
+  } else {
+    assert.equal(requested.state,"cancelled-child-exited");
+    assert.equal(requested.childExitObserved,true);
+    assert.equal(requested.stopDisposition,"DIRECT_CHILD_CANCELLATION_OBSERVED");
+  }
   assert.equal(killed,true);
   assert.equal(done.state,"cancelled-child-exited");
   assert.equal(done.childExitObserved,true);

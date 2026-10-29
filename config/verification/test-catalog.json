@@ -9469,7 +9469,7 @@
       },
       {
         "target": "tests/issue-3110-windows-uat-control.test.mjs",
-        "targetDigest": "c0ea6dc85b824aca665f0e2770c4650f4d28b16a5dc237e05720a22a5ae21481",
+        "targetDigest": "c022976f0783ddada2a9341f25556d92059c31f25ac6afdcf8a4e44e2f67c21a",
         "catalogueIds": [
           "agent.windows-uat-local-control-3110"
         ],

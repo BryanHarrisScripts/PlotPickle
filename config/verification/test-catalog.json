@@ -1334,7 +1334,9 @@
           "tests/issue-3302-lane-a-native-service-host.test.mjs",
           "tests/issue-3302-lane-a-reviewer-enrollment.test.mjs",
           "tests/issue-3302-lane-a-service-identity-policy.test.mjs",
-          "tests/issue-3302-lane-a-signed-registrar-policy.test.mjs"
+          "tests/issue-3302-lane-a-signed-registrar-policy.test.mjs",
+          "tests/issue-3302-independent-catalogue-preflight.test.mjs",
+          "tests/issue-3302-independent-qa-claim.test.mjs"
         ]
       },
       "cost": "fast",
@@ -12114,6 +12116,63 @@
           {
             "path": "scripts/engineering-team/verification/lane-a-preprovisioned-journal.mjs",
             "digest": "d384d3505c7ebf81f70d417708e67c09091b3228e029d72edf2b11eb71979e63"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3302-independent-catalogue-preflight.test.mjs",
+        "targetDigest": "2bb044ef0eb26cfe99460df4bee0e9cd80d6230cb1c82b8cb7ab7318906cbfc3",
+        "catalogueIds": [
+          "verification.phase2-core",
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Synthetic test of fail-closed exact-head/source-digest, missing/present/stale W8/W9 truth binding and refusal of author-side self-admission. It does not independently admit any catalogue edition, prove Windows native trust or authorize signer/service, product gate or merge.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/verification/w8w9-catalogue-preflight.mjs",
+            "digest": "f4b016e10b871f5285a29e651002eb3128e97fe5e33223e8a4ba608883ba80a8"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3302-independent-qa-claim.test.mjs",
+        "targetDigest": "91386145c79909322fdb0386b3bca6180f9c946ec88b4c4546ddad5b0d3bab53",
+        "catalogueIds": [
+          "verification.phase2-core",
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Real disposable local filesystem exclusive-create and immutable observation denial tests against concurrent in-process claimers, STOP, changed head and unsafe path IDs. Not evidence of cross-process NTFS/Windows service ownership, durable crash recovery, independent signer, real protected W8/W9 PASS, production Product Gate or merge authorization.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/verification/independent-qa-claim.mjs",
+            "digest": "b7f62efe9180cfec36d8eee9923e55b94807c61b468b4fa1003c25a4f8cdb704"
           }
         ]
       }

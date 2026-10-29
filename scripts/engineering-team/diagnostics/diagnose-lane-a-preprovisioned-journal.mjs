@@ -8,10 +8,10 @@ import {mkdtemp,mkdir,writeFile,readFile,appendFile,rm} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {JOURNAL_HEADER,operateLaneAPreprovisionedJournal as run}
-  from './lane-a-preprovisioned-journal.mjs';
+  from '../verification/lane-a-preprovisioned-journal.mjs';
 
 import {issueLaneAChallenge,spendLaneAChallengeOnce}
-  from './lane-a-nonce-ledger.mjs';
+  from '../verification/lane-a-nonce-ledger.mjs';
 const scope='a'.repeat(64);
 const id=()=>randomBytes(16).toString('hex');
 let passed=0;

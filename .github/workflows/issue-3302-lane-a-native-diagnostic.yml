@@ -20,6 +20,7 @@ on:
       - "scripts/engineering-team/verification/lane-a-signed-registrar-policy.mjs"
       - "tests/issue-3302-lane-a-signed-registrar-policy.test.mjs"
       - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneANonceJournal.CI.ps1"
+      - "scripts/engineering-team/diagnostics/diagnose-lane-a-preprovisioned-journal.mjs"
       - "scripts/engineering-team/windows/verification/LaneARegistrarJournalBoundary.cs"
       - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneANativeRegistrarJournal.ps1"
       - "docs/developer-briefs/3302-installer-lane-a-w8w9-independent-admission-packet-2026-10-27.md"
@@ -164,6 +165,30 @@ jobs:
           }
           Write-Output ("F00_JOURNAL_CAPABILITY={0}; EXCLUSIVE={1}; REGULAR_FILE_FLUSH={2}" -f $receipt.code,$receipt.exclusiveFileAccessObserved,$receipt.regularFileFlushObserved)
           Write-Output "NO POWER_LOSS PROOF; NO ATOMIC_NONCE_LEDGER; NO ADMISSION; NO RELEASE"
+
+      - name: Exercise portable preprovisioned journal author diagnostic (NON-RELEASE)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $raw = @(node "./scripts/engineering-team/diagnostics/diagnose-lane-a-preprovisioned-journal.mjs")
+          if ($LASTEXITCODE -ne 0 -or @($raw).Count -ne 1) {
+            throw "PORTABLE_JOURNAL_DIAGNOSTIC_EXECUTION_FAILED"
+          }
+          $report = $raw | ConvertFrom-Json
+          if ($report.schemaVersion -ne "PP-F00-JOURNAL-AUTHOR-DIAGNOSTIC-V1" -or
+              $report.code -ne "NON_RELEASE_AUTHOR_DIAGNOSTIC_PASSED" -or
+              $report.assertionsPassed -lt 15 -or
+              $report.independentVerification -ne $false -or
+              $report.powerLossDurabilityVerified -ne $false -or
+              $report.aclVerified -ne $false -or
+              $report.w8w9Admitted -ne $false -or
+              $report.productionActivated -ne $false -or
+              $report.mayAdmit -ne $false -or
+              $report.mayMerge -ne $false) {
+            throw "PORTABLE_JOURNAL_DIAGNOSTIC_OVERSTATED_OR_FAILED"
+          }
+          Write-Output ("NON_RELEASE_PORTABLE_JOURNAL_PASS; ASSERTIONS={0}" -f $report.assertionsPassed)
+          Write-Output "NO_KEY; NO_POWERLOSS; NO_ACL_WITNESS; NO_W8W9; NO_PRODUCT_GATE; NO_RELEASE"
 
       - name: Verify native preprovisioned registrar journal transactions (NON-RELEASE)
         shell: pwsh

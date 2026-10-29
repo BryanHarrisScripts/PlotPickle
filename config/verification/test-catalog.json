@@ -12002,7 +12002,7 @@
           },
           {
             "path": "scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneAOwnerAcceptance.ps1",
-            "digest": "61711f9c75d79bb4fe78d104e8b67dd8346cbec29b285ddd78617c91a7d8a06c"
+            "digest": "466d30d15ec3b8798234b1e27c0289911a487f12f354ad7970230473b182644f"
           },
           {
             "path": "scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneATrustRoot.ps1",

@@ -10922,7 +10922,7 @@
       },
       {
         "target": "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs",
-        "targetDigest": "6aaec04461f9536f91345f76e9155de7b45c8d9d66412d79de86140dd5f0a558",
+        "targetDigest": "4ceb9638a7ab4821023d5d9e8df839710e7c1be34c0fbec56fe59ed15b4abfb8",
         "catalogueIds": [
           "agent.settings-compute-tunnel-3254"
         ],
@@ -10940,11 +10940,11 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Human-supervised revised exact-edition candidate for security PR #3336, new owner review required; owner approved preceding source/test edition at 6bff1b38f12ba457c9375492cdeeba204dfabc6f, not this later head. Existing injected HTTP/Request and disposable filesystem checks plus opt-in real Windows native PowerShell canary with no tunnel port or credentials. Native canary proves actual child process launch, marker execution and owned process-tree STOP only when its Windows execution PASS receipt exists; it does not prove the actual PlotPickle authenticated tunnel is restarted, an interactive console is visibly witnessed, remote authorization, external ChatGPT connection, autonomous coding or merge. Human GUI acceptance remains separate. Neither candidate digest nor Windows PASS constitutes independent F00/W8/W9 attestation.",
+        "limits": "Human-supervised revised exact-edition candidate for security PR #3336, new owner review required; owner approved preceding source/test edition at 9c0be362e4c6aa67c7e5029de8b062ca43c107b1, not this later head. Existing injected HTTP/Request and disposable filesystem checks plus opt-in real Windows native PowerShell canary with no tunnel port or credentials; revised source uses an encoded fixed PowerShell Start-Process waiting wrapper requesting -WindowStyle Normal while retaining parent ownership for STOP. Native canary proves child script marker and owned process-tree STOP only when its Windows execution PASS receipt exists; it does not prove the actual authenticated tunnel is restarted, a separate GUI console is observed by Human, remote authorization, external ChatGPT connection, autonomous coding or merge. Human GUI acceptance remains separate. Neither candidate digest nor Windows PASS constitutes independent F00/W8/W9 attestation.",
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs",
-            "digest": "f3e251a47adb23408ad49aa454a33ba30c0a4ecd6156ab4f3424c933c4da5aa5"
+            "digest": "691780b8b6ff67b4da7d282e830b1216db96e100f424061147414cf616e7336f"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/tunnel-http.mjs",
@@ -11327,7 +11327,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs",
-            "digest": "f3e251a47adb23408ad49aa454a33ba30c0a4ecd6156ab4f3424c933c4da5aa5"
+            "digest": "691780b8b6ff67b4da7d282e830b1216db96e100f424061147414cf616e7336f"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/tunnel-http.mjs",

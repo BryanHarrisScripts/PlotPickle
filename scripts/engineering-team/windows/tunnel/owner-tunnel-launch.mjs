@@ -141,7 +141,7 @@ function visibleOwnerTunnelArguments(launcher) {
     "  if (-not $process) { exit 2 }",
     "  exit $process.ExitCode",
     "} catch { exit 3 }",
-  ].join("; ");
+  ].join("\n");
   return ["-NoLogo", "-NoProfile", "-NonInteractive", "-EncodedCommand",
     Buffer.from(bootstrap, "utf16le").toString("base64")];
 }

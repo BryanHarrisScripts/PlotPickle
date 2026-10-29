@@ -80,7 +80,7 @@ test("#3254 launcher is fixed to repo root, must be regular non-symlink file", a
         assert.equal(exe, "powershell.exe");
         assert.deepEqual(args, ["-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-NoExit", "-File", path.join(dir, TUNNEL_LAUNCHER_NAME)]);
         assert.equal(opts.shell, false);
-        assert.equal(opts.detached, true, "Windows must create a separate visible console");
+        assert.equal(opts.detached, false, "Windows PowerShell must run -File instead of entering DETACHED_PROCESS mode");
         assert.equal(opts.windowsHide, false);
         assert.equal(args.includes("/c"), false, "no cmd interpreter may parse the launcher path");
         assert.equal(opts.stdio, "ignore");
@@ -197,7 +197,7 @@ test("#3254 native Windows canary uses direct PowerShell and owned tree STOP wit
     launch: (exe, args, opts) => {
       assert.equal(exe, "powershell.exe");
       assert.equal(opts.shell, false);
-      assert.equal(opts.detached, true);
+      assert.equal(opts.detached, false);
       assert.equal(opts.windowsHide, false);
       child = spawn(exe, args, opts);
       child.once("error", error => { nativeSpawnError = error?.code || "UNKNOWN"; });

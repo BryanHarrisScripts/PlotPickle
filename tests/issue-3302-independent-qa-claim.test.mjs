@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {claimReview,readClaim,appendReviewObservation} from '../scripts/engineering-team/verification/independent-qa-claim.mjs';
+import {claimReview,readClaim,appendReviewObservation} from '../scripts/engineering-team/queue/independent-qa-claim.mjs';
 const head='0eb774a5a53ec86db883ee66d689e90ef9b8e186';
 async function fixture(fn){const root=await mkdtemp(join(tmpdir(),'pp-qa-claim-'));try{await fn(root);}finally{await rm(root,{recursive:true,force:true});}}
 test('concurrent distinct workers cannot both claim one review',()=>fixture(async root=>{

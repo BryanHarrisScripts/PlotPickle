@@ -12148,7 +12148,7 @@
       },
       {
         "target": "tests/issue-3302-independent-qa-claim.test.mjs",
-        "targetDigest": "91386145c79909322fdb0386b3bca6180f9c946ec88b4c4546ddad5b0d3bab53",
+        "targetDigest": "4cb328dd84f1e696199323147e5b578f37615fc54dc4bf8d58f950ff3f679c75",
         "catalogueIds": [
           "verification.phase2-core"
         ],
@@ -12169,7 +12169,7 @@
         "limits": "Real disposable local filesystem exclusive-create and immutable observation denial tests against concurrent in-process claimers, STOP, changed head and unsafe path IDs. Not evidence of cross-process NTFS/Windows service ownership, durable crash recovery, independent signer, real protected W8/W9 PASS, production Product Gate or merge authorization.",
         "inputs": [
           {
-            "path": "scripts/engineering-team/verification/independent-qa-claim.mjs",
+            "path": "scripts/engineering-team/queue/independent-qa-claim.mjs",
             "digest": "b7f62efe9180cfec36d8eee9923e55b94807c61b468b4fa1003c25a4f8cdb704"
           }
         ]

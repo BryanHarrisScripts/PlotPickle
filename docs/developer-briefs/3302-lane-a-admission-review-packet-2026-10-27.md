@@ -6,7 +6,7 @@
 - PR #3321 review head: `7dc3a07d51d160a91f97cd3e2e5dcb88a5168e85`
 - Architecture Verification run: `40597635947` — failed (no exact-head green evidence).
 - Test targets: `tests/issue-3302-independent-catalogue-preflight.test.mjs`, `tests/issue-3302-independent-qa-claim.test.mjs`
-- Implementation inputs: `scripts/engineering-team/diagnostics/w8w9-catalogue-preflight.mjs`, `scripts/engineering-team/verification/independent-qa-claim.mjs`
+- Implementation inputs: `scripts/engineering-team/diagnostics/w8w9-catalogue-preflight.mjs`, `scripts/engineering-team/queue/independent-qa-claim.mjs`
 - Candidate normative references: WHITE-PAPER-V3 W8/W9, **to be independently confirmed** against actual obligations and scope. Never assume all tests map to both obligations.
 
 ## Assertion review (implementation actor's observations, not independent admission)

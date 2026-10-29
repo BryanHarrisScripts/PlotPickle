@@ -10922,7 +10922,7 @@
       },
       {
         "target": "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs",
-        "targetDigest": "c15364f98046bf7ab9d61cfee5a721c0fd55125d30775d22a64691ad77f41ead",
+        "targetDigest": "4ceb9638a7ab4821023d5d9e8df839710e7c1be34c0fbec56fe59ed15b4abfb8",
         "catalogueIds": [
           "agent.settings-compute-tunnel-3254"
         ],
@@ -10940,11 +10940,11 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Injected Windows HTTP/Request and disposable filesystem tests only. Does not prove native PowerShell window creation, remote authorization, ChatGPT plugin connection, paid providers, autonomous coding or merges; independent Windows GUI UAT remains outstanding.",
+        "limits": "Human-supervised revised exact-edition candidate for security PR #3336, new owner review required; owner approved preceding source/test edition at 9c0be362e4c6aa67c7e5029de8b062ca43c107b1, not this later head. Existing injected HTTP/Request and disposable filesystem checks plus opt-in real Windows native PowerShell canary with no tunnel port or credentials; revised source uses an encoded fixed PowerShell Start-Process waiting wrapper requesting -WindowStyle Normal while retaining parent ownership for STOP. Native canary proves child script marker and owned process-tree STOP only when its Windows execution PASS receipt exists; it does not prove the actual authenticated tunnel is restarted, a separate GUI console is observed by Human, remote authorization, external ChatGPT connection, autonomous coding or merge. Human GUI acceptance remains separate. Neither candidate digest nor Windows PASS constitutes independent F00/W8/W9 attestation.",
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs",
-            "digest": "130f2ea03effbbfc60adb18afdcdbd42a62fe08ad7757ee80dc87bb1d50855d2"
+            "digest": "691780b8b6ff67b4da7d282e830b1216db96e100f424061147414cf616e7336f"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/tunnel-http.mjs",
@@ -11323,11 +11323,11 @@
         "scopes": [
           "unit-fixture"
         ],
-        "limits": "Synthetic child handles, injected stop/probe/Git operations, local temporary launcher file and Request/Response fixtures. Does not prove native process-tree stop, exact running owner Windows launcher, remote auth, Factory startup, browser actions or a genuine external ChatGPT conversation. No model or tunnel is invoked.",
+        "limits": "Human-supervised proposed source-input digest for security PR #3336, owner review pending; no independent W8/W9 signer/approval inferred from candidate digest. Synthetic child handles, injected stop/probe/Git operations, local temporary launcher and Request/Response fixtures; no proof of direct native process-tree STOP, actual detached Windows console, exact running owner launcher, remote auth, Factory startup, browser interactions or external ChatGPT. No model or live tunnel invoked.",
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs",
-            "digest": "130f2ea03effbbfc60adb18afdcdbd42a62fe08ad7757ee80dc87bb1d50855d2"
+            "digest": "691780b8b6ff67b4da7d282e830b1216db96e100f424061147414cf616e7336f"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/tunnel-http.mjs",

@@ -10922,7 +10922,7 @@
       },
       {
         "target": "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs",
-        "targetDigest": "cbc267fd92f6bc9e25b89ab2702d6eb0e4e42d307b811bb8c231683e6d410231",
+        "targetDigest": "77066ad5aab5c78ac8db8fb5366b34b833e788a3ba093464b12e40ffbbabbdeb",
         "catalogueIds": [
           "agent.settings-compute-tunnel-3254"
         ],
@@ -10940,7 +10940,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Human-supervised proposed edition for security PR #3336, owner review pending; no independent W8/W9 signer/approval inferred from candidate digest. Injected Windows HTTP/Request and disposable filesystem fixtures now assert direct PowerShell argv with no cmd.exe interpreter, detached console intent and no browser secrets; does not prove actual Windows console visibility, live owner tunnel start/STOP, remote authorization, external ChatGPT connection, autonomous coding or merge. Explicit real owner-Windows Product Gate remains outstanding.",
+        "limits": "Human-supervised revised exact-edition candidate for security PR #3336, new owner review required; owner approved preceding source/test edition at 6bff1b38f12ba457c9375492cdeeba204dfabc6f, not this later head. Existing injected HTTP/Request and disposable filesystem checks plus opt-in real Windows native PowerShell canary with no tunnel port or credentials. Native canary proves actual child process launch, marker execution and owned process-tree STOP only when its Windows execution PASS receipt exists; it does not prove the actual PlotPickle authenticated tunnel is restarted, an interactive console is visibly witnessed, remote authorization, external ChatGPT connection, autonomous coding or merge. Human GUI acceptance remains separate. Neither candidate digest nor Windows PASS constitutes independent F00/W8/W9 attestation.",
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs",

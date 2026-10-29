@@ -1,30 +1,6 @@
 name: Lane A Native Host Diagnostic (NON-RELEASE)
 
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/issue-3302-lane-a-native-diagnostic.yml"
-      - "scripts/engineering-team/windows/verification/PlotPickleLaneAService.cs"
-      - "scripts/engineering-team/windows/verification/Build-PlotPickleLaneAService.ps1"
-      - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneAHost.ps1"
-      - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneAScmCanary.CI.ps1"
-      - "scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneAOwnerAcceptance.ps1"
-      - "scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneATrustRoot.ps1"
-      - "tests/issue-3302-lane-a-native-service-host.test.mjs"
-      - "scripts/engineering-team/verification/lane-a-external-trust-bootstrap.mjs"
-      - "tests/issue-3302-lane-a-external-trust-bootstrap.test.mjs"
-      - "scripts/engineering-team/verification/lane-a-automated-reviewer.mjs"
-      - "tests/issue-3302-lane-a-automated-reviewer.test.mjs"
-      - "scripts/engineering-team/verification/lane-a-automated-reviewer-cli.mjs"
-      - "tests/issue-3302-lane-a-automated-reviewer-cli.test.mjs"
-      - "scripts/engineering-team/verification/lane-a-signed-registrar-policy.mjs"
-      - "tests/issue-3302-lane-a-signed-registrar-policy.test.mjs"
-      - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneANonceJournal.CI.ps1"
-      - "scripts/engineering-team/diagnostics/diagnose-lane-a-preprovisioned-journal.mjs"
-      - "scripts/engineering-team/windows/verification/LaneARegistrarJournalBoundary.cs"
-      - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneANativeRegistrarJournal.ps1"
-      - "docs/developer-briefs/3302-installer-lane-a-w8w9-independent-admission-packet-2026-10-27.md"
-      - "scripts/engineering-team/windows/verification/Install-PlotPickleLaneAService.ps1"
   workflow_dispatch:
 
 permissions:

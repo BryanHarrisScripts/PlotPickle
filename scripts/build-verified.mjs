@@ -95,23 +95,19 @@ async function validateArtifact(env) {
   void hosting;
 
   await run(process.execPath, ["--check", workerPath], env);
-  const workerSource = await readFile(workerPath, "utf8");
-  const hasDefaultExport = /export\s+default\b/u.test(workerSource)
-    || /export\s*\{[\s\S]*?\bas\s+default\b/u.test(workerSource);
-  const hasFetchShape = /\bfetch\s*(?:[:(])/u.test(workerSource);
+  // A recent vinext release can emit a forwarding ESM entry. Validate the
+  // full locally bundled Worker graph, without running Worker initializers.
+  const { build } = await import("esbuild");
+  const graph = await build({ entryPoints: [workerPath], bundle: true, platform: "neutral",
+    format: "esm", packages: "external", external: ["cloudflare:*", "node:*"],
+    loader: { ".wasm": "binary" }, write: false, metafile: true, logLevel: "silent" });
+  const hasDefaultExport = Object.values(graph.metafile.outputs)
+    .some((output) => output.exports.includes("default"));
+  const bundledSource = graph.outputFiles.map((output) => output.text).join("\n");
+  const hasFetchShape = /\bfetch\s*(?:[:(])/u.test(bundledSource);
   if (!hasDefaultExport || !hasFetchShape) {
     console.log("PLOTPICKLE_BUILD_ARTIFACT_STAGE=invalid-worker-export");
     throw new Error("dist/server/index.js must contain a valid default Worker export with fetch.");
-  }
-
-  if (process.platform !== "win32") {
-    // A Worker may import cloudflare: intrinsics, which Node cannot execute.
-    // Validate its entire JavaScript graph offline without running module
-    // initializers or making requests. Windows retains its supported check.
-    const { build } = await import("esbuild");
-    await build({ entryPoints: [workerPath], bundle: true, platform: "neutral",
-      format: "esm", packages: "external", external: ["cloudflare:*", "node:*"],
-      loader: { ".wasm": "binary" }, write: false, logLevel: "silent" });
   }
 
   console.log("Validated Sites artifact: Worker default/fetch shape and hosting manifest are present.");

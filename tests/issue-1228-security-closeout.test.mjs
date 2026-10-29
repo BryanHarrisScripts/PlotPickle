@@ -71,7 +71,13 @@ test("#1228 keeps compatible dependency patches above reviewed advisory floors",
   assert.equal(pkg.overrides?.["@esbuild-kit/core-utils"]?.esbuild, "0.25.12");
 
   assert.ok(versionAtLeast(packages["node_modules/nanoid"]?.version, "3.3.18"), "nanoid must include the 3.x zero-size loop fix");
-  assert.ok(versionAtLeast(packages["node_modules/js-yaml"]?.version, "4.3.2"), "js-yaml 4.x must include merge-chain and CPU-limit fixes");
+  for (const [path, entry] of Object.entries(packages)) {
+    if (!path.endsWith("node_modules/js-yaml")) continue;
+    assert.equal(typeof entry.version, "string", `${path} must declare an installed version`);
+    if (path === "node_modules/js-yaml" || entry.version.startsWith("4.")) {
+      assert.ok(versionAtLeast(entry.version, "4.3.2"), `${path} must include merge-chain and CPU-limit fixes`);
+    }
+  }
   const legacyYaml = packages["node_modules/gray-matter/node_modules/js-yaml"]?.version;
   assert.ok(!legacyYaml || versionAtLeast(legacyYaml, "3.15.1"), "a retained legacy js-yaml 3.x copy must include its backported fix");
   assert.ok(versionAtLeast(packages["node_modules/@babel/core"]?.version, "7.29.6"), "@babel/core must include the sourceMappingURL file-read fix");

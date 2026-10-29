@@ -7312,11 +7312,11 @@
           },
           {
             "path": "package.json",
-            "digest": "b771bad1959b185ded7e02c04e2d88088e5f8255e65da17292b750c0c9e07c83"
+            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
           },
           {
             "path": "package-lock.json",
-            "digest": "d3b88bf8d665440cda59871f27707cd4c89266340043d40251eec16b404fc8db"
+            "digest": "a2ac09ac85f32b9452bd36fcd8d499846b5f72f327be026da4d8a5d04a08b6c4"
           }
         ]
       },
@@ -7484,7 +7484,7 @@
           },
           {
             "path": "package.json",
-            "digest": "b771bad1959b185ded7e02c04e2d88088e5f8255e65da17292b750c0c9e07c83"
+            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
           },
           {
             "path": "tests/support/story-project-repository-fixture.mjs",
@@ -7524,7 +7524,7 @@
           },
           {
             "path": "package.json",
-            "digest": "b771bad1959b185ded7e02c04e2d88088e5f8255e65da17292b750c0c9e07c83"
+            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
           },
           {
             "path": "tests/support/story-project-repository-fixture.mjs",
@@ -7604,7 +7604,7 @@
           },
           {
             "path": "package.json",
-            "digest": "b771bad1959b185ded7e02c04e2d88088e5f8255e65da17292b750c0c9e07c83"
+            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
           }
         ]
       },
@@ -7704,7 +7704,7 @@
           },
           {
             "path": "package.json",
-            "digest": "b771bad1959b185ded7e02c04e2d88088e5f8255e65da17292b750c0c9e07c83"
+            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
           },
           {
             "path": "tests/phase-f-collaboration-release.test.mjs",
@@ -7768,7 +7768,7 @@
           },
           {
             "path": "package.json",
-            "digest": "b771bad1959b185ded7e02c04e2d88088e5f8255e65da17292b750c0c9e07c83"
+            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
           },
           {
             "path": "tests/phase-f-collaboration-release.test.mjs",
@@ -9549,11 +9549,11 @@
           },
           {
             "path": "package.json",
-            "digest": "b771bad1959b185ded7e02c04e2d88088e5f8255e65da17292b750c0c9e07c83"
+            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
           },
           {
             "path": "package-lock.json",
-            "digest": "d3b88bf8d665440cda59871f27707cd4c89266340043d40251eec16b404fc8db"
+            "digest": "a2ac09ac85f32b9452bd36fcd8d499846b5f72f327be026da4d8a5d04a08b6c4"
           }
         ]
       },
@@ -10491,7 +10491,7 @@
           },
           {
             "path": "package.json",
-            "digest": "b771bad1959b185ded7e02c04e2d88088e5f8255e65da17292b750c0c9e07c83"
+            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
           }
         ]
       },
@@ -11585,7 +11585,7 @@
       },
       {
         "target": "tests/issue-1228-security-closeout.test.mjs",
-        "targetDigest": "cb28f5a0d42ccf2a9b9770feff2355eedd293febf23138d6f94f292f12ca3d71",
+        "targetDigest": "8022078428373367cce8864006c43bb03ee4f7f426c0307c23f143c45c88d409",
         "catalogueIds": [
           "verification.phase2-core"
         ],

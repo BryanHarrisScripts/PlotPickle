@@ -12,7 +12,7 @@ param(
     [string]$RepositoryRoot
 )
 $ErrorActionPreference='Stop'
-if ($env:OS -ne 'Windows_NT') { throw 'WINDOWS_REQUIRED' }
+if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { throw 'WINDOWS_REQUIRED' }
 $serviceName='PlotPickleLaneA'
 $serviceAccount='NT SERVICE\PlotPickleLaneA'
 $image=Join-Path $env:ProgramFiles 'PlotPickle\ServiceManager\LaneA\PlotPickleLaneAService.exe'

@@ -119,7 +119,7 @@ test('failed model edit is held for inspection and cannot be replayed', () =>
     const options = { repoRoot, privateRoot, source, grant, credential: 'fake-test-key-not-real-123456',
       now: () => at, runGit: git, requestEdit: async () => ({ oldText: 'missing old code', newText: 'something' }) };
     const result = await runAuthorizedCodingOnce(options);
-    assert.equal(result.code, 'CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE');
+    assert.equal(result.code, 'CODING_OUTCOME_UNCERTAIN_RECONCILIATION_REQUIRED');
     assert.equal(result.phase, 'VALIDATE_MODEL_EDIT');
     assert.equal((await runAuthorizedCodingOnce(options)).code, 'CODING_ALREADY_RESERVED_OR_UNVERIFIABLE');
     const saved = JSON.parse(await readFile(path.join(privateRoot, 'coding-attempts',
@@ -148,7 +148,7 @@ test('a failed model request records only a fixed phase and preserves non-replay
       } };
     const first = await runAuthorizedCodingOnce(options);
     assert.equal(first.state, 'BLOCKED');
-    assert.equal(first.code, 'CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE');
+    assert.equal(first.code, 'CODING_OUTCOME_UNCERTAIN_RECONCILIATION_REQUIRED');
     assert.equal(first.phase, 'REQUEST_MODEL');
     assert.equal((await runAuthorizedCodingOnce(options)).code,
       'CODING_ALREADY_RESERVED_OR_UNVERIFIABLE');
@@ -424,9 +424,12 @@ test('replaced primary lock during active model leaves another owner untouched a
         await held;
         return { oldText: 'return 1;', newText: 'return 2;' };
       } });
+    let replacementLock, retainedGuard;
     try {
       await entered;
       const { lock, guard } = await attemptLockPaths(privateRoot);
+      replacementLock = lock;
+      retainedGuard = guard;
       assert.equal((await lstat(guard)).isFile(), true);
       await unlink(lock);
       await writeFile(lock, 'other-attempt-owner-must-survive');
@@ -444,8 +447,8 @@ test('replaced primary lock during active model leaves another owner untouched a
     assert.equal(outcome.code, 'CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE');
     assert.equal(outcome.sourceMutationVerified, false);
     assert.equal(outcome.replayAuthorized, false);
-    assert.equal(await readFile(lock, 'utf8'), 'other-attempt-owner-must-survive');
-    assert.equal((await lstat(guard)).isFile(), true);
+    assert.equal(await readFile(replacementLock, 'utf8'), 'other-attempt-owner-must-survive');
+    assert.equal((await lstat(retainedGuard)).isFile(), true);
     await assert.rejects(readFile(path.join(privateRoot, 'coding-attempts',
       '1'.repeat(32) + '.result.json'), 'utf8'));
     await assert.rejects(readFile(path.join(privateRoot, 'coding-attempts',
@@ -480,9 +483,11 @@ test('removed primary lock without replacement still cannot admit a distinct gra
         await held;
         return { oldText: 'return 1;', newText: 'return 2;' };
       } });
+    let retainedGuard;
     try {
       await entered;
-      const { lock } = await attemptLockPaths(privateRoot);
+      const { lock, guard } = await attemptLockPaths(privateRoot);
+      retainedGuard = guard;
       await unlink(lock);
       const second = await runAuthorizedCodingOnce({
         ...base, grant: { ...makeGrant(at), grantId: '2'.repeat(32) },
@@ -496,8 +501,7 @@ test('removed primary lock without replacement still cannot admit a distinct gra
     }
     const outcome = await first;
     assert.equal(outcome.code, 'CODING_STAGE_OWNERSHIP_LOST_UNVERIFIABLE');
-    const { guard } = await attemptLockPaths(privateRoot);
-    assert.equal((await lstat(guard)).isFile(), true);
+    assert.equal((await lstat(retainedGuard)).isFile(), true);
   }));
 
 test('atomic single-resource SQLite owner excludes competing process claims and fences release', () =>

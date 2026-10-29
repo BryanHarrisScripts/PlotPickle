@@ -9469,7 +9469,7 @@
       },
       {
         "target": "tests/issue-3110-windows-uat-control.test.mjs",
-        "targetDigest": "a6fd6a8214e021955c00be3c2d529a330fde3ea0f1931e1d4840d3433b2635a8",
+        "targetDigest": "c0ea6dc85b824aca665f0e2770c4650f4d28b16a5dc237e05720a22a5ae21481",
         "catalogueIds": [
           "agent.windows-uat-local-control-3110"
         ],
@@ -12182,7 +12182,7 @@
       },
       {
         "target": "tests/issue-3142-authorized-coding-once.test.mjs",
-        "targetDigest": "4bfc092815c7b80d236a6d158efc7f0b5440d55e0503a77436de8e0f37eedfb8",
+        "targetDigest": "c74d9de6b070dc5d31314f54279fec06efb6df7958f25a8a2a5d458b488ddd42",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],

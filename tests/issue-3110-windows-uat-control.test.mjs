@@ -294,9 +294,9 @@ test("#3135 native Windows live worker STOP terminates owned listening descendan
   const sentinel = spawn(process.execPath, ["-e", 'setInterval(()=>{},1000)'], {
     stdio: "ignore", shell: false, windowsHide: true,
   });
-  let owned = null;
+  let owned = null, running = null;
   try {
-    const running = driveWindowsUat(scope, {
+    running = driveWindowsUat(scope, {
       appRoot: root, inspect: checkout, preflight: () => ({ ready: true }),
       pollMs: 25, maxDurationMs: 20_000,
       launch: () => {
@@ -308,8 +308,9 @@ test("#3135 native Windows live worker STOP terminates owned listening descendan
     });
     const realRunning = await waitFor(async () =>
       owned?.pid && !(await portIsFree(port))
-        && (await statusWindowsUat(scope, { appRoot: root })).state === "running-heartbeat");
-    assert.equal(realRunning, true, "worker and owned descendant must be live before STOP");
+        && (await statusWindowsUat(scope, { appRoot: root })).state === "running-heartbeat", 240, 50);
+    const observed = await statusWindowsUat(scope, { appRoot: root });
+    assert.equal(realRunning, true, `worker and owned descendant must be live before STOP; state=${observed.state}; childExit=${owned?.exitCode ?? 'unknown'}; childSignal=${owned?.signalCode ?? 'unknown'}`);
     const request = await requestStopWindowsUat(scope, { appRoot: root });
     assert.equal(request.state, "stop-requested");
     assert.equal(request.stopDisposition, "STOP_REQUESTED_UNCONFIRMED");
@@ -324,7 +325,14 @@ test("#3135 native Windows live worker STOP terminates owned listening descendan
     const post = await requestStopWindowsUat(scope, { appRoot: root });
     assert.equal(post.stopDisposition, "ALREADY_TERMINAL_NOOP");
   } finally {
-    if (owned?.exitCode === null && owned?.signalCode === null) await terminateVerificationProcessTree(owned);
-    if (sentinel.exitCode === null && sentinel.signalCode === null) sentinel.kill();
+    try {
+      if (running) {
+        await requestStopWindowsUat(scope, { appRoot: root });
+        await running;
+      }
+    } finally {
+      if (owned?.exitCode === null && owned?.signalCode === null) await terminateVerificationProcessTree(owned);
+      if (sentinel.exitCode === null && sentinel.signalCode === null) sentinel.kill();
+    }
   }
 }));

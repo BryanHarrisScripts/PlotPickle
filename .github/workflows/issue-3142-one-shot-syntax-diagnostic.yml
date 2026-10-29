@@ -1,14 +1,6 @@
 name: Coding One-Shot Syntax Diagnostic (NON-RELEASE)
 
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/issue-3142-one-shot-syntax-diagnostic.yml"
-      - "scripts/engineering-team/gateway/owner-runtime-gate.mjs"
-      - "scripts/engineering-team/gateway/authorized-coding-once.mjs"
-      - "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs"
-      - "tests/issue-3142-authorized-coding-once.test.mjs"
-      - "tests/issue-3142-authorized-pr-publish-once.test.mjs"
   workflow_dispatch:
 
 permissions:

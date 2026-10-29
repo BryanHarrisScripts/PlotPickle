@@ -186,9 +186,21 @@ test('owner exception is private-file only; no symlinked parent, symlinked permi
     assert.equal(await readOwnerPilotException(root, order, head, now), false);
     await rm(dir);
     await mkdir(dir);
-    await symlink(path.join(outsider, filename), path.join(dir, filename));
-    assert.equal(await readOwnerPilotException(root, order, head, now), false);
-    await rm(path.join(dir, filename));
+    // Windows without Developer Mode cannot create a file symlink. The
+    // junction test above still proves parent redirection is rejected.
+    // Do not report a file-symlink assertion when the OS denies fixture setup.
+    let fileSymlinkCreated = false;
+    try {
+      await symlink(path.join(outsider, filename), path.join(dir, filename));
+      fileSymlinkCreated = true;
+    } catch (error) {
+      if (process.platform !== 'win32' ||
+          !['EPERM', 'EACCES', 'ENOTSUP'].includes(error?.code)) throw error;
+    }
+    if (fileSymlinkCreated) {
+      assert.equal(await readOwnerPilotException(root, order, head, now), false);
+      await rm(path.join(dir, filename));
+    }
     await writeFile(path.join(dir, filename), JSON.stringify(permit));
     assert.equal(await readOwnerPilotException(root, order, head, now), true);
     assert.equal(await readOwnerPilotException(root, order, 'b'.repeat(40), now), false);

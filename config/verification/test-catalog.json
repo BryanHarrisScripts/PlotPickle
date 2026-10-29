@@ -4257,7 +4257,8 @@
           "tests/issue-3142-authorized-publish-once.test.mjs",
           "tests/issue-3142-authorized-pr-publish-once.test.mjs",
           "tests/issue-3302-two-receipt-verifier.test.mjs",
-          "tests/issue-3142-owner-windows-acceptance-broker.test.mjs"
+          "tests/issue-3142-owner-windows-acceptance-broker.test.mjs",
+          "tests/issue-3142-factory-worker-pool.test.mjs"
         ]
       },
       "cost": "fast",
@@ -12203,7 +12204,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "8cffede9f8ef8ac1f65c7cafc6be2517bb6c2c347f6c067fede0459e181f56be"
+            "digest": "6943ab66fda42cc53b4d5606c55602ef0bd815a47c589a47a7549b755008026c"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12239,7 +12240,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
-            "digest": "f2ca43372c4cadc65a584243a57290e08cc7675392fb10e875ed0f6f7961a4e6"
+            "digest": "f8c41457677aaab34afd257ea54e04a7f34acb848a9e604cd6013dba7ff37470"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12275,11 +12276,11 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
-            "digest": "f2ca43372c4cadc65a584243a57290e08cc7675392fb10e875ed0f6f7961a4e6"
+            "digest": "f8c41457677aaab34afd257ea54e04a7f34acb848a9e604cd6013dba7ff37470"
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "8cffede9f8ef8ac1f65c7cafc6be2517bb6c2c347f6c067fede0459e181f56be"
+            "digest": "6943ab66fda42cc53b4d5606c55602ef0bd815a47c589a47a7549b755008026c"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12363,6 +12364,34 @@
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
             "digest": "2b9e01d8f2f031b1ffe764fea024ed564e551875ae8f44f9ea2b372e2e6943c1"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-factory-worker-pool.test.mjs",
+        "targetDigest": "b5d4e0764bb5ca65fa15433904d8fdb3dde0347f98d46a1f3786658d256acdc7",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Disposable local filesystem in-process concurrent claim, STOP and owner-grant mismatch fixtures; not real independently signed F00 signer, native Windows Scheduled Task/NTFS crash durability, cross-process race, successful full issue-to-merge cycle, Product Gate or autonomous merge authorization.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/worker-pool.mjs",
+            "digest": "b6eca57b46cf990577694f09b5e183f7a5530ffb467289c46797c65c758dac87"
           }
         ]
       }

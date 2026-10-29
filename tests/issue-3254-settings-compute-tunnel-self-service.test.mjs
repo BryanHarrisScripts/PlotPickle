@@ -75,12 +75,12 @@ test("#3254 launcher is fixed to repo root, must be regular non-symlink file", a
       portOccupied: async () => false,
       sourceEnv: { Path: "C:\\Windows", CONTROL_PLANE_API_KEY: "SECRET_API_KEY", OPENAI_API_KEY: "SECRET_PROVIDER_KEY" },
       launch: (exe, args, opts) => {
-        assert.equal(exe, "cmd.exe");
-        assert.deepEqual(args.slice(0, 6), ["/d", "/c", "start", "", "/wait", "powershell.exe"]);
-        assert.deepEqual(args.slice(6, 13), ["-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-NoExit", "-File", path.join(dir, TUNNEL_LAUNCHER_NAME)]);
+        assert.equal(exe, "powershell.exe");
+        assert.deepEqual(args, ["-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-NoExit", "-File", path.join(dir, TUNNEL_LAUNCHER_NAME)]);
         assert.equal(opts.shell, false);
-        assert.equal(opts.detached, false);
-        assert.equal(opts.windowsHide, true);
+        assert.equal(opts.detached, true, "Windows must create a separate visible console");
+        assert.equal(opts.windowsHide, false);
+        assert.equal(args.includes("/c"), false, "no cmd interpreter may parse the launcher path");
         assert.equal(opts.stdio, "ignore");
         assert.equal(opts.env.PLOTPICKLE_FACTORY_ENGINEERING_ENABLED, "1");
         assert.equal(opts.env.CONTROL_PLANE_API_KEY, undefined);

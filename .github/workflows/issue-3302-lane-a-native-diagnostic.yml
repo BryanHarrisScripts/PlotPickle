@@ -20,6 +20,8 @@ on:
       - "scripts/engineering-team/verification/lane-a-signed-registrar-policy.mjs"
       - "tests/issue-3302-lane-a-signed-registrar-policy.test.mjs"
       - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneANonceJournal.CI.ps1"
+      - "scripts/engineering-team/windows/verification/LaneARegistrarJournalBoundary.cs"
+      - "scripts/engineering-team/windows/verification/Test-PlotPickleLaneANativeRegistrarJournal.ps1"
       - "docs/developer-briefs/3302-installer-lane-a-w8w9-independent-admission-packet-2026-10-27.md"
       - "scripts/engineering-team/windows/verification/Install-PlotPickleLaneAService.ps1"
   workflow_dispatch:
@@ -162,6 +164,34 @@ jobs:
           }
           Write-Output ("F00_JOURNAL_CAPABILITY={0}; EXCLUSIVE={1}; REGULAR_FILE_FLUSH={2}" -f $receipt.code,$receipt.exclusiveFileAccessObserved,$receipt.regularFileFlushObserved)
           Write-Output "NO POWER_LOSS PROOF; NO ATOMIC_NONCE_LEDGER; NO ADMISSION; NO RELEASE"
+
+      - name: Verify native preprovisioned registrar journal transactions (NON-RELEASE)
+        shell: pwsh
+        env:
+          PLOTPICKLE_LANE_A_EPHEMERAL_CI: "1"
+        run: |
+          $ErrorActionPreference = "Stop"
+          $raw = & "./scripts/engineering-team/windows/verification/Test-PlotPickleLaneANativeRegistrarJournal.ps1" -RunNativeDiagnostic
+          if (@($raw).Count -ne 1) { throw "NATIVE_REGISTRAR_JOURNAL_DIAGNOSTIC_OUTPUT_INVALID" }
+          $report = $raw | ConvertFrom-Json
+          if ($report.schemaVersion -ne "PP-F00-NATIVE-JOURNAL-ENGINEERING-V1" -or
+              $report.state -ne "NON_RELEASE_AUTHOR_DIAGNOSTIC_PASSED" -or
+              $report.assertionsPassed -lt 7 -or
+              $report.nativeExclusiveHandleObserved -ne $true -or
+              $report.regularFileFlushObserved -ne $true -or
+              $report.duplicateAndSpentReplayDenied -ne $true -or
+              $report.tornTailDenied -ne $true -or
+              $report.stopMarkerObserved -ne $true -or
+              $report.registrarIdentityIndependentlyAttested -ne $false -or
+              $report.crashPowerLossDurabilityProven -ne $false -or
+              $report.windowsProductGate -ne $false -or
+              $report.w8w9Admitted -ne $false -or
+              $report.mayAdmit -ne $false -or
+              $report.mayMerge -ne $false) {
+            throw "NATIVE_JOURNAL_DIAGNOSTIC_UNVERIFIED_OR_OVERSTATED"
+          }
+          Write-Output ("NON_RELEASE_NATIVE_JOURNAL_DIAGNOSTIC_PASS; ASSERTIONS={0}; REPARSE={1}" -f $report.assertionsPassed,$report.symlinkFixture)
+          Write-Output "NO_INDEPENDENT_TOKEN; NO_DURABILITY_POWERLOSS; NO_PRODUCT_GATE; NO_W8W9_ADMISSION; NO_RELEASE"
 
       - name: Candidate-only Ed25519 and native-source tests (not W8/W9 admission)
         shell: pwsh

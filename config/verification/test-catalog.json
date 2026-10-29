@@ -10922,7 +10922,7 @@
       },
       {
         "target": "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs",
-        "targetDigest": "d8069aa77119b05585aa3c6ca87306161cd86dc1afecf9f4284722dfbe291b06",
+        "targetDigest": "6aaec04461f9536f91345f76e9155de7b45c8d9d66412d79de86140dd5f0a558",
         "catalogueIds": [
           "agent.settings-compute-tunnel-3254"
         ],
@@ -10944,7 +10944,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs",
-            "digest": "5535e1b040b8c473487f192bed8708ebf733e4f068166e0acdb5473535b76056"
+            "digest": "f3e251a47adb23408ad49aa454a33ba30c0a4ecd6156ab4f3424c933c4da5aa5"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/tunnel-http.mjs",
@@ -11327,7 +11327,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs",
-            "digest": "5535e1b040b8c473487f192bed8708ebf733e4f068166e0acdb5473535b76056"
+            "digest": "f3e251a47adb23408ad49aa454a33ba30c0a4ecd6156ab4f3424c933c4da5aa5"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/tunnel-http.mjs",

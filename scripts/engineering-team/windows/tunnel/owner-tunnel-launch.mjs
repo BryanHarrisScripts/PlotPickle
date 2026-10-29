@@ -140,10 +140,17 @@ export async function launchOwnTunnel({
   // A controller can retain this child handle. It may never guess a PID or
   // adopt a separately started terminal after an app restart.
   try {
-    const child = launch("powershell.exe", [
+    // A direct detached PowerShell child is not guaranteed to surface an
+    // interactive console when PlotPickle itself is hosted without one. Use
+    // Windows' fixed START builtin to create the visible terminal explicitly.
+    // /wait keeps the owned cmd wrapper alive for STOP/process-tree cleanup.
+    // Every argument is fixed here except the already verified launcher path;
+    // no browser text becomes a command or executable.
+    const child = launch("cmd.exe", [
+      "/d", "/c", "start", "", "/wait", "powershell.exe",
       "-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-NoExit", "-File", launcher,
     ], {
-      cwd, shell: false, windowsHide: false, detached: true, stdio: "ignore",
+      cwd, shell: false, windowsHide: true, detached: false, stdio: "ignore",
       env: minimalLauncherEnvironment(sourceEnv, engineering),
     });
     if (!Number.isInteger(child?.pid) || child.pid <= 0) {

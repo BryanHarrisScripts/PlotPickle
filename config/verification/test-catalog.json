@@ -11994,7 +11994,7 @@
           },
           {
             "path": "scripts/engineering-team/windows/verification/Test-PlotPickleLaneAHost.ps1",
-            "digest": "87ae1c07b4a896d791816ab37af0856bac930e4069170748626b77b6f5e6ff4f"
+            "digest": "d3146409347ccbee5a740ed6cbf8b6ba33b9f2089d6446836739591e92c59d1e"
           },
           {
             "path": "scripts/engineering-team/windows/verification/Test-PlotPickleLaneAScmCanary.CI.ps1",
@@ -12002,7 +12002,7 @@
           },
           {
             "path": "scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneAOwnerAcceptance.ps1",
-            "digest": "9672be7692cc103613efbffeae1b8a48bbc65097db3981e3912fecb219d2244b"
+            "digest": "61711f9c75d79bb4fe78d104e8b67dd8346cbec29b285ddd78617c91a7d8a06c"
           },
           {
             "path": "scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneATrustRoot.ps1",

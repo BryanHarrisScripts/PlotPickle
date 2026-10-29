@@ -109,6 +109,10 @@ try {
     mayAdmit=$false
     mayMerge=$false
   } | ConvertTo-Json -Compress
+  # Negative CLI cases intentionally return nonzero. Only after every
+  # assertion and the PASS receipt succeeds, clear the stale native exit code
+  # so the caller can validate the JSON receipt instead of a false CI failure.
+  $global:LASTEXITCODE=0
 } finally {
   $env:PLOTPICKLE_LANE_A_EPHEMERAL_CI=$oldFlag
   if (Test-Path -LiteralPath $root -PathType Container) {

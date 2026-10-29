@@ -15,8 +15,8 @@ $ErrorActionPreference='Stop'
 if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { throw 'WINDOWS_REQUIRED' }
 $serviceName='PlotPickleLaneA'
 $serviceAccount='NT SERVICE\PlotPickleLaneA'
-$image=Join-Path [Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFiles) 'PlotPickle\ServiceManager\LaneA\PlotPickleLaneAService.exe'
-$stopMarker=Join-Path [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData) 'PlotPickle\engineering-team\supervisor\stop-request.json'
+$image=Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFiles)) 'PlotPickle\ServiceManager\LaneA\PlotPickleLaneAService.exe'
+$stopMarker=Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)) 'PlotPickle\engineering-team\supervisor\stop-request.json'
 $report=[ordered]@{
     schemaVersion='PP-LANE-A-OWNER-ACCEPTANCE-OBSERVATION-V1'
     role='PP-F00-D02-W0001'
@@ -136,7 +136,7 @@ if (-not $report.binarySha256Match -or -not $report.trustedPublisherMatch) {
     return
 }
 try {
-    $sc=Join-Path [Environment]::GetFolderPath([Environment+SpecialFolder]::Windows) 'System32\sc.exe'
+    $sc=Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::Windows)) 'System32\sc.exe'
     $sidType=@(& $sc qsidtype $serviceName 2>$null) -join ' '
     if ($LASTEXITCODE -eq 0 -and $sidType -match 'SERVICE_SID_TYPE\s*:\s*RESTRICTED') {
         $report.serviceSidRestricted='SCM_CONFIGURED_NOT_TOKEN_ATTESTED'

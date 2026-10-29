@@ -140,14 +140,15 @@ export async function launchOwnTunnel({
   // A controller can retain this child handle. It may never guess a PID or
   // adopt a separately started terminal after an app restart.
   try {
-    // A detached Windows child receives its own console without passing
-    // the verified launcher path through cmd.exe /c or its START parser.
-    // Each PowerShell argument is passed directly, not interpreted by a shell.
+    // Windows PowerShell 5.1 can exit 0 without running -File when Node
+    // starts it as DETACHED_PROCESS with ignored stdio. Do not request that
+    // mode: let Windows attach/create a console while bypassing cmd.exe /c.
+    // Each argument is passed directly, never parsed by a shell.
     // Retain the child handle for owned process-tree STOP; never adopt a PID.
     const child = launch("powershell.exe", [
       "-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-NoExit", "-File", launcher,
     ], {
-      cwd, shell: false, windowsHide: false, detached: true, stdio: "ignore",
+      cwd, shell: false, windowsHide: false, detached: false, stdio: "ignore",
       env: minimalLauncherEnvironment(sourceEnv, engineering),
     });
     if (!Number.isInteger(child?.pid) || child.pid <= 0) {

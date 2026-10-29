@@ -161,14 +161,19 @@ async function reserveCodingStage(stages, receipts, grant, at, checkCapacity, ex
   let executionStarted = false, completed = null, ownershipLost = false;
   const matches = async filename => {
     if (!identity || !filename) return false;
-    try {
-      const current = await lstat(filename);
-      return current.isFile() && !current.isSymbolicLink() &&
-        current.dev === identity.dev && current.ino === identity.ino;
-    } catch { return false; }
+    let current;
+    try { current = await lstat(filename); }
+    catch (error) { if (error?.code !== 'ENOENT') throw error; }
+    return Boolean(current && current.isFile() && !current.isSymbolicLink() &&
+      current.dev === identity.dev && current.ino === identity.ino);
   };
-  const operatorOk = async () => { try { return await operatorReady() === true; }
-    catch { return false; } };
+  let operatorInspectionFault = null;
+  const operatorOk = async () => {
+    let ready = false;
+    try { ready = await operatorReady() === true; }
+    catch (error) { operatorInspectionFault = String(error?.code ?? 'UNCLASSIFIED'); }
+    return operatorInspectionFault === null && ready;
+  };
   const owns = async () => Boolean(guardCreated) && ownership?.owned() &&
     await matches(lockPath) && await matches(guardPath) && ownership.owned() &&
     await operatorOk();

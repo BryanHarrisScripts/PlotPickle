@@ -75,8 +75,8 @@ function openVerifiedDatabase(receipts, readOnly) {
     };
     if (!markerValid()) throw Error('OWNERSHIP_EPOCH_MARKER_MISMATCH');
     const fileValid = () => {
-      try { return same(lstatSync(filename), identity) && markerValid(); }
-      catch { return false; }
+      const st = lstatSync(filename, { throwIfNoEntry: false });
+      return Boolean(st && same(st, identity) && markerValid());
     };
     if (!fileValid()) throw Error('OWNERSHIP_DB_REPLACED');
     return { db, epoch, fileValid };
@@ -144,5 +144,5 @@ export function codingReleaseIsReconciled(receipts, release) {
       same(lstatSync(guardFile), guardStat) &&
       handle.fileValid();
   } catch { return false; }
-  finally { try { handle?.db.close(); } catch {} }
+  finally { handle?.db.close(); }
 }

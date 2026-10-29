@@ -66,11 +66,6 @@ export function validateOwnerWorkOrder(work, expectedHead) {
     work.sourceHead === expectedHead);
 }
 
-async function ordinaryDirectory(directory) {
-  const st = await lstat(directory);
-  if (!st.isDirectory() || st.isSymbolicLink()) throw Error('PRIVATE_STORAGE_UNTRUSTED');
-}
-
 /**
  * Atomic, no-steal, no-replay claim for one already owner-granted job.
  * A queue JSON record never supplies coding, model or PR permissions.
@@ -93,7 +88,9 @@ export async function claimAndRunOwnerJobOnce({
   const dir = path.join(privateRoot, 'factory-worker-claims');
   try {
     await mkdir(dir, { recursive: true, mode: 0o700 });
-    await ordinaryDirectory(dir);
+    const claimDirStat = await lstat(dir);
+    if (!claimDirStat.isDirectory() || claimDirStat.isSymbolicLink())
+      throw Error('PRIVATE_STORAGE_UNTRUSTED');
   } catch { return fail('CLAIM_STORAGE_UNVERIFIABLE'); }
   const file = path.join(dir, order.requestId + '.json');
   let handle;

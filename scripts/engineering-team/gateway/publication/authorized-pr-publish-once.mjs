@@ -69,11 +69,6 @@ async function regularJson(filename, limit = 8192) {
     throw Error('PRIVATE_RECORD_UNVERIFIABLE');
   return JSON.parse(await readFile(filename, 'utf8'));
 }
-async function safeDirectory(dir) {
-  const stat = await lstat(dir);
-  if (!stat.isDirectory() || stat.isSymbolicLink())
-    throw Error('PRIVATE_DIRECTORY_UNVERIFIABLE');
-}
 async function boundedJson(response) {
   if (!response?.body || typeof response.body.getReader !== 'function') return null;
   const reader = response.body.getReader(), chunks = [];
@@ -112,7 +107,9 @@ function makeRequester(fetchImpl, token) {
 }
 async function readStagedCommit({ repoRoot, privateRoot, grant, git }) {
   const stage = path.join(privateRoot, 'coding-worktrees', grant.grantId);
-  await safeDirectory(stage);
+  const stageStat = await lstat(stage);
+  if (!stageStat.isDirectory() || stageStat.isSymbolicLink())
+    throw Error('PRIVATE_DIRECTORY_UNVERIFIABLE');
   const call = async args => String((await git(stage, args)).stdout || '').trim();
   const [head, parent, branch, tracked, untracked, changed, tree, blob] = await Promise.all([
     call(['rev-parse', 'HEAD']),
@@ -151,8 +148,12 @@ export async function publishAuthorizedDraftOnce({
       typeof token !== 'string' || token.length < 20 ||
       typeof fetchImpl !== 'function')
     return blocked('PUBLISH_HOST_OR_TOKEN_UNAVAILABLE');
+  let operatorInspectionFault = null;
   const operatorOk = async () => {
-    try { return await operatorReady() === true; } catch { return false; }
+    let ready = false;
+    try { ready = await operatorReady() === true; }
+    catch (error) { operatorInspectionFault = String(error?.code ?? 'UNCLASSIFIED'); }
+    return operatorInspectionFault === null && ready;
   };
   if (!await operatorOk()) return blocked('PUBLISH_OWNER_STOP_PAUSE_OR_HEARTBEAT_UNVERIFIABLE');
   const git = runGit || ((cwd, args) => exec('git', args,
@@ -163,7 +164,9 @@ export async function publishAuthorizedDraftOnce({
   const receipts = path.join(privateRoot, 'publication-attempts');
   try {
     await mkdir(receipts, { recursive: true, mode: 0o700 });
-    await safeDirectory(receipts);
+    const receiptsStat = await lstat(receipts);
+    if (!receiptsStat.isDirectory() || receiptsStat.isSymbolicLink())
+      throw Error('PRIVATE_DIRECTORY_UNVERIFIABLE');
   } catch { return blocked('PUBLISH_PRIVATE_STORAGE_UNVERIFIABLE'); }
   const reservation = path.join(receipts, grant.publicationId + '.reserved.json');
   if (!await writeOnce(reservation, { schemaVersion: 1, publicationId: grant.publicationId,

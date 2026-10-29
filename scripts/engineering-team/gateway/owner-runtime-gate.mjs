@@ -9,10 +9,11 @@ const SHA = /^[a-f0-9]{40}$/;
 
 export async function ownerOneShotAllowed(expectedHead, { inspect = supervisorStatus, appRoot } = {}) {
   if (!SHA.test(expectedHead || '')) return false;
-  try {
-    const observed = await inspect(appRoot === undefined ? {} : { appRoot });
-    // Fail closed for STOP/PAUSE, malformed authority, stale heartbeat and
-    // different source head; a fresh Supervisor heartbeat is NOT worker proof.
-    return observed?.state === 'RUNNING' && observed.exactSha === expectedHead;
-  } catch { return false; }
+  let observed = null, inspectionFault = null;
+  try { observed = await inspect(appRoot === undefined ? {} : { appRoot }); }
+  catch (error) { inspectionFault = String(error?.code ?? 'UNCLASSIFIED'); }
+  // STOP, malformed authority, failed inspection and stale heartbeat all deny.
+  // A fresh Supervisor heartbeat alone is NOT a worker identity proof.
+  return inspectionFault === null && observed?.state === 'RUNNING' &&
+    observed.exactSha === expectedHead;
 }

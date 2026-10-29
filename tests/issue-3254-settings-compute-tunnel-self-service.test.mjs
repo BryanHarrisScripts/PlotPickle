@@ -78,10 +78,16 @@ test("#3254 launcher is fixed to repo root, must be regular non-symlink file", a
       sourceEnv: { Path: "C:\\Windows", CONTROL_PLANE_API_KEY: "SECRET_API_KEY", OPENAI_API_KEY: "SECRET_PROVIDER_KEY" },
       launch: (exe, args, opts) => {
         assert.equal(exe, "powershell.exe");
-        assert.deepEqual(args, ["-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-NoExit", "-File", path.join(dir, TUNNEL_LAUNCHER_NAME)]);
+        assert.deepEqual(args.slice(0, 4), ["-NoLogo", "-NoProfile", "-NonInteractive", "-EncodedCommand"]);
+        assert.equal(args.length, 5);
+        const fixedScript = Buffer.from(args[4], "base64").toString("utf16le");
+        assert.match(fixedScript, /Start-Process -FilePath 'powershell.exe'/u);
+        assert.match(fixedScript, /-WindowStyle Normal -PassThru -Wait/u);
+        assert.match(fixedScript, /\$ownerLauncher = '/u);
+        assert.ok(fixedScript.includes(path.join(dir, TUNNEL_LAUNCHER_NAME)));
         assert.equal(opts.shell, false);
-        assert.equal(opts.detached, false, "Windows PowerShell must run -File instead of entering DETACHED_PROCESS mode");
-        assert.equal(opts.windowsHide, false);
+        assert.equal(opts.detached, false, "owned waiting wrapper must not detach from its process tree");
+        assert.equal(opts.windowsHide, true, "only waiting wrapper is hidden; actual target must be visible");
         assert.equal(args.includes("/c"), false, "no cmd interpreter may parse the launcher path");
         assert.equal(opts.stdio, "ignore");
         assert.equal(opts.env.PLOTPICKLE_FACTORY_ENGINEERING_ENABLED, "1");
@@ -198,7 +204,10 @@ test("#3254 native Windows canary uses direct PowerShell and owned tree STOP wit
       assert.equal(exe, "powershell.exe");
       assert.equal(opts.shell, false);
       assert.equal(opts.detached, false);
-      assert.equal(opts.windowsHide, false);
+      assert.equal(opts.windowsHide, true);
+      const fixedScript = Buffer.from(args.at(-1), "base64").toString("utf16le");
+      assert.match(fixedScript, /Start-Process -FilePath 'powershell.exe'/u);
+      assert.match(fixedScript, /-WindowStyle Normal -PassThru -Wait/u);
       child = spawn(exe, args, opts);
       child.once("error", error => { nativeSpawnError = error?.code || "UNKNOWN"; });
       child.once("exit", (code, signal) => { nativeExit = { code, signal }; });

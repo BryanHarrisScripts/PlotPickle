@@ -7,7 +7,7 @@
 [CmdletBinding()]
 param([switch]$RunNativeCompile)
 $ErrorActionPreference='Stop'
-if ($env:OS -ne 'Windows_NT') { throw 'WINDOWS_REQUIRED' }
+if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { throw 'WINDOWS_REQUIRED' }
 $base=$PSScriptRoot
 $report=[ordered]@{
   schemaVersion='PP-LANE-A-WINDOWS-DIAGNOSTIC-V1'

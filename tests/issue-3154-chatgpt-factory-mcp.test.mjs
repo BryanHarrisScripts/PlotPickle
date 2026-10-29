@@ -222,6 +222,54 @@ test("#3142 authenticated Factory status observes canonical supervisor without s
   assert.doesNotMatch(JSON.stringify(failed),/SECRET_SUPERVISOR/);
 }));
 
+test("#3142 Factory Observer reports fresh independent supervisor ONLINE without reviving legacy queue",()=>sandbox(async root=>{
+  await seed(root);
+  const request={jsonrpc:"2.0",id:142,method:"tools/call",
+    params:{name:"factory_observer",arguments:{}}};
+  const now=()=>400_000;
+  let reads=0;
+  const supervisorRead=async()=>{
+    reads++;
+    return {state:"RUNNING",exactSha:OLD,checkedAt:399_900,
+      hostId:"PRIVATE_HOST",workerProcessVerified:true,
+      autonomousCodingVerified:true,automaticMergeEnabled:true};
+  };
+  const guest=await handleRpc(request,{root,now,controlAuthenticated:false,supervisorRead});
+  assert.equal(reads,0);
+  assert.equal(Object.hasOwn(guest.result.structuredContent,"independentSupervisor"),false);
+  assert.equal(guest.result.structuredContent.factory.state,"OFFLINE");
+
+  const owner=await handleRpc(request,{root,now,controlAuthenticated:true,supervisorRead});
+  const record=owner.result.structuredContent;
+  assert.equal(reads,1);
+  assert.equal(record.state,"SNAPSHOT_ONLY");
+  assert.equal(record.factory.state,"OFFLINE","legacy Factory remains OFFLINE");
+  assert.equal(record.factory.online,false);
+  assert.equal(record.independentSupervisor.state,"ONLINE");
+  assert.equal(record.independentSupervisor.canonicalState,"RUNNING");
+  assert.equal(record.independentSupervisor.heartbeatFresh,true);
+  assert.equal(record.independentSupervisor.sourceHead,OLD);
+  assert.equal(record.independentSupervisor.workerProcessVerified,false);
+  assert.equal(record.independentSupervisor.autonomousCodingVerified,false);
+  assert.equal(record.independentSupervisor.automaticMergeEnabled,false);
+  assert.equal(record.chatgptEngineering.ready,false);
+  assert.equal(record.assurance.sourceEditVerified,false);
+  assert.doesNotMatch(JSON.stringify(record),/PRIVATE_HOST/);
+
+  const stale=await handleRpc(request,{root,now,controlAuthenticated:true,
+    supervisorRead:async()=>({state:"RUNNING",exactSha:OLD,checkedAt:100})});
+  assert.equal(stale.result.structuredContent.independentSupervisor.state,"OFFLINE");
+  assert.equal(stale.result.structuredContent.independentSupervisor.heartbeatFresh,false);
+  const denied=await handleRpc(request,{root,now,controlAuthenticated:true,
+    supervisorRead:async()=>{throw Error("PRIVATE_READ_FAILED");}});
+  assert.equal(denied.result.structuredContent.independentSupervisor.state,"UNVERIFIED");
+  assert.doesNotMatch(JSON.stringify(denied),/PRIVATE_READ_FAILED/);
+  const stopped=await handleRpc(request,{root,now,controlAuthenticated:true,
+    supervisorRead:async()=>({state:"STOP_REQUESTED",reason:"LOCAL_KILL_SWITCH"})});
+  assert.equal(stopped.result.structuredContent.independentSupervisor.state,"STOP_REQUESTED");
+  assert.equal(stopped.result.structuredContent.independentSupervisor.heartbeatFresh,false);
+}));
+
 test("#3241 authenticated status shows 70 retained stages without granting cleanup or admission",()=>sandbox(async root=>{
   await seed(root);
   const request={jsonrpc:"2.0",id:43,method:"tools/call",

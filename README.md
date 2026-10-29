@@ -26,6 +26,10 @@ It combines writing education, story planning, visual development, screenplay wo
 > So the work ahead is to make that truth observable in the product.
 
 
+<p align="center">
+  <img src="docs/images/plotpickle-ai-factory-organization.png" alt="PlotPickle AI Factory Organization: the Human Owner and AI Factory Director coordinate Software, Learning and Evolution, Story Builder, and Game Factories, supported by planning, operations, semantic story coordination, and independent quality and release management." width="1200">
+</p>
+
 ## Vision: a creative operating system for Human–AI collaboration
 
 > **A person brings imagination and purpose. PlotPickle connects that intention to capable collaborators, real work, trustworthy evidence and continuous learning.**
@@ -57,6 +61,8 @@ The creator can pause to examine a scene, challenge a suggestion, make a new art
 The same environment can also help improve itself. If the storyboard workflow fails, an authorized Software Factory worker could reproduce the defect, inspect the code, prepare a fix in isolation, run focused tests and build checks, and request independent Windows/browser verification. A verified change becomes eligible for the applicable review and merge authority. If a production challenge reveals a missing filmmaking technique, the Learning & Evolution Factory could investigate professional references, evaluate an approach and propose a reusable lesson or agent Skill.
 
 The developing **four-Factory ecosystem** joins **Software**, **Learning & Evolution**, **Story Builder** and **Game — STORY: The Unwritten**, coordinated for creative work by the **Semantic Story Coordinator**. Software repairs the tools; Learning improves the methods; Story Builder produces reviewable screen and sound assets; STORY governs playable experiences. None of these replaces the Human's accepted PPF canon. Evidence-backed handoffs let each contribute without silently promoting proposals or rewriting story history. This shared experience is **[Living Story Worlds](#living-story-worlds-the-shared-humanai-creative-experience)**; the detailed [roadmap](#roadmap-four-factories-and-one-semantic-story-coordinator) defines separate responsibilities and current delivery truth.
+
+**How the Factory works as an organization:** [PlotPickle Organization Chart](docs/PlotPickleOrganizationChart.md) maps the Owner, Factory Director, engineering foundation, three creative/product factories, specialist roles, independent QA, Release Management, and durable operating controls—then follows an issue from intake to verified delivery.
 
 ### Living Story Worlds: the shared Human–AI creative experience
 
@@ -259,6 +265,10 @@ That means:
 - deterministic tests remain product-quality evidence, not creative authority.
 
 ## Roadmap: four Factories and one Semantic Story Coordinator
+
+For the traditional management/reporting hierarchy, departmental responsibilities, authority gates, real work-order flow and two-cycle autonomous Factory acceptance criteria, see **[PlotPickle Organization Chart](docs/PlotPickleOrganizationChart.md)**. This operating guide supplements the roadmap without creating additional runtimes or changing accepted Human/PPF authority.
+
+**Factory production traceability (owner direction, October 27, 2026):** The [Semantic Handoff, Factory Identity and Final Inspection developer brief](docs/developer-briefs/3142-semantic-handoff-inspection-and-rework-2026-10-27.md) specifies permanent F00–F04 / department / actor identities, immutable growing handoff metadata, independent Final Inspection Cards and fingerprinted corrective work orders returning to the existing queue. This is an approved design and a separately gated delivery plan, **not an implemented runtime or a shortcut past W8/W9, STOP, Human authority or independent acceptance**.
 
 **North star:** PlotPickle helps people learn storytelling, shape meaningful stories, make visual films and build playable worlds, while improving its own tools and teaching. The long-term experience is intent-centred: **the Human defines purpose and retains meaningful authority; the system coordinates actual work and provides inspectable evidence.** This is a development roadmap, not a claim of unattended production, autonomous software repair, automatic story improvement or a completed creator-facing game factory.
 

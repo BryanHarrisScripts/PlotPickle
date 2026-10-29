@@ -12121,7 +12121,7 @@
       },
       {
         "target": "tests/issue-3302-independent-catalogue-preflight.test.mjs",
-        "targetDigest": "2bb044ef0eb26cfe99460df4bee0e9cd80d6230cb1c82b8cb7ab7318906cbfc3",
+        "targetDigest": "57f2b3b9c6784797bea6989935f25cbdf490a808f367e6806f6f76764c9c0728",
         "catalogueIds": [
           "verification.phase2-core"
         ],
@@ -12141,7 +12141,7 @@
         "limits": "Synthetic test of fail-closed exact-head/source-digest, missing/present/stale W8/W9 truth binding and refusal of author-side self-admission. It does not independently admit any catalogue edition, prove Windows native trust or authorize signer/service, product gate or merge.",
         "inputs": [
           {
-            "path": "scripts/engineering-team/verification/w8w9-catalogue-preflight.mjs",
+            "path": "scripts/engineering-team/diagnostics/w8w9-catalogue-preflight.mjs",
             "digest": "f4b016e10b871f5285a29e651002eb3128e97fe5e33223e8a4ba608883ba80a8"
           }
         ]

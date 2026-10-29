@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
-import {EDITION,inspectEdition} from '../scripts/engineering-team/verification/w8w9-catalogue-preflight.mjs';
+import {EDITION,inspectEdition} from '../scripts/engineering-team/diagnostics/w8w9-catalogue-preflight.mjs';
 
 test('rejects incorrect head before file reads',async()=>{
  const result=await inspectEdition({root:'/not-a-real-directory',head:'wrong'});

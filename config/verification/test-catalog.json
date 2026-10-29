@@ -12369,7 +12369,7 @@
       },
       {
         "target": "tests/issue-3142-factory-worker-pool.test.mjs",
-        "targetDigest": "31ba1b1ca3d1ad30b13184d8f4b2e4298265308ce45157ed60a9a64e816baa89",
+        "targetDigest": "95198d77a653f66959882dd71254f26c2ecea294296071e9da8fda3651724f3d",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12387,7 +12387,7 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Human-supervised exact-edition test proposal approved as intent by PlotPickle owner at PR #3335 head c433a99ee8c730baa83d68de8001e6f0072f199c (approval issuecomment 6507560006); does not claim independent W8/W9 signer or Product Gate. Disposable local filesystem in-process concurrent claim, STOP and owner-grant mismatch plus a redirected-parent symlink/junction negative and ordinary private-directory positive fixture; does not prove native Windows Scheduled Task, NTFS crash durability, cross-process race, protected service/registrar, successful full issue-to-merge cycle or autonomous merge authority.",
+        "limits": "Owner-approved narrow one-issue (#3142) pilot exception recorded in GitHub issue #3142 comment 6510212423; exact-edition source/test change still requires scoped approval and Windows evidence. Disposable unit fixtures validate strict single work-order, source head, two grant IDs, expiry under 1 hour, one request, private regular-file path (no symlink/junction), negative issue and consent cases, existing STOP and nonreplayable claims. Local owner-authored JSON consent is NOT an independent F00 registrar signature or WHITE-PAPER-V3 W8/W9 ADMIT; test does not prove owner signature, credential provision, installed Windows worker, autonomous source edit, paid model invocation, published PR, native Windows Product Gate or merge. Manual owner exact-head approval and independent GitHub CI plus owner-Windows acceptance remain mandatory; no auto merge or backlog authorization.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-pool.mjs",
@@ -12395,7 +12395,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
-            "digest": "04e8a282a11b88a205ee16812795dd23708cc79342f6fca90535f94f8f5dc358"
+            "digest": "66b8e0d7ca9cdd8ab7bab388833ba6bdafe4e8c3e3f8131ea54224ea82142cc1"
           }
         ]
       }

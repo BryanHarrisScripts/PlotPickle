@@ -4252,7 +4252,13 @@
           "tests/issue-3159-pi-headless-inference.test.mjs",
           "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
           "tests/issue-3278-storage-mcp.test.mjs",
-          "tests/issue-3303-headless-gateway-acceptance.test.mjs"
+          "tests/issue-3303-headless-gateway-acceptance.test.mjs",
+          "tests/issue-3142-authorized-coding-once.test.mjs",
+          "tests/issue-3142-authorized-publish-once.test.mjs",
+          "tests/issue-3142-authorized-pr-publish-once.test.mjs",
+          "tests/issue-3302-two-receipt-verifier.test.mjs",
+          "tests/issue-3142-owner-windows-acceptance-broker.test.mjs",
+          "tests/issue-3142-factory-worker-pool.test.mjs"
         ]
       },
       "cost": "fast",
@@ -7215,7 +7221,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "97b3f8747958b699332cd66a96099c5aa44de7bdc410570f069fb7a4f8d1c7cc"
+            "digest": "740746de789d6f551c696788c678ab38569b98e223b0105c003df1b58df5c55b"
           }
         ]
       },
@@ -8049,7 +8055,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "97b3f8747958b699332cd66a96099c5aa44de7bdc410570f069fb7a4f8d1c7cc"
+            "digest": "740746de789d6f551c696788c678ab38569b98e223b0105c003df1b58df5c55b"
           }
         ]
       },
@@ -9463,7 +9469,7 @@
       },
       {
         "target": "tests/issue-3110-windows-uat-control.test.mjs",
-        "targetDigest": "fc8a888b8f051f89a6f9df6be5eeb5c7d2ee7c878edb0b97352329fa33e0fcab",
+        "targetDigest": "c022976f0783ddada2a9341f25556d92059c31f25ac6afdcf8a4e44e2f67c21a",
         "catalogueIds": [
           "agent.windows-uat-local-control-3110"
         ],
@@ -10373,7 +10379,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "97b3f8747958b699332cd66a96099c5aa44de7bdc410570f069fb7a4f8d1c7cc"
+            "digest": "740746de789d6f551c696788c678ab38569b98e223b0105c003df1b58df5c55b"
           }
         ],
         "truthRefs": [
@@ -10413,7 +10419,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "97b3f8747958b699332cd66a96099c5aa44de7bdc410570f069fb7a4f8d1c7cc"
+            "digest": "740746de789d6f551c696788c678ab38569b98e223b0105c003df1b58df5c55b"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -12171,6 +12177,221 @@
           {
             "path": "scripts/engineering-team/queue/independent-qa-claim.mjs",
             "digest": "b7f62efe9180cfec36d8eee9923e55b94807c61b468b4fa1003c25a4f8cdb704"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-authorized-coding-once.test.mjs",
+        "targetDigest": "f00257c81dfff597c633f246b3bb5c81b78665b9e5ae614d12e1de35fa4b09a6",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "One-use local owner grant fixture and a real isolated Git worktree/commit; verifies exact source, path, digest, duplicate non-replay, bounded model suggestion, syntax-only checks and unchanged MAIN. Does not prove live paid model invocation, staged PR publication, independently executed focused test, owner-Windows acceptance, background dispatch or green-only merge.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
+            "digest": "6943ab66fda42cc53b4d5606c55602ef0bd815a47c589a47a7549b755008026c"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/gateway-host.mjs",
+            "digest": "17755df74f92130264bfe8f81f0496262accd57bf2218753f98031aeb652d7f8"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/receipts/write-once-json.mjs",
+            "digest": "e93a45ace974f9b53544b9544bd4e97eef6c475ec4f01ff77ef947c8d4316131"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-authorized-publish-once.test.mjs",
+        "targetDigest": "d454f937e9a1738a4095a66bdf1ea1f41490b6e63eb888ad45c248adf73f60b3",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Mocked local Git object inspection and GitHub Git-data REST responses only; verifies second one-use owner grant, exact prepared source parent/tree/blob, fixed draft PR metadata, durable reservation, duplicate non-replay, remote MAIN drift and uncertain external outcomes. Does not prove live GitHub credentials, actual remote branch/PR creation, native owner Windows publication, independent CI execution of generated code, product acceptance, background dispatch or merge.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
+            "digest": "f8c41457677aaab34afd257ea54e04a7f34acb848a9e604cd6013dba7ff37470"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/gateway-host.mjs",
+            "digest": "17755df74f92130264bfe8f81f0496262accd57bf2218753f98031aeb652d7f8"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/receipts/write-once-json.mjs",
+            "digest": "e93a45ace974f9b53544b9544bd4e97eef6c475ec4f01ff77ef947c8d4316131"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-authorized-pr-publish-once.test.mjs",
+        "targetDigest": "c0bff2d3e180255ec3e67cdaf41ddce7cd5c5907036111af027dd11b6681299c",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Native disposable Git worktree/commit and deterministic fake GitHub HTTPS; verifies one-use second owner grant, exact local/remote tree+blob identity, draft-only PR, stale MAIN, dirty stage, uncertain-response non-replay and one-call coding-to-publish handoff. No real owner credentials, real GitHub PR creation, paid model invocation, unattended startup, owner Windows acceptance, independent Product Gate, or merge proof.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
+            "digest": "f8c41457677aaab34afd257ea54e04a7f34acb848a9e604cd6013dba7ff37470"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
+            "digest": "6943ab66fda42cc53b4d5606c55602ef0bd815a47c589a47a7549b755008026c"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/gateway-host.mjs",
+            "digest": "17755df74f92130264bfe8f81f0496262accd57bf2218753f98031aeb652d7f8"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/receipts/write-once-json.mjs",
+            "digest": "e93a45ace974f9b53544b9544bd4e97eef6c475ec4f01ff77ef947c8d4316131"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3302-two-receipt-verifier.test.mjs",
+        "targetDigest": "6d8499f19dd19cc26a39f2dda21046fcdd685bc93a703425483dafcc8e2ae80d",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Fixture-only correlated owner-private coding/publication receipts, real Ed25519 signing/verification, fixed read-only mocked GitHub API, seven architecture layers and hosted Windows step. Independent changed-file identity, Git blob SHA-1 and content SHA-256 reject extra files, unauthorized paths and changed bytes before CI; negative cancelled/skipped/timed-out/stale/forged cases and write-once no-replay verifier reservation. No real owner-host signer, real GitHub token, actual PR publication, native Product Gate, unattended dispatch or automatic merge proof.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/verification/two-receipt-verifier.mjs",
+            "digest": "2b4f14dd1373e9da1b1a998d20371336cb29a115a9e2c65436f895a448244d4f"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/receipts/write-once-json.mjs",
+            "digest": "e93a45ace974f9b53544b9544bd4e97eef6c475ec4f01ff77ef947c8d4316131"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-owner-windows-acceptance-broker.test.mjs",
+        "targetDigest": "5a7175c55764494ce658fae9fec3cf3e4afad912a0ba93a4bec1be5d83e603fb",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Injected local-console owner authorization, exact clean-MAIN and supervisor STOP/PAUSE/heartbeat checks, bounded PR identity, immutable read-back, uncertain no-replay and static-stage non-promotion. Does not prove an owner-machine call, paid model invocation, real candidate checkout, independent signed verifier, process-tree STOP, product acceptance or merge.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/acceptance/owner-windows-acceptance.mjs",
+            "digest": "eb0fcf57510a5664635c942f774a776e6c3d67fefcb50845e1013cbe1acac631"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
+            "digest": "d05d01028d0473765bb7f20f60d306f73f74832c552cddfb696d91b853130054"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/storage/factory-stage-budget.mjs",
+            "digest": "accb3c96c6f1970324fc0fcd94470b9ff340470abdc4ecbce096954bf0f40c36"
+          },
+          {
+            "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
+            "digest": "681dba56405951e7fa15df41fda4dce6b9e4c09f67396d4aeca5043fac607862"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "2b9e01d8f2f031b1ffe764fea024ed564e551875ae8f44f9ea2b372e2e6943c1"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-factory-worker-pool.test.mjs",
+        "targetDigest": "b5d4e0764bb5ca65fa15433904d8fdb3dde0347f98d46a1f3786658d256acdc7",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Disposable local filesystem in-process concurrent claim, STOP and owner-grant mismatch fixtures; not real independently signed F00 signer, native Windows Scheduled Task/NTFS crash durability, cross-process race, successful full issue-to-merge cycle, Product Gate or autonomous merge authorization.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/worker-pool.mjs",
+            "digest": "b6eca57b46cf990577694f09b5e183f7a5530ffb467289c46797c65c758dac87"
           }
         ]
       }

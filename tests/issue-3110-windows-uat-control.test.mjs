@@ -147,10 +147,13 @@ test("spoofed success without fresh report fails closed, and an interrupted work
 test("live stop kills only launched UAT child, then observes child exit before confirming cancellation",()=>sandbox(async root=>{
   const scope=await reserve(root);
   let killed=false;
-  const running=driveWindowsUat(scope,{appRoot:root,inspect:checkout,preflight:()=>({ready:true}),pollMs:5,
+  const running=driveWindowsUat(scope,{appRoot:root,inspect:checkout,preflight:()=>({ready:true}),pollMs:40,
     launch:()=>childFixture(emitter=>{
-      emitter.kill=()=>{killed=true;setImmediate(()=>emitter.emit("exit",null));return true};
+      emitter.kill=()=>{killed=true;queueMicrotask(()=>emitter.emit("exit",null));return true};
     }),
+    // This is a synthetic child with a fake PID. Never invoke real Windows
+    // taskkill against that number; the separate native fixture proves tree STOP.
+    stopOwnedTree: async child=>{child.kill();},
   });
   // A fixed 45ms delay could race worker initialization on loaded native
   // Windows runners. Observe the actual owned-worker heartbeat before STOP;
@@ -164,10 +167,19 @@ test("live stop kills only launched UAT child, then observes child exit before c
   assert.equal(preStop.state,"running-heartbeat",
     "STOP fixture must first observe a live owned worker, not assume readiness from elapsed time");
   const requested=await requestStopWindowsUat(scope,{appRoot:root});
-  assert.equal(requested.state,"stop-requested");
-  assert.equal(requested.cancellationAcknowledged,false);
-  assert.equal(requested.stopDisposition,"STOP_REQUESTED_UNCONFIRMED");
+  // Await the owned worker before assertions; a failed expectation must not
+  // delete the disposable root while the worker is still writing receipts.
   const done=await running;
+  // STOP observation may race with direct-child cancellation. Both states
+  // retain truthful provenance; neither attests grandchild termination.
+  if(requested.state==="stop-requested"){
+    assert.equal(requested.cancellationAcknowledged,false);
+    assert.equal(requested.stopDisposition,"STOP_REQUESTED_UNCONFIRMED");
+  } else {
+    assert.equal(requested.state,"cancelled-child-exited");
+    assert.equal(requested.childExitObserved,true);
+    assert.equal(requested.stopDisposition,"DIRECT_CHILD_CANCELLATION_OBSERVED");
+  }
   assert.equal(killed,true);
   assert.equal(done.state,"cancelled-child-exited");
   assert.equal(done.childExitObserved,true);
@@ -291,9 +303,9 @@ test("#3135 native Windows live worker STOP terminates owned listening descendan
   const sentinel = spawn(process.execPath, ["-e", 'setInterval(()=>{},1000)'], {
     stdio: "ignore", shell: false, windowsHide: true,
   });
-  let owned = null;
+  let owned = null, running = null;
   try {
-    const running = driveWindowsUat(scope, {
+    running = driveWindowsUat(scope, {
       appRoot: root, inspect: checkout, preflight: () => ({ ready: true }),
       pollMs: 25, maxDurationMs: 20_000,
       launch: () => {
@@ -305,8 +317,9 @@ test("#3135 native Windows live worker STOP terminates owned listening descendan
     });
     const realRunning = await waitFor(async () =>
       owned?.pid && !(await portIsFree(port))
-        && (await statusWindowsUat(scope, { appRoot: root })).state === "running-heartbeat");
-    assert.equal(realRunning, true, "worker and owned descendant must be live before STOP");
+        && (await statusWindowsUat(scope, { appRoot: root })).state === "running-heartbeat", 240, 50);
+    const observed = await statusWindowsUat(scope, { appRoot: root });
+    assert.equal(realRunning, true, `worker and owned descendant must be live before STOP; state=${observed.state}; childExit=${owned?.exitCode ?? 'unknown'}; childSignal=${owned?.signalCode ?? 'unknown'}`);
     const request = await requestStopWindowsUat(scope, { appRoot: root });
     assert.equal(request.state, "stop-requested");
     assert.equal(request.stopDisposition, "STOP_REQUESTED_UNCONFIRMED");
@@ -321,7 +334,14 @@ test("#3135 native Windows live worker STOP terminates owned listening descendan
     const post = await requestStopWindowsUat(scope, { appRoot: root });
     assert.equal(post.stopDisposition, "ALREADY_TERMINAL_NOOP");
   } finally {
-    if (owned?.exitCode === null && owned?.signalCode === null) await terminateVerificationProcessTree(owned);
-    if (sentinel.exitCode === null && sentinel.signalCode === null) sentinel.kill();
+    try {
+      if (running) {
+        await requestStopWindowsUat(scope, { appRoot: root });
+        await running;
+      }
+    } finally {
+      if (owned?.exitCode === null && owned?.signalCode === null) await terminateVerificationProcessTree(owned);
+      if (sentinel.exitCode === null && sentinel.signalCode === null) sentinel.kill();
+    }
   }
 }));

@@ -18,10 +18,15 @@ const blocked = code => ({ state: 'BLOCKED', code,
   independentVerification: false, automaticMergeEnabled: false,
   replayAuthorized: false });
 
-async function readOwnerOrder(root, id) {
+export async function readOwnerOrder(root, id) {
   if (!ID.test(id || '')) return null;
-  const p = path.join(root, 'owner-work-orders', id + '.json');
+  const directory = path.join(root, 'owner-work-orders');
+  const p = path.join(directory, id + '.json');
   try {
+    // The JSON file may be regular while an ancestor is a junction/symlink.
+    // Never follow an owner-order directory redirected outside private storage.
+    const parent = await lstat(directory);
+    if (!parent.isDirectory() || parent.isSymbolicLink()) return null;
     const stat = await lstat(p);
     if (!stat.isFile() || stat.isSymbolicLink() || stat.size < 2 || stat.size > 4096)
       return null;

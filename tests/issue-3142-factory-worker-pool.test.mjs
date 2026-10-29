@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { FACTORY_WORKERS, projectWorkerFleet, validateOwnerWorkOrder,
   claimAndRunOwnerJobOnce } from '../scripts/engineering-team/gateway/worker-pool/worker-pool.mjs';
+import { readOwnerOrder } from '../scripts/engineering-team/gateway/worker-pool/worker-host.mjs';
 const head = 'a'.repeat(40);
 const order = { schemaVersion: 1, kind: 'owner-authorized-factory-job',
   requestId: '1'.repeat(32), grantId: '2'.repeat(32),
@@ -121,5 +122,26 @@ test('a published-looking result for the wrong issue, grant, source or merge per
       assert.equal(attempt.replayAuthorized,false,field);
       assert.equal(invoked,1,field);
     } finally { await rm(root,{recursive:true,force:true}); }
+  }
+});
+
+test('owner-work-order loader rejects a symlinked parent and reads only a real private directory', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'pp-owner-order-'));
+  const outsider = await mkdtemp(path.join(os.tmpdir(), 'pp-order-outside-'));
+  const dir = path.join(root, 'owner-work-orders');
+  try {
+    const filename = order.requestId + '.json';
+    await writeFile(path.join(outsider, filename), JSON.stringify(order));
+    await symlink(outsider, dir, process.platform === 'win32' ? 'junction' : 'dir');
+    assert.equal(await readOwnerOrder(root, order.requestId), null,
+      'private order loader must not traverse a symlink or Windows junction parent');
+    await rm(dir);
+    await mkdir(dir);
+    await writeFile(path.join(dir, filename), JSON.stringify(order));
+    assert.deepEqual(await readOwnerOrder(root, order.requestId), order,
+      'a real private directory can still serve the exact request');
+  } finally {
+    await rm(root, { recursive: true, force: true });
+    await rm(outsider, { recursive: true, force: true });
   }
 });

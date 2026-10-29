@@ -1,0 +1,241 @@
+name: Lane A Native Host Diagnostic (NON-RELEASE)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-compile-only:
+    name: Native compiler smoke test — NOT signer, SCM or W8/W9 proof
+    runs-on: windows-2022
+    timeout-minutes: 12
+    steps:
+      - name: Checkout candidate (no persisted credentials)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Compile fixed inert C# SCM host and validate fail-closed receipt
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $path = "./scripts/engineering-team/windows/verification/Test-PlotPickleLaneAHost.ps1"
+          $raw = & $path -RunNativeCompile
+          if ($LASTEXITCODE -ne 0) { throw "LANE_A_WINDOWS_DIAGNOSTIC_PROCESS_FAILED" }
+          $receipt = $raw | ConvertFrom-Json
+          if ($receipt.schemaVersion -ne "PP-LANE-A-WINDOWS-DIAGNOSTIC-V1" -or
+              $receipt.nativeCompile -ne "INERT_CSC_SELF_TEST_PASS" -or
+              $receipt.reviewerActivated -ne $false -or
+              $receipt.canAdmit -ne $false -or
+              $receipt.canMerge -ne $false -or
+              $receipt.w8w9TestAdmission -ne "UNPROVEN" -or
+              $receipt.signingKeyProvisioned -ne "UNPROVEN" -or
+              $receipt.independentTokenWitness -ne "UNPROVEN") {
+            throw "LANE_A_NATIVE_DIAGNOSTIC_SCOPE_OR_BUILD_INVALID"
+          }
+          Write-Output "NATIVE_CSC_SELF_TEST_ONLY_PASS"
+          Write-Output "NOT SCM START; NOT OWNER WINDOWS; NOT SIGNER ENROLLMENT"
+          Write-Output "NOT W8/W9 ADMISSION; NOT PRODUCT GATE; NOT RELEASE"
+
+      - name: CI-only ephemeral SCM virtual-account start and STOP canary
+        shell: pwsh
+        env:
+          PLOTPICKLE_LANE_A_EPHEMERAL_CI: "1"
+        run: |
+          $ErrorActionPreference = "Stop"
+          $raw = & "./scripts/engineering-team/windows/verification/Test-PlotPickleLaneAScmCanary.CI.ps1"
+          $receipt = $raw | ConvertFrom-Json
+          if ($receipt.schemaVersion -ne "PP-LANE-A-EPHEMERAL-SCM-V1" -or
+              $receipt.status -ne "INERT_SCM_CANARY_PASSED" -or
+              $receipt.virtualAccountTokenVerified -ne $true -or
+              $receipt.restrictedServiceSidConfigured -ne $true -or
+              $receipt.scmStartStopVerified -ne $true -or
+              $receipt.reviewerKeyProvisioned -ne $false -or
+              $receipt.userMachineVerified -ne $false -or
+              $receipt.independentlyAttested -ne $false -or
+              $receipt.w8w9Admitted -ne $false -or
+              $receipt.mayAdmit -ne $false -or
+              $receipt.mayMerge -ne $false) {
+            throw "EPHEMERAL_SCM_TEST_FAILED_OR_OVERSTATED"
+          }
+          Write-Output "INERT_SCM_VIRTUAL_ACCOUNT_CANARY_PASS"
+          Write-Output "EPHEMERAL_CI_ONLY; NO REVIEWER KEY; NO W8/W9 ADMISSION"
+
+      - name: Owner acceptance collector must reject missing external trust pins (read only)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $raw = & "./scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneAOwnerAcceptance.ps1"
+          $report = $raw | ConvertFrom-Json
+          if ($report.schemaVersion -ne "PP-LANE-A-OWNER-ACCEPTANCE-OBSERVATION-V1" -or
+              $report.code -ne "EXTERNAL_POLICY_PINS_REQUIRED" -or
+              $report.ownerStopMarker -ne "UNKNOWN" -or
+              $report.canStart -ne $false -or
+              $report.canAdmit -ne $false -or
+              $report.canMerge -ne $false -or
+              $report.independentRegistrar -ne "UNPROVEN" -or
+              $report.windowsProductGate -ne "UNPROVEN") {
+            throw "OWNER_ACCEPTANCE_DEFAULT_NOT_FAIL_CLOSED"
+          }
+          Write-Output "READ_ONLY_OWNER_ACCEPTANCE_FAIL_CLOSED_PASS"
+          Write-Output "NOT OWNER WINDOWS; NOT TRUST BOOTSTRAP; NOT REVIEWER ADMIT"
+
+      - name: Diagnose Windows directory fsync capability (NON-RELEASE)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $probe = @'
+          import {mkdtemp,mkdir,open,rm} from "node:fs/promises";
+          import os from "node:os";
+          import path from "node:path";
+          const root=await mkdtemp(path.join(os.tmpdir(),"plotpickle-f00-fsync-"));
+          try {
+            const dir=path.join(root,"issued");
+            await mkdir(dir);
+            let handle;
+            try {
+              handle=await open(dir,"r");
+              await handle.sync();
+              console.log(JSON.stringify({schemaVersion:"PP-F00-DIRSYNC-PROBE-V1",directorySync:"SUPPORTED",errorCode:null}));
+            } catch(error) {
+              const errorCode=typeof error?.code==="string" && /^[A-Z0-9_]+$/.test(error.code) ? error.code : "UNKNOWN";
+              console.log(JSON.stringify({schemaVersion:"PP-F00-DIRSYNC-PROBE-V1",directorySync:"DENIED_OR_UNSUPPORTED",errorCode}));
+            } finally {
+              if(handle) await handle.close();
+            }
+          } finally {
+            await rm(root,{recursive:true,force:true});
+          }
+          '@
+          $result = $probe | node --input-type=module -
+          if ($LASTEXITCODE -ne 0) { throw "F00_FSYNC_PROBE_EXECUTION_FAILED" }
+          $receipt = $result | ConvertFrom-Json
+          if ($receipt.schemaVersion -ne "PP-F00-DIRSYNC-PROBE-V1" -or
+              $receipt.directorySync -notin @("SUPPORTED","DENIED_OR_UNSUPPORTED")) {
+            throw "F00_FSYNC_PROBE_MALFORMED"
+          }
+          Write-Output ("F00_DIRSYNC_CAPABILITY={0}; ERROR_CODE={1}" -f $receipt.directorySync,$receipt.errorCode)
+          Write-Output "DIAGNOSTIC_ONLY; NO_DURABILITY_PROOF; NO_ADMISSION; NO_RETRY"
+
+      - name: Probe pre-existing Windows journal primitives (NON-RELEASE)
+        shell: pwsh
+        env:
+          PLOTPICKLE_LANE_A_EPHEMERAL_CI: "1"
+        run: |
+          $ErrorActionPreference = "Stop"
+          $raw = & "./scripts/engineering-team/windows/verification/Test-PlotPickleLaneANonceJournal.CI.ps1"
+          if (@($raw).Count -ne 1) { throw "NON_RELEASE_JOURNAL_PROBE_OUTPUT_INVALID" }
+          $receipt = $raw | ConvertFrom-Json
+          if ($receipt.schemaVersion -ne "PP-F00-NONRELEASE-JOURNAL-PROBE-V1" -or
+              $receipt.code -notin @("PRIMITIVES_OBSERVED","PRIMITIVES_UNPROVEN","WINDOWS_JOURNAL_PRIMITIVE_ERROR") -or
+              $receipt.powerLossDurabilityVerified -ne $false -or
+              $receipt.atomicNonceConsumptionVerified -ne $false -or
+              $receipt.independentlyAttested -ne $false -or
+              $receipt.registrarProvisioned -ne $false -or
+              $receipt.w8w9Admitted -ne $false -or
+              $receipt.canAdmit -ne $false -or
+              $receipt.canMerge -ne $false) {
+            throw "NON_RELEASE_JOURNAL_PROBE_OVERSTATED"
+          }
+          Write-Output ("F00_JOURNAL_CAPABILITY={0}; EXCLUSIVE={1}; REGULAR_FILE_FLUSH={2}" -f $receipt.code,$receipt.exclusiveFileAccessObserved,$receipt.regularFileFlushObserved)
+          Write-Output "NO POWER_LOSS PROOF; NO ATOMIC_NONCE_LEDGER; NO ADMISSION; NO RELEASE"
+
+      - name: Exercise portable preprovisioned journal author diagnostic (NON-RELEASE)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $raw = @(node "./scripts/engineering-team/diagnostics/diagnose-lane-a-preprovisioned-journal.mjs")
+          if ($LASTEXITCODE -ne 0 -or @($raw).Count -ne 1) {
+            throw "PORTABLE_JOURNAL_DIAGNOSTIC_EXECUTION_FAILED"
+          }
+          $report = $raw | ConvertFrom-Json
+          if ($report.schemaVersion -ne "PP-F00-JOURNAL-AUTHOR-DIAGNOSTIC-V1" -or
+              $report.code -ne "NON_RELEASE_AUTHOR_DIAGNOSTIC_PASSED" -or
+              $report.assertionsPassed -lt 15 -or
+              $report.independentVerification -ne $false -or
+              $report.powerLossDurabilityVerified -ne $false -or
+              $report.aclVerified -ne $false -or
+              $report.w8w9Admitted -ne $false -or
+              $report.productionActivated -ne $false -or
+              $report.mayAdmit -ne $false -or
+              $report.mayMerge -ne $false) {
+            throw "PORTABLE_JOURNAL_DIAGNOSTIC_OVERSTATED_OR_FAILED"
+          }
+          Write-Output ("NON_RELEASE_PORTABLE_JOURNAL_PASS; ASSERTIONS={0}" -f $report.assertionsPassed)
+          Write-Output "NO_KEY; NO_POWERLOSS; NO_ACL_WITNESS; NO_W8W9; NO_PRODUCT_GATE; NO_RELEASE"
+
+      - name: Verify native preprovisioned registrar journal transactions (NON-RELEASE)
+        shell: pwsh
+        env:
+          PLOTPICKLE_LANE_A_EPHEMERAL_CI: "1"
+        run: |
+          $ErrorActionPreference = "Stop"
+          $raw = & "./scripts/engineering-team/windows/verification/Test-PlotPickleLaneANativeRegistrarJournal.ps1" -RunNativeDiagnostic
+          if (@($raw).Count -ne 1) { throw "NATIVE_REGISTRAR_JOURNAL_DIAGNOSTIC_OUTPUT_INVALID" }
+          $report = $raw | ConvertFrom-Json
+          if ($report.schemaVersion -ne "PP-F00-NATIVE-JOURNAL-ENGINEERING-V1" -or
+              $report.state -ne "NON_RELEASE_AUTHOR_DIAGNOSTIC_PASSED" -or
+              $report.assertionsPassed -lt 7 -or
+              $report.nativeExclusiveHandleObserved -ne $true -or
+              $report.regularFileFlushObserved -ne $true -or
+              $report.duplicateAndSpentReplayDenied -ne $true -or
+              $report.tornTailDenied -ne $true -or
+              $report.stopMarkerObserved -ne $true -or
+              $report.registrarIdentityIndependentlyAttested -ne $false -or
+              $report.crashPowerLossDurabilityProven -ne $false -or
+              $report.windowsProductGate -ne $false -or
+              $report.w8w9Admitted -ne $false -or
+              $report.mayAdmit -ne $false -or
+              $report.mayMerge -ne $false) {
+            throw "NATIVE_JOURNAL_DIAGNOSTIC_UNVERIFIED_OR_OVERSTATED"
+          }
+          Write-Output ("NON_RELEASE_NATIVE_JOURNAL_DIAGNOSTIC_PASS; ASSERTIONS={0}; REPARSE={1}" -f $report.assertionsPassed,$report.symlinkFixture)
+          Write-Output "NO_INDEPENDENT_TOKEN; NO_DURABILITY_POWERLOSS; NO_PRODUCT_GATE; NO_W8W9_ADMISSION; NO_RELEASE"
+
+      - name: Candidate-only Ed25519 and native-source tests (not W8/W9 admission)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          node --test tests/issue-3302-lane-a-external-trust-bootstrap.test.mjs tests/issue-3302-lane-a-native-service-host.test.mjs tests/issue-3302-lane-a-automated-reviewer.test.mjs tests/issue-3302-lane-a-signed-registrar-policy.test.mjs tests/issue-3302-lane-a-automated-reviewer-cli.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw "LANE_A_DIAGNOSTIC_NODE_TESTS_FAILED" }
+          Write-Output "AUTHOR_SIDE_DIAGNOSTIC_TESTS_PASS_NOT_INDEPENDENT_ADMISSION"
+
+      - name: Read-only exact-commit owner collector must report uninstalled service
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $head = (git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0 -or $head -notmatch "^[a-f0-9]{40}$") {
+            throw "CI_CHECKOUT_HEAD_NOT_OBSERVED"
+          }
+          $sourceRoot = (Get-Location).Path
+          $report = & "./scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneAOwnerAcceptance.ps1" -RepositoryRoot $sourceRoot -ExpectedSourceHead $head -ExpectedBinarySha256 ("a" * 64) -ExpectedPublisherThumbprint ("B" * 40) | ConvertFrom-Json
+          if ($report.code -ne "REVIEWER_SERVICE_NOT_INSTALLED" -or
+              $report.sourceHeadMatch -ne $true -or
+              $report.sourceTreeClean -ne $true -or
+              $report.canAdmit -ne $false -or
+              $report.windowsProductGate -ne "UNPROVEN") {
+            throw "UNINSTALLED_OWNER_ACCEPTANCE_NOT_FAIL_CLOSED"
+          }
+          Write-Output "READ_ONLY_EXACT_COMMIT_UNINSTALLED_SERVICE_PASS"
+          Write-Output "NOT OWNER WINDOWS; NOT SIGNED PACKAGE; NOT SERVICE ACCEPTANCE"
+
+      - name: Windows machine trust root observation rejects absent independent fingerprint
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $raw = & "./scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneATrustRoot.ps1"
+          $report = $raw | ConvertFrom-Json
+          if ($report.schemaVersion -ne "PP-LANE-A-TRUST-ROOT-OBSERVATION-V1" -or
+              $report.code -ne "EXTERNAL_ROOT_PIN_REQUIRED" -or
+              $report.independentPublisherAttestation -ne "UNPROVEN" -or
+              $report.canEnroll -ne $false -or
+              $report.canAdmit -ne $false -or
+              $report.canEditCatalogue -ne $false -or
+              $report.canMerge -ne $false) {
+            throw "WINDOWS_TRUST_ROOT_DEFAULT_NOT_BLOCKED"
+          }
+          Write-Output "NO_EXTERNAL_ROOT_PIN_FAIL_CLOSED_PASS"
+          Write-Output "NOT INDEPENDENT TRUST REGISTRATION"

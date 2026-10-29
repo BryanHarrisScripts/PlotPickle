@@ -1326,7 +1326,15 @@
           "tests/issue-2938-safety-progress.test.mjs",
           "tests/issue-2939-composition-migration.test.mjs",
           "tests/issue-2940-outcome-measurement.test.mjs",
-          "tests/issue-1228-security-closeout.test.mjs"
+          "tests/issue-1228-security-closeout.test.mjs",
+          "tests/issue-3302-lane-a-admission-receipt.test.mjs",
+          "tests/issue-3302-lane-a-automated-reviewer-cli.test.mjs",
+          "tests/issue-3302-lane-a-automated-reviewer.test.mjs",
+          "tests/issue-3302-lane-a-external-trust-bootstrap.test.mjs",
+          "tests/issue-3302-lane-a-native-service-host.test.mjs",
+          "tests/issue-3302-lane-a-reviewer-enrollment.test.mjs",
+          "tests/issue-3302-lane-a-service-identity-policy.test.mjs",
+          "tests/issue-3302-lane-a-signed-registrar-policy.test.mjs"
         ]
       },
       "cost": "fast",
@@ -11826,6 +11834,286 @@
           {
             "path": "config/runtime-manifest.json",
             "digest": "cc9c40bbab3c416e2106aaa8e98cea0dad83c5f09810cb4f64416736bd40aadf"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3302-lane-a-admission-receipt.test.mjs",
+        "targetDigest": "eda0c193605a4b4976dad71306ce93c567ba57faa5d469cc19a4474a0ac4ee8f",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Synthetic Ed25519 signature, self-review, stale-head, truth-reference and tampering rejection only. No real independently issued reviewer admission, protected signer or product acceptance.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/verification/lane-a-admission-receipt.mjs",
+            "digest": "2a40c0f7b27e396da91a1f5b734c50091c76ea53ed405caa8e9846b7f5e522fc"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3302-lane-a-automated-reviewer-cli.test.mjs",
+        "targetDigest": "0b47851852f6c63875712da2baae1e4e3fa08443ef6b1450135abdbe250fb715",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Actual bounded local CLI process, tampered-source and STOP denial; non-executing preflight returns FIX or UNPROVEN. No external reviewer identity or signed ADMIT.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/verification/lane-a-automated-reviewer-cli.mjs",
+            "digest": "5e0490322aa95f419ea021f016f2e5ce6e18e154e385afc7e05f595fce179370"
+          },
+          {
+            "path": "scripts/engineering-team/verification/lane-a-automated-reviewer.mjs",
+            "digest": "a366bca6679f1f15de356d1c36aaa69463c9b899eba4002358a59f27bd152a02"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3302-lane-a-automated-reviewer.test.mjs",
+        "targetDigest": "1f14832e1a6d507fa97becee807f1531cb32559a6b48715255076bc1666c1408",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Synthetic exact-byte source, W8/W9 reference, STOP and adversarial-input fixtures. Inert, read-only candidate never admits tests or grants privileges.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/verification/lane-a-automated-reviewer.mjs",
+            "digest": "a366bca6679f1f15de356d1c36aaa69463c9b899eba4002358a59f27bd152a02"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3302-lane-a-external-trust-bootstrap.test.mjs",
+        "targetDigest": "e699445cc2161364f19132ed17c1f9d83c230cd915126230bb470336c086af79",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Synthetic registrar/enrollment, ACL evidence digest, identity and STOP refusal. No independent Windows token/ACL witness or production trust root.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/verification/lane-a-external-trust-bootstrap.mjs",
+            "digest": "c6e837fbeb75ce001cb5b90eb1018dbe16e7b281e49dac5d7bcd949381662f7e"
+          },
+          {
+            "path": "scripts/engineering-team/verification/lane-a-reviewer-enrollment.mjs",
+            "digest": "9396000f92c1e063143ca35342a9a71406ec9c3f21a39dd5746ec1b2c0a7305b"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3302-lane-a-native-service-host.test.mjs",
+        "targetDigest": "2bb30b4100f4c28da6e427bf30f7207e08b7c24c6798849f99ecfc9a12b3c8dc",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Static native C# and Windows script source inspection; actual native compiler proof is opt-in on Windows and separately non-release. No production SCM installation, signer or owner Windows Product Gate.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/verification/PlotPickleLaneAService.cs",
+            "digest": "e7ca01301248cabcfc75d7cada4826587efec5b0b53aa824886d8303028044c5"
+          },
+          {
+            "path": "scripts/engineering-team/windows/verification/Build-PlotPickleLaneAService.ps1",
+            "digest": "3a2ff59a9774b0f2376bf614ac2ce73032f0517b720774e4de162fea77100e29"
+          },
+          {
+            "path": "scripts/engineering-team/windows/verification/Install-PlotPickleLaneAService.ps1",
+            "digest": "be98e813d583af0d045b891a53fd780aec30f5a165cffa97a8e5942d567c078e"
+          },
+          {
+            "path": "scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneAService.ps1",
+            "digest": "49d085966c86f517c032e2a9da3ccfd6856f1d091fdbc6302f7e150419ec6a53"
+          },
+          {
+            "path": "scripts/engineering-team/windows/verification/Test-PlotPickleLaneAHost.ps1",
+            "digest": "d3146409347ccbee5a740ed6cbf8b6ba33b9f2089d6446836739591e92c59d1e"
+          },
+          {
+            "path": "scripts/engineering-team/windows/verification/Test-PlotPickleLaneAScmCanary.CI.ps1",
+            "digest": "ff3fc1254968f503c061f949cf9b4d620c0eb22c0265c17aa55ca4d7b1cb7896"
+          },
+          {
+            "path": "scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneAOwnerAcceptance.ps1",
+            "digest": "bc734afb0644658619920b9ef4ef7db06876624e361be8311926696b3c0882e2"
+          },
+          {
+            "path": "scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneATrustRoot.ps1",
+            "digest": "59ba24baeed30587a227c4d504c9b4a900087e32bf0a5426e8ed356c2d118be2"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3302-lane-a-reviewer-enrollment.test.mjs",
+        "targetDigest": "6aae2c1a6996e270526a6cead59ea0db1991b2bab5e6ac52a92fd61e87c6c6ab",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Synthetic Ed25519 enrollment, key separation, replay and identity denial. Does not prove independently issued credentials or operating F00 signer.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/verification/lane-a-reviewer-enrollment.mjs",
+            "digest": "9396000f92c1e063143ca35342a9a71406ec9c3f21a39dd5746ec1b2c0a7305b"
+          },
+          {
+            "path": "scripts/engineering-team/verification/lane-a-admission-chain.mjs",
+            "digest": "de5369c7f881afc83a6695a1b82ccd4d266969f87f76aea9b311708afcd6f173"
+          },
+          {
+            "path": "scripts/engineering-team/verification/lane-a-service-identity-policy.mjs",
+            "digest": "260f982e24ba6e8b87f90974554ea95d1cab35094be5b24c1cd754d69a612dbd"
+          },
+          {
+            "path": "scripts/engineering-team/verification/lane-a-admission-receipt.mjs",
+            "digest": "2a40c0f7b27e396da91a1f5b734c50091c76ea53ed405caa8e9846b7f5e522fc"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3302-lane-a-service-identity-policy.test.mjs",
+        "targetDigest": "111cb146ddf8713601402f604733e86e182f4615b74705f127d413d4e8939ebf",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic Windows token and service-policy refusal plus read-only PowerShell source inspection. No actual independent Windows service, key custody or release attestation.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/verification/lane-a-service-identity-policy.mjs",
+            "digest": "260f982e24ba6e8b87f90974554ea95d1cab35094be5b24c1cd754d69a612dbd"
+          },
+          {
+            "path": "scripts/engineering-team/windows/verification/Inspect-PlotPickleLaneAService.ps1",
+            "digest": "49d085966c86f517c032e2a9da3ccfd6856f1d091fdbc6302f7e150419ec6a53"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3302-lane-a-signed-registrar-policy.test.mjs",
+        "targetDigest": "f9b1b3f8bc138de39d757985af77cd7574318eef9c3fde4e72755a1f5d72d40a",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Synthetic root delegation plus real disposable filesystem nonce-journal concurrency, replay, torn-tail and link-denial fixtures. Windows durability, ACL custody and independent signer remain unproven.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/verification/lane-a-signed-registrar-policy.mjs",
+            "digest": "52f018057735b9250199006745cb173fedbda2d1ebe1870562f4fc4563f25495"
+          },
+          {
+            "path": "scripts/engineering-team/verification/lane-a-nonce-ledger.mjs",
+            "digest": "21d1d80087389d2f152a1879e5e9a93e4abd4de68fb786db6fb9212757ffc00f"
+          },
+          {
+            "path": "scripts/engineering-team/verification/lane-a-preprovisioned-journal.mjs",
+            "digest": "d384d3505c7ebf81f70d417708e67c09091b3228e029d72edf2b11eb71979e63"
           }
         ]
       }

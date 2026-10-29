@@ -12123,8 +12123,7 @@
         "target": "tests/issue-3302-independent-catalogue-preflight.test.mjs",
         "targetDigest": "2bb044ef0eb26cfe99460df4bee0e9cd80d6230cb1c82b8cb7ab7318906cbfc3",
         "catalogueIds": [
-          "verification.phase2-core",
-          "agent.autonomous-factory-queue-3110"
+          "verification.phase2-core"
         ],
         "truthRefs": [
           {
@@ -12151,8 +12150,7 @@
         "target": "tests/issue-3302-independent-qa-claim.test.mjs",
         "targetDigest": "91386145c79909322fdb0386b3bca6180f9c946ec88b4c4546ddad5b0d3bab53",
         "catalogueIds": [
-          "verification.phase2-core",
-          "agent.autonomous-factory-queue-3110"
+          "verification.phase2-core"
         ],
         "truthRefs": [
           {

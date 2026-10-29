@@ -120,7 +120,7 @@ test('failed model edit is held for inspection and cannot be replayed', () =>
       now: () => at, runGit: git, requestEdit: async () => ({ oldText: 'missing old code', newText: 'something' }) };
     const result = await runAuthorizedCodingOnce(options);
     assert.equal(result.code, 'CODING_OUTCOME_UNCERTAIN_RECONCILIATION_REQUIRED');
-    assert.equal(result.phase, 'VALIDATE_MODEL_EDIT');
+    assert.equal(result.phase, undefined, 'public reconciliation status must not expose private stage phase');
     assert.equal((await runAuthorizedCodingOnce(options)).code, 'CODING_ALREADY_RESERVED_OR_UNVERIFIABLE');
     const saved = JSON.parse(await readFile(path.join(privateRoot, 'coding-attempts',
       grant.grantId + '.result.json'), 'utf8'));
@@ -149,7 +149,7 @@ test('a failed model request records only a fixed phase and preserves non-replay
     const first = await runAuthorizedCodingOnce(options);
     assert.equal(first.state, 'BLOCKED');
     assert.equal(first.code, 'CODING_OUTCOME_UNCERTAIN_RECONCILIATION_REQUIRED');
-    assert.equal(first.phase, 'REQUEST_MODEL');
+    assert.equal(first.phase, undefined, 'public reconciliation status must not expose private model phase');
     assert.equal((await runAuthorizedCodingOnce(options)).code,
       'CODING_ALREADY_RESERVED_OR_UNVERIFIABLE');
     assert.equal(modelCalls, 1);

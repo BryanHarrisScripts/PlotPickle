@@ -12182,7 +12182,7 @@
       },
       {
         "target": "tests/issue-3142-authorized-coding-once.test.mjs",
-        "targetDigest": "c74d9de6b070dc5d31314f54279fec06efb6df7958f25a8a2a5d458b488ddd42",
+        "targetDigest": "f00257c81dfff597c633f246b3bb5c81b78665b9e5ae614d12e1de35fa4b09a6",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],

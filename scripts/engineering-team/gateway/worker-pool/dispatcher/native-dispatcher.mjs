@@ -154,7 +154,7 @@ export async function serve({
     }
   }
 }
-export async function status({root=privateGatewayRoot(),now=Date.now(),
+export async function status({root=privateGatewayRoot(),now=Date.now,
   alive=pid=>{try{process.kill(pid,0);return true;}
     catch(error){if(error?.code==='ESRCH')return false;throw error;}}}={}){
   const p=paths(root);

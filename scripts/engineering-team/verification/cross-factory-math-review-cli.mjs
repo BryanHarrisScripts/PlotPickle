@@ -5,6 +5,8 @@
  * external trust root and qualified signer are NOT furnished by this CLI.
  */
 import {inspectCrossFactoryTruth} from './cross-factory-math-review.mjs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 const blocked=code=>({schemaVersion:'PP-F00-CROSS-FACTORY-V1',status:'BLOCKED',
   code,mayAdmit:false,mayMerge:false,mayAdvance:false});
@@ -36,6 +38,6 @@ async function main(){
   process.stdout.write(JSON.stringify(result)+'\n');
   if(result.status!=='REVIEW_PROPOSAL_ONLY')process.exitCode=2;
 }
-if(import.meta.url==='file://'+process.argv[1]?.replace(/\\/g,'/')){
+if(process.argv[1] && path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   main().catch(()=>{process.stdout.write(JSON.stringify(blocked('REVIEW_RUNTIME_FAILED'))+'\n');process.exitCode=2;});
 }

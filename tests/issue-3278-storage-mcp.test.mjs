@@ -138,8 +138,8 @@ test("#3278 repository manifest matches exact named catalogue in both opt-in mod
   assert.deepEqual(catalog.engineeringOptIn, names(MCP_ENGINEERING_TOOLS));
   const publicNames = catalog.public;
   const baseline = [...publicNames, ...catalog.control, ...catalog.conversation, ...catalog.storage];
-  assert.equal(new Set(baseline).size, 10);
-  assert.equal(new Set([...baseline, ...catalog.engineeringOptIn]).size, 11);
+  assert.equal(new Set(baseline).size, 13);
+  assert.equal(new Set([...baseline, ...catalog.engineeringOptIn]).size, 14);
   assert.equal(publicNames.length, 4);
 });
 

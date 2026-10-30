@@ -12451,7 +12451,7 @@
       },
       {
         "target": "tests/issue-3302-cross-factory-math-review.test.mjs",
-        "targetDigest": "b8bcb9a310a8f573b8431d7d96474bc808a1378774311921d5e0016ce583751c",
+        "targetDigest": "d61487998cd04637d62eb330c8f00427dc8edc53860fac03de50208a00524dc1",
         "catalogueIds": [
           "verification.phase2-core"
         ],
@@ -12472,12 +12472,12 @@
         "limits": "Synthetic four-factory F01-F04 mathematical preflight, exact-version references, STOP, Ed25519 receipt signature checks, and signed green-gate eligibility; proposed evidence remains UNPROVEN and never grants merge, canon write, credential or reviewer qualification. CLI is read-only and bounded but not a separately isolated installed Windows signer. Tests do NOT demonstrate genuine external registrar, signer key custody, signed W8/W9 ADMIT, owner Windows release, durable nonce consumption, background dispatch or actual merge.",
         "inputs": [
           {
-            "path": "scripts/engineering-team/verification/cross-factory-math-review.mjs",
-            "digest": "a58b006c6a883ba2246798a0e491f84d41a5d844992c7f64078b0c1459be1002"
+            "path": "scripts/engineering-team/verification/aegis/cross-factory-math-review.mjs",
+            "digest": "3a2a34a576489936ea58d651f4027e3bb0979a3bdf19ddf27a609b9e687a162b"
           },
           {
-            "path": "scripts/engineering-team/verification/cross-factory-math-review-cli.mjs",
-            "digest": "da12b29cfaf4007bdfa0d043597b08ad0b7955aca4b74bf945b81e467a899f01"
+            "path": "scripts/engineering-team/verification/aegis/cross-factory-math-review-cli.mjs",
+            "digest": "c42af54104a3981796245ccf660e88637d4acacab1a50da6ff4e25f48c29d234"
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/signed-green-release.mjs",

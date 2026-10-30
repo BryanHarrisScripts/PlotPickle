@@ -56,3 +56,17 @@ test("#3291 unbundled CLI symlink outside private Pi package is rejected", {
     await rm(f.root, { recursive: true, force: true });
   }
 });
+
+test("#3291 managed reviewers use direct unbundled Node launch, never bundled Pi shim", async () => {
+  for (const script of [
+    "../scripts/run-pi-code-quality-review.mjs",
+    "../scripts/pi/run-architecture-review.mjs",
+  ]) {
+    const text = await readFile(new URL(script, import.meta.url), "utf8");
+    assert.match(text, /runManagedPiReadOnly/);
+    assert.match(text, /\bpi, runtime,/);
+    assert.doesNotMatch(text, /\brunPiReadOnly\b/);
+    assert.doesNotMatch(text, /command:\s*pi\.command/);
+    assert.doesNotMatch(text, /PLOTPICKLE_PI_COMMAND\s*=\s*pi\.command/);
+  }
+});

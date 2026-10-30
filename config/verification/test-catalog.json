@@ -4957,42 +4957,6 @@
         ]
       },
       "notes": "#3259 active-conversation durable test and authenticated MCP reply boundary. Disposable local HTTP, Git and fresh-process fixtures; real tunnel and owner GUI acceptance remain unproven."
-    },
-    {
-      "target": "tests/issue-2733-ci-windows-lanes.test.mjs",
-      "targetDigest": "4b0668e814fc1d5e3cc1c8c9d7a1a77881178fcf89fd0ffb30724c3c377eb7bb",
-      "catalogueIds": [
-        "verification.phase7-merge-authority"
-      ],
-      "truthRefs": [
-        {
-          "truthId": "WHITE-PAPER-V3",
-          "obligationId": "W8"
-        },
-        {
-          "truthId": "WHITE-PAPER-V3",
-          "obligationId": "W9"
-        }
-      ],
-      "scopes": [
-        "static-source",
-        "unit-fixture"
-      ],
-      "limits": "Source/fixture verification of existing six independent 12-minute Windows Product Gate lanes, no generic workflow metadata fanout, and selective Pi job-body change detection. Does not prove live Windows acceptance, paid model, trusted signer or Factory activation.",
-      "inputs": [
-        {
-          "path": ".github/workflows/architecture-shadow.yml",
-          "digest": "9eea663f1b2d3b3ee2fa3819fb83ace16224c134646f180344cd595c97f9e302"
-        },
-        {
-          "path": "lib/verification/pi-workflow-scope.mjs",
-          "digest": "bb3fd501d0bafdb9dcebb04be542cf577901f79a0533f8b6e8c11b98f542a3ce"
-        },
-        {
-          "path": ".github/workflows/product-gate.yml",
-          "digest": "b0563ee2663d315bb8e169309cfe4f8c5427cacd4aeb6e2cabf6faecf7e2bd11"
-        }
-      ]
     }
   ],
   "truthGovernance": {
@@ -12448,6 +12412,42 @@
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
             "digest": "33084f4f7b09a0d8e73bc8c16b47027bbf141fa9969d45a3091f00d7c7448f75"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2733-ci-windows-lanes.test.mjs",
+        "targetDigest": "4b0668e814fc1d5e3cc1c8c9d7a1a77881178fcf89fd0ffb30724c3c377eb7bb",
+        "catalogueIds": [
+          "verification.phase7-merge-authority"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Source/fixture verification of existing six independent 12-minute Windows Product Gate lanes, no generic workflow metadata fanout, and selective Pi job-body change detection. Does not prove live Windows acceptance, paid model, trusted signer or Factory activation.",
+        "inputs": [
+          {
+            "path": ".github/workflows/architecture-shadow.yml",
+            "digest": "9eea663f1b2d3b3ee2fa3819fb83ace16224c134646f180344cd595c97f9e302"
+          },
+          {
+            "path": "lib/verification/pi-workflow-scope.mjs",
+            "digest": "bb3fd501d0bafdb9dcebb04be542cf577901f79a0533f8b6e8c11b98f542a3ce"
+          },
+          {
+            "path": ".github/workflows/product-gate.yml",
+            "digest": "b0563ee2663d315bb8e169309cfe4f8c5427cacd4aeb6e2cabf6faecf7e2bd11"
           }
         ]
       }

@@ -54,7 +54,14 @@ if ($Status) {
   [pscustomobject]@{ state='OBSERVATION_ONLY'; reviewer=$(if($service.Count){'SCM_PRESENT_NOT_QUALIFIED'}else{'NOT_INSTALLED'});tasks=$tasks;verifiedCycles=0;mergeEnabled=$false } | ConvertTo-Json -Depth 5 -Compress
   return
 }
-if (@(Get-ScheduledTask -TaskName 'PlotPickleSoftwareFactory' -ErrorAction SilentlyContinue).Count -ne 0) { throw 'LEGACY_PI_TASK_PRESENT_REVIEW_SEPARATELY' }
+# Preserve old Pi receipts and scheduled-task registration. An already
+# DISABLED legacy task may coexist; an enabled one must be disabled by its
+# owner before admission, because it could race the new dispatcher.
+$legacy = @(Get-ScheduledTask -TaskName 'PlotPickleSoftwareFactory' -ErrorAction SilentlyContinue)
+if ($legacy.Count -gt 1) { throw 'LEGACY_PI_TASK_AMBIGUOUS' }
+if ($legacy.Count -eq 1 -and [string]$legacy[0].State -ne 'Disabled') {
+  throw 'LEGACY_PI_TASK_MUST_BE_DISABLED_BEFORE_DISPATCHER_START'
+}
 if ($Install) {
   $null=ExactHead
   for($i=0;$i -lt 3;$i++){ if(@(Get-ScheduledTask -TaskName $names[$i] -ErrorAction SilentlyContinue).Count){ throw 'EXISTING_TASK_WILL_NOT_BE_OVERWRITTEN' } }
@@ -73,9 +80,24 @@ if ($Install) {
   return
 }
 if ($Start) {
-  $null=ExactHead
-  for($i=0;$i -lt 3;$i++){ $null=OwnedTask $i }
-  [pscustomobject]@{state='BLOCKED';code='F00_SIGNED_W8W9_AND_OWNER_WINDOWS_PRODUCT_GATE_REQUIRED';tasksStarted=0;codingOnline=$false} | ConvertTo-Json -Compress
+  $head=ExactHead
+  $task=OwnedTask 0
+  if ($null -eq $task) { throw 'DISPATCHER_TASK_NOT_INSTALLED' }
+  # Never enable worker slots or the legacy Pi queue. The dispatcher will
+  # consume ONLY existing owner one-shot grants through Worker 1.
+  $supervisor=Join-Path $repo 'scripts\engineering-team\windows\supervisor\unattended-supervisor.mjs'
+  $statusJson = & $node $supervisor --status
+  if ($LASTEXITCODE -ne 0) { throw 'SUPERVISOR_STATUS_UNVERIFIABLE' }
+  $status = $statusJson | ConvertFrom-Json
+  if ($status.state -cne 'RUNNING' -or $status.exactSha -cne $head -or
+      $status.pauseAcknowledged -eq $true) { throw 'SUPERVISOR_STOP_PAUSE_OR_HEAD_UNVERIFIED' }
+  if ([string]$task.State -eq 'Running') { throw 'DISPATCHER_ALREADY_RUNNING_RECHECK_STATUS' }
+  Enable-ScheduledTask -TaskName $names[0] -ErrorAction Stop | Out-Null
+  Start-ScheduledTask -TaskName $names[0] -ErrorAction Stop
+  [pscustomobject]@{state='START_REQUESTED';task=$names[0];sourceHead=$head;
+    worker1Only=$true;legacyPiStarted=$false;mergeEnabled=$false;
+    liveProcessVerified=$false;message='Run native-dispatcher.mjs --status to verify heartbeat'} |
+    ConvertTo-Json -Compress
   return
 }
 if ($Stop) {

@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, link, readFile, readdir, rm, writeFile } from 'node:fs/
 import os from 'node:os';
 import path from 'node:path';
 import { claimCodingOwnership, reconcileSyntaxRejectedOwnership } from '../scripts/engineering-team/gateway/receipts/atomic-coding-ownership.mjs';
-import { inspectFailedSyntaxClaim } from '../scripts/engineering-team/gateway/worker-pool/reconcile-failed-syntax-once.mjs';
+import { inspectFailedSyntaxClaim, onlyUnstagedTarget } from '../scripts/engineering-team/gateway/worker-pool/reconcile-failed-syntax-once.mjs';
 
 const GRANT='1'.repeat(32), NEXT='2'.repeat(32), HEAD='a'.repeat(40);
 const CONSENT='RECONCILE_ONE_FAILED_SYNTAX_CLAIM_NO_REPLAY';
@@ -65,4 +65,13 @@ test('owner CLI inspection remains inert and Windows-only', async()=>{
   const state=await inspectFailedSyntaxClaim({platform:'linux',requestId:GRANT,grantId:GRANT});
   assert.equal(state.state,'BLOCKED');
   assert.equal(state.code,'WINDOWS_AND_EXACT_IDENTITIES_REQUIRED');
+});
+
+test('trimmed porcelain status admits only the one unstaged authorized source edit',()=>{
+  const target='scripts/engineering-team/gateway/worker-pool/worker-host.mjs';
+  assert.equal(onlyUnstagedTarget(' M '+target),false,'raw porcelain must be normalized before comparison');
+  assert.equal(onlyUnstagedTarget((' M '+target).trim()),true);
+  assert.equal(onlyUnstagedTarget('M  '+target),false,'staged source edit not allowed');
+  assert.equal(onlyUnstagedTarget('?? '+target),false,'untracked source edit not allowed');
+  assert.equal(onlyUnstagedTarget('M '+target+'\nM another.mjs'),false,'additional modified paths not allowed');
 });

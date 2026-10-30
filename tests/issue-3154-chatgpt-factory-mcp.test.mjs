@@ -580,8 +580,8 @@ test("engineering opt-in catalogue stays authenticated and explicit",async()=>{
  const guest=await executeMcpRequest(request,{
    controlAuthenticated:false,engineeringEnabled:true,
  });
- assert.equal(ordinary.result.tools.length,10);
- assert.equal(enabled.result.tools.length,11);
+ assert.equal(ordinary.result.tools.length,11);
+ assert.equal(enabled.result.tools.length,12);
  assert.equal(enabled.result.tools.at(-1).name,"factory_engineering_run");
  assert.equal(ordinary.result.tools.some(tool=>tool.name==="factory_engineering_run"),false);
  assert.equal(guest.result.tools.length,4);
@@ -635,7 +635,7 @@ test("MCP write tools are hidden without paired authentication and reject replay
      return (await reply.json()).result.tools.map(x=>x.name);
    };
    assert.equal((await list()).length,4);
-   assert.equal((await list(token)).length,10);
+   assert.equal((await list(token)).length,11);
    assert.equal((await list("invalid")).length,4);
    const preArgs={requestId:"1".repeat(32),expectedHead:OLD};
    assert.equal((await call("factory_run_dependency_preflight",preArgs)).error.code,-32001);

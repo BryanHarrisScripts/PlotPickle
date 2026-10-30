@@ -146,3 +146,69 @@ export function codingReleaseIsReconciled(receipts, release) {
   } catch { return false; }
   finally { handle?.db.close(); }
 }
+
+/**
+ * Owner-gated recovery of a conclusively rejected source-syntax attempt.
+ * The caller MUST independently verify the exact uncommitted staged worktree,
+ * absent GitHub branch/PR, exited worker process and unchanged supervisor.
+ * It never replays the old grant or writes a successful coding/publish receipt.
+ */
+export function reconcileSyntaxRejectedOwnership(receipts, {
+  grantId, sourceHead, consent, stageAndRemoteVerified,
+} = {}) {
+  const DENY = Object.freeze({ state: 'BLOCKED', code: 'SYNTAX_RECONCILIATION_UNVERIFIED' });
+  if (!/^[a-f0-9]{32}$/.test(grantId || '') ||
+      !/^[a-f0-9]{40}$/.test(sourceHead || '') ||
+      consent !== 'RECONCILE_ONE_FAILED_SYNTAX_CLAIM_NO_REPLAY' ||
+      stageAndRemoteVerified !== true) return DENY;
+  let h;
+  try {
+    h = openVerifiedDatabase(receipts, false);
+    if (!h.fileValid()) return DENY;
+    const row = h.db.prepare('SELECT grant_id, nonce FROM coding_resource_owner WHERE resource = ?')
+      .get(RESOURCE);
+    if (row?.grant_id !== grantId || !/^[a-f0-9-]{36}$/.test(row.nonce || '')) return DENY;
+    const stem = path.join(receipts, '.coding-attempt-' + row.nonce);
+    const a = lstatSync(stem + '.lock'), b = lstatSync(stem + '.guard');
+    if (!same(a,b) || a.size > 1024) return DENY;
+    const owner = JSON.parse(readFileSync(stem + '.lock', 'utf8'));
+    if (owner.schemaVersion !== 1 || owner.state !== 'NONREPLAYABLE_OWNER_EVIDENCE' ||
+        owner.grantId !== grantId || owner.ownerNonce !== row.nonce ||
+        owner.ownershipEpoch !== h.epoch) return DENY;
+    const resultPath = path.join(receipts, grantId + '.result.json');
+    const rs = lstatSync(resultPath);
+    if (!rs.isFile() || rs.isSymbolicLink() || rs.size < 2 || rs.size > 4096) return DENY;
+    const outcome = JSON.parse(readFileSync(resultPath, 'utf8'));
+    if (outcome.state !== 'BLOCKED' ||
+        outcome.code !== 'CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE' ||
+        outcome.phase !== 'CHECK_STAGE_SYNTAX' ||
+        outcome.replayAuthorized !== false) return DENY;
+    const witness = Object.freeze({ schemaVersion:1, kind:'coding-resource-release',
+      grantId, sourceHead, ownershipEpoch:h.epoch, ownershipNonce:row.nonce,
+      state:'RECONCILED_SYNTAX_REJECTED_NO_COMMIT', phase:'CHECK_STAGE_SYNTAX',
+      replayAuthorized:false, publicationAuthorized:false });
+    const file = path.join(receipts, grantId + '.released.json');
+    let fd;
+    try {
+      fd = openSync(file, 'wx', 0o600);
+      writeSync(fd, JSON.stringify(witness) + '\n');
+      fsyncSync(fd);
+    } catch (e) {
+      if (e?.code !== 'EEXIST') return DENY;
+      const st = lstatSync(file);
+      if (!st.isFile() || st.isSymbolicLink() || st.size > 4096) return DENY;
+      const prior = JSON.parse(readFileSync(file, 'utf8'));
+      if (JSON.stringify(prior) !== JSON.stringify(witness)) return DENY;
+    } finally { if (fd !== undefined) closeSync(fd); }
+    if (!h.fileValid() || !same(lstatSync(stem + '.lock'), a) ||
+        !same(lstatSync(stem + '.guard'), b)) return DENY;
+    const deleted = h.db.prepare(`DELETE FROM coding_resource_owner
+      WHERE resource = ? AND grant_id = ? AND nonce = ?`)
+      .run(RESOURCE, grantId, row.nonce);
+    if (deleted.changes !== 1 || !h.fileValid()) return DENY;
+    return Object.freeze({ state:'RECONCILED_SYNTAX_REJECTED_NO_COMMIT',
+      sourceHead, grantId, retryOriginalAuthorized:false,
+      publicationAuthorized:false, originalEvidencePreserved:true });
+  } catch { return DENY; }
+  finally { h?.db.close(); }
+}

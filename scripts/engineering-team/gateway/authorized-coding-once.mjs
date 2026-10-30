@@ -133,18 +133,23 @@ async function priorCodingAttemptsReconciled(receipts, currentNonce, epoch) {
         const stat = await lstat(releasePath);
         if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 4096) return false;
         release = JSON.parse(await readFile(releasePath, 'utf8'));
-        if (release.state !== 'RELEASED_AFTER_DURABLE_RESULT') return false;
+        if (!['RELEASED_AFTER_DURABLE_RESULT', 'RECONCILED_SYNTAX_REJECTED_NO_COMMIT']
+          .includes(release.state)) return false;
       }
       if (release.schemaVersion !== 1 ||
           release.kind !== 'coding-resource-release' ||
-          !['RELEASED_AFTER_DURABLE_RESULT', 'RELEASED_WITHOUT_EXECUTION']
-            .includes(release.state) ||
+          !['RELEASED_AFTER_DURABLE_RESULT', 'RELEASED_WITHOUT_EXECUTION',
+            'RECONCILED_SYNTAX_REJECTED_NO_COMMIT'].includes(release.state) ||
           release.ownershipNonce !== nonce ||
           release.ownershipEpoch !== epoch || release.grantId !== owner.grantId)
         return false;
       if (release.state === 'RELEASED_AFTER_DURABLE_RESULT' &&
           (!SHA.test(release.localCommit || '') ||
            typeof release.branch !== 'string')) return false;
+      if (release.state === 'RECONCILED_SYNTAX_REJECTED_NO_COMMIT' &&
+          (release.phase !== 'CHECK_STAGE_SYNTAX' || release.localCommit !== undefined ||
+           release.branch !== undefined || release.replayAuthorized !== false ||
+           release.publicationAuthorized !== false)) return false;
     }
     return true;
   } catch { return false; }

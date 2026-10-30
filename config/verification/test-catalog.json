@@ -4258,7 +4258,8 @@
           "tests/issue-3142-authorized-pr-publish-once.test.mjs",
           "tests/issue-3302-two-receipt-verifier.test.mjs",
           "tests/issue-3142-owner-windows-acceptance-broker.test.mjs",
-          "tests/issue-3142-factory-worker-pool.test.mjs"
+          "tests/issue-3142-factory-worker-pool.test.mjs",
+          "tests/issue-3142-reconcile-syntax-failure.test.mjs"
         ]
       },
       "cost": "fast",
@@ -12212,7 +12213,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "6943ab66fda42cc53b4d5606c55602ef0bd815a47c589a47a7549b755008026c"
+            "digest": "8ed8d9edcfaa281774c11d4e2c65885e86da906941d648042ce04101ddcae8d4"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12288,7 +12289,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "6943ab66fda42cc53b4d5606c55602ef0bd815a47c589a47a7549b755008026c"
+            "digest": "8ed8d9edcfaa281774c11d4e2c65885e86da906941d648042ce04101ddcae8d4"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12404,6 +12405,38 @@
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
             "digest": "33084f4f7b09a0d8e73bc8c16b47027bbf141fa9969d45a3091f00d7c7448f75"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-reconcile-syntax-failure.test.mjs",
+        "targetDigest": "a4a3bc385adbc9aea6bf77bbef7f99face75755c68eee00f039e3d221dc96bdd",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Disposable filesystem/SQLite tests verify owner-gated rejected-syntax reconciliation terminal evidence, preservation of immutable original claim, refusal of replay and continued distinct claim admission. Windows CLI independently checks stage syntax, current source ancestry, stopped worker and absent remote branch before owner consent; these unit tests do NOT prove live owner-Windows reconciliation, signer, automated worker, product acceptance or merge.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/receipts/atomic-coding-ownership.mjs",
+            "digest": "72401117c8c5b629dbdfdfade194d45f4aa45ce27f111bf32c40434586e4903d"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/reconcile-failed-syntax-once.mjs",
+            "digest": "09ec63163a3d9b8fcc9252d9af3edd8da1fc278754c1bd7cce46d736385b3828"
           }
         ]
       }

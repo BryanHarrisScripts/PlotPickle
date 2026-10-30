@@ -9,8 +9,11 @@ import {
   privateFactoryRoot, sanitizeReceipt, sanitizeDependencyPreflight, sanitizeSupervisorObservation, factoryStatus, sanitizeStageCapacityObservation, observeCandidateStageLock, sanitizeStageLockObservation, factoryEvidence,
   factoryIssuePreview, factoryObserver, factoryHostHead, executeMcpRequest, handleRpc, MCP_TOOLS,
   createLocalMcpHttpServer, runStdio, controlTokenMatches,
-  MCP_CONTROL_TOOLS, factoryControlReceipt,
+  MCP_CONTROL_TOOLS, factoryControlReceipt, MCP_WINDOWS_DIAGNOSTICS_TOOLS,
 } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
+
+import { sanitizeOwnerWindowsDiagnostics, inspectOwnerWindowsHost } from
+  "../scripts/engineering-team/mcp/engineering/factory-host-diagnostics.mjs";
 
 const OLD="a".repeat(40),NEW="b".repeat(40);
 async function sandbox(fn) {
@@ -50,6 +53,41 @@ async function seed(root) {
   }));
   return jobs;
 }
+test("#3333 owner host diagnostics stay authenticated, read-only and exact-head bound", async()=>{
+  assert.deepEqual(MCP_WINDOWS_DIAGNOSTICS_TOOLS.map(x=>x.name),["factory_host_diagnostics"]);
+  const rpc={jsonrpc:"2.0",method:"tools/call",params:{
+    name:"factory_host_diagnostics",arguments:{expectedHead:OLD}}};
+  const secret={schemaVersion:1,taskState:"Running",lastTaskResult:267009,
+    lockState:"PRESENT",lockPid:4108,processState:"CANDIDATE_NOT_VERIFIED",
+    stopMarker:"ABSENT",pauseMarker:"ABSENT",
+    processOwnershipVerified:false,remediationAuthorized:false,
+    commandLine:"SECRET_COMMAND_AND_TOKEN"};
+  const cleaned=sanitizeOwnerWindowsDiagnostics(secret,OLD);
+  assert.equal(cleaned.lockPid,4108);
+  assert.equal(cleaned.processOwnershipVerified,false);
+  assert.equal(cleaned.remediationAuthorized,false);
+  assert.equal(JSON.stringify(cleaned).includes("SECRET"),false);
+  assert.equal(sanitizeOwnerWindowsDiagnostics({...secret,processOwnershipVerified:true},OLD).state,"BLOCKED");
+  assert.equal(sanitizeOwnerWindowsDiagnostics({...secret,lockPid:-5},OLD).state,"BLOCKED");
+  assert.equal(sanitizeOwnerWindowsDiagnostics({...secret,taskState:"Admin"},OLD).state,"BLOCKED");
+  let invoked=0;
+  const read=async()=>{invoked++;return cleaned;};
+  assert.equal((await executeMcpRequest(rpc,{
+    controlAuthenticated:false,hostDiagnosticsRead:read})).error.code,-32001);
+  assert.equal((await executeMcpRequest({...rpc,params:{...rpc.params,
+    arguments:{expectedHead:OLD,command:"Get-Secret"}}},{
+    controlAuthenticated:true,hostDiagnosticsRead:read})).error.code,-32602);
+  const returned=await executeMcpRequest(rpc,{
+    controlAuthenticated:true,hostDiagnosticsRead:read});
+  assert.equal(returned.result.structuredContent.state,"OBSERVED_NOT_RELEASE_PROOF");
+  assert.equal(invoked,1);
+  assert.equal((await inspectOwnerWindowsHost({
+    expectedHead:OLD,platform:"linux"})).code,"DIAGNOSTIC_WINDOWS_ONLY");
+  assert.equal((await inspectOwnerWindowsHost({
+    expectedHead:OLD,platform:"win32",source:async()=>({channel:"main",head:NEW})})).code,
+    "DIAGNOSTIC_EXACT_MAIN_UNVERIFIABLE");
+});
+
 test("fixed private Factory root and read-only annotations",()=>{
   assert.equal(privateFactoryRoot({LOCALAPPDATA:"C:\\Temp"},"win32"),path.join("C:\\Temp","PlotPickle","engineering-team","autonomous-queue"));
   assert.deepEqual(MCP_TOOLS.map(x=>x.name),["factory_status","factory_observer","factory_evidence","factory_issue_preview"]);
@@ -542,8 +580,8 @@ test("engineering opt-in catalogue stays authenticated and explicit",async()=>{
  const guest=await executeMcpRequest(request,{
    controlAuthenticated:false,engineeringEnabled:true,
  });
- assert.equal(ordinary.result.tools.length,10);
- assert.equal(enabled.result.tools.length,11);
+ assert.equal(ordinary.result.tools.length,11);
+ assert.equal(enabled.result.tools.length,12);
  assert.equal(enabled.result.tools.at(-1).name,"factory_engineering_run");
  assert.equal(ordinary.result.tools.some(tool=>tool.name==="factory_engineering_run"),false);
  assert.equal(guest.result.tools.length,4);
@@ -597,7 +635,7 @@ test("MCP write tools are hidden without paired authentication and reject replay
      return (await reply.json()).result.tools.map(x=>x.name);
    };
    assert.equal((await list()).length,4);
-   assert.equal((await list(token)).length,10);
+   assert.equal((await list(token)).length,11);
    assert.equal((await list("invalid")).length,4);
    const preArgs={requestId:"1".repeat(32),expectedHead:OLD};
    assert.equal((await call("factory_run_dependency_preflight",preArgs)).error.code,-32001);

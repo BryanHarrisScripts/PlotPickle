@@ -334,6 +334,22 @@ test('publication requires an exact coding-ownership release witness rather than
       ownershipNonce: '12345678-1234-1234-1234-123456789abc',
       branch: f.grant.branch };
     assert.equal(validateCodingReleaseWitness(release, f.grant, f.prepared), true);
+    const preapproved = { ...f.grant, kind:'draft-pr-publish-approved-coding-once',
+      consent:'AUTHORIZE_ONE_DRAFT_PR_FROM_ONE_APPROVED_CODING_EDIT',
+      localCommit:null };
+    assert.equal(validateCodingReleaseWitness(release, preapproved, f.prepared), true);
+    for (const mismatched of [
+      { ...release, localCommit:'f'.repeat(40) },
+      { ...release, branch:'engineering/unowned' },
+      { ...release, sourceHead:'f'.repeat(40) },
+      { ...release, grantId:'f'.repeat(32) },
+    ]) assert.equal(validateCodingReleaseWitness(mismatched, preapproved, f.prepared), false);
+    assert.equal(validateCodingReleaseWitness(release, {
+      ...preapproved, consent:'AUTHORIZE_ONE_DRAFT_ENGINEERING_PR' }, f.prepared), false);
+    assert.equal(validateCodingReleaseWitness(release, {
+      ...preapproved, localCommit:'f'.repeat(40) }, f.prepared), false);
+    assert.equal(validateCodingReleaseWitness(release, preapproved,
+      { ...f.prepared, commit:'f'.repeat(40) }), false);
     const bad = [
       null, { ...release, state: 'UNCERTAIN' },
       { ...release, grantId: 'f'.repeat(32) },

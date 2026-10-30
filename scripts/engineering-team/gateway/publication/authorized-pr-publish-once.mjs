@@ -273,7 +273,13 @@ export function validateCodingReleaseWitness(release, grant, prepared) {
     release.state === 'RELEASED_AFTER_DURABLE_RESULT' &&
     release.grantId === grant?.grantId &&
     release.sourceHead === grant?.sourceHead &&
-    release.localCommit === grant?.localCommit &&
+    release.localCommit === prepared?.commit &&
+    // Precommit owner grant is explicitly bound to the actual prepared SHA by
+    // this durable release witness; it cannot contain a future SHA up front.
+    ((grant?.kind === PRECOMMIT_KIND && grant?.consent === PRECOMMIT_CONSENT &&
+      grant?.localCommit === null) ||
+     (grant?.kind === 'draft-pr-publish-once' && grant?.consent === CONSENT &&
+      release.localCommit === grant?.localCommit)) &&
     release.branch === grant?.branch &&
     prepared?.grantId === release.grantId &&
     prepared.commit === release.localCommit &&

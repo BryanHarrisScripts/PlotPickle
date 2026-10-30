@@ -1,11 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { mkdir, mkdtemp, readdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { FACTORY_WORKERS, projectWorkerFleet, validateOwnerWorkOrder,
   claimAndRunOwnerJobOnce } from '../scripts/engineering-team/gateway/worker-pool/worker-pool.mjs';
-import { readOwnerOrder, validOwnerPilotException, readOwnerPilotException } from '../scripts/engineering-team/gateway/worker-pool/worker-host.mjs';
+import { readOwnerOrder, validOwnerPilotException, readOwnerPilotException, inspectOwnerWorkerFleet } from '../scripts/engineering-team/gateway/worker-pool/worker-host.mjs';
 const head = 'a'.repeat(40);
 const order = { schemaVersion: 1, kind: 'owner-authorized-factory-job',
   requestId: '1'.repeat(32), grantId: '2'.repeat(32),
@@ -245,5 +247,44 @@ test('owner exception is private-file only; no symlinked parent, symlinked permi
   } finally {
     await rm(root, { recursive:true, force:true });
     await rm(outsider, { recursive:true, force:true });
+  }
+});
+
+test('Worker 1 pilot observation is read-only, exact-head scoped and never a worker release', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'pp-owner-pilot-observation-'));
+  const run = promisify(execFile);
+  const git = async (...args) => String((await run('git', args, {
+    cwd: root, timeout: 12000, windowsHide: true, maxBuffer: 4096,
+  })).stdout).trim();
+  try {
+    await git('init', '-b', 'main');
+    await writeFile(path.join(root, 'fixture.txt'), 'one-shot pilot fixture\n');
+    await git('add', 'fixture.txt');
+    await git('-c', 'user.name=PlotPickle Fixture', '-c', 'user.email=fixture@invalid.example',
+      '-c', 'commit.gpgSign=false', '-c', 'core.hooksPath=.git/no-hooks',
+      'commit', '-m', 'fixture');
+    await git('remote', 'add', 'origin', 'https://github.com/BryanHarrisScripts/PlotPickle.git');
+    const pinned = await git('rev-parse', 'HEAD');
+    const inspect = async supervisor => inspectOwnerWorkerFleet({
+      repoRoot: root, env: {}, inspect: async () => supervisor,
+    });
+    const observed = await inspect({ state: 'RUNNING', exactSha: pinned });
+    assert.equal(observed.pilotSupervisorObservedOnExactHead, true);
+    assert.equal(observed.onlineCodingWorkers, 0);
+    assert.equal(observed.mayMerge, false);
+    assert.ok(observed.workers.every(worker => !worker.canCode && !worker.canMerge));
+    for (const supervisor of [
+      { state: 'RUNNING', exactSha: 'b'.repeat(40) },
+      { state: 'PAUSED', exactSha: pinned },
+      { state: 'STOP_REQUESTED', exactSha: pinned },
+      null,
+    ]) {
+      const result = await inspect(supervisor);
+      assert.equal(result.pilotSupervisorObservedOnExactHead, false);
+      assert.equal(result.onlineCodingWorkers, 0);
+      assert.equal(result.mayMerge, false);
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true });
   }
 });

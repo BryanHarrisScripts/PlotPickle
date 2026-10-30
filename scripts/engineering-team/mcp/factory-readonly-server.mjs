@@ -844,7 +844,37 @@ export const MCP_CONVERSATION_TOOLS = Object.freeze([{
     answer: { type: "string", minLength: 12, maxLength: 2048 },
   }, required: ["action", "expectedHead"], additionalProperties: false },
   annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
-}]);
+},
+  {name: "factory_conversation_observe",
+    title: "Inspect source-bound PlotPickle conversation status and receipts",
+    description: "Authenticated read-only status or receipt inspection for an existing source-bound PlotPickle question. May return question and answer text to the authorized client; never acknowledges delivery, creates storage, or grants execution.",
+    inputSchema: {type:"object",properties:{
+      action:{type:"string",enum:["pending","receipt"]},
+      expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
+      questionId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+    },required:["action","expectedHead"],additionalProperties:false},
+    annotations:{readOnlyHint:true,destructiveHint:false,openWorldHint:false}},
+  {name: "factory_conversation_receive",
+    title: "Receive and acknowledge one PlotPickle conversation question",
+    description: "Authenticated write-once delivery marker for a source-bound question, returning one durable delivery ID. Requires the existing tunnel authorization; no model, job or merge authority.",
+    inputSchema: {type:"object",properties:{
+      expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
+      questionId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+    },required:["expectedHead","questionId"],additionalProperties:false},
+    annotations:{readOnlyHint:false,destructiveHint:false,openWorldHint:false}},
+  {name: "factory_conversation_reply",
+    title: "Store one correlated answer to an acknowledged PlotPickle question",
+    description: "Authenticated write-once answer, with matched question, delivery and answer IDs. No factory job, code execution, provider spend, independent verification, or merge authority.",
+    inputSchema: {type:"object",properties:{
+      expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
+      questionId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+      deliveryId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+      answerId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+      answer:{type:"string",minLength:12,maxLength:2048},
+    },required:["expectedHead","questionId","deliveryId","answerId","answer"],additionalProperties:false},
+    annotations:{readOnlyHint:false,destructiveHint:false,openWorldHint:false},
+  }
+]);
 
 async function conversationSource(expectedHead) {
   const host = await gatewayAppSource({ repoRoot: ENGINEERING_REPO_ROOT });
@@ -884,7 +914,21 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
       if(!args || typeof args!=="object" || Array.isArray(args))
         return {error:invalidParams()};
       const keys=Object.keys(args);
-      const isConversation=name==="factory_conversation";
+      const isConversation=MCP_CONVERSATION_TOOLS.some(t=>t.name===name);
+      // Compatibility: keep the original combined tool. The new observation
+      // method has no write authority; receipt acknowledgement and reply are
+      // separate explicit, authenticated mutation tools.
+      const splitAction=name==="factory_conversation_receive"?"read":
+        name==="factory_conversation_reply"?"answer":null;
+      const conversationArgs=splitAction && !Object.hasOwn(args,"action")
+        ? {...args,action:splitAction} : args;
+      const validConversationSelection=name==="factory_conversation_observe"
+        ? ["pending","receipt"].includes(args.action) &&
+          validConversationArgs(conversationArgs)
+        : splitAction
+          ? !Object.hasOwn(args,"action") &&
+            validConversationArgs(conversationArgs)
+          : validConversationArgs(args);
       const isStorage=name==="factory_storage_inventory";
       const isHostDiagnostics=name==="factory_host_diagnostics";
       const isEngineering=name==="factory_engineering_run";
@@ -898,7 +942,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
       if(isControl&&!controlAuthenticated)return {error:{code:-32001,message:"Factory control authorization required"}};
       if(isControl&&!validControlArgs(name,args))return {error:invalidParams()};
       if(isConversation&&!controlAuthenticated)return {error:{code:-32001,message:"Conversation authorization required"}};
-      if(isConversation&&!validConversationArgs(args))return {error:invalidParams()};
+      if(isConversation&&!validConversationSelection)return {error:invalidParams()};
       if(isStorage&&!controlAuthenticated)return {error:{code:-32001,message:"Storage inventory authorization required"}};
       if(isStorage&&!validStorageReportArgs(args))return {error:invalidParams()};
       if(isHostDiagnostics&&!controlAuthenticated)
@@ -922,7 +966,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
            ((args.attempt??1)===2 && args.issueNumber!==3141))
           return {error:invalidParams()};
         value=await factoryEvidence({root,issueNumber:args.issueNumber,attempt:args.attempt??1});
-      }else if(isConversation)value=await conversationMcpAction(args,{
+      }else if(isConversation)value=await conversationMcpAction(conversationArgs,{
         root:gatewayRoot,source:await gatewaySource(args.expectedHead),now:now()});
       else if(isStorage)value=await storageInspect(args);
       else if(isHostDiagnostics)value=await hostDiagnosticsRead({expectedHead:args.expectedHead});

@@ -7,7 +7,7 @@
 [CmdletBinding()]
 param([switch]$Status)
 $ErrorActionPreference = 'Stop'
-if ($env:OS -ne 'Windows_NT') { throw 'OWNER_WINDOWS_ONLY' }
+if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { throw 'OWNER_WINDOWS_ONLY' }
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..\..')).Path
 
 function Read-GitValue([string[]]$GitArgs) {

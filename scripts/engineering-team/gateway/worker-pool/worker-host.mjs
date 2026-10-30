@@ -122,11 +122,14 @@ async function main() {
   if (args.length === 1 && args[0] === '--status') {
     result = await inspectOwnerWorkerFleet();
   } else if (args.length === 2 && args[0] === '--serve' &&
+    args[1] === 'coding-dispatcher') {
+    // A real process may watch only already granted one-use work orders.
+    // Worker grants, protected signing, STOP and merge rights stay separate.
+    const dispatcher = await import('./dispatcher/native-dispatcher.mjs');
+    result = await dispatcher.serve();
+  } else if (args.length === 2 && args[0] === '--serve' &&
     FACTORY_WORKERS.some(x => x.id === args[1])) {
-    // Registered task is inert until independently signed F00 admission,
-    // exact-head Product Gate, a separate owner grant broker and two-cycle proof.
-    // No background agent, polling/paid dispatch, STOP clearing or Pi fallback.
-    result = blocked('SCHEDULED_ROLE_NOT_RELEASED_OR_INDEPENDENTLY_ADMITTED');
+    result = blocked('CODING_WORKER_REQUIRES_INDEPENDENT_OWNER_DISPATCH');
   } else if (args.length === 3 && args[0] === '--once' &&
     FACTORY_WORKERS.some(x => x.id === args[1])) {
     result = await runOwnerWorkerTicket({ role: args[1], requestId: args[2] });

@@ -2166,7 +2166,8 @@
           "tests/issue-2698-runtime-shutdown.test.mjs",
           "tests/issue-2698-launcher-probe.test.mjs",
           "tests/issue-2698-media-retention.test.mjs",
-          "tests/issue-3268-unified-service-inventory.test.mjs"
+          "tests/issue-3268-unified-service-inventory.test.mjs",
+          "tests/issue-3268-factory-safe-startup.test.mjs"
         ]
       },
       "cost": "fast",
@@ -12526,6 +12527,46 @@
           {
             "path": ".github/workflows/product-gate.yml",
             "digest": "b0563ee2663d315bb8e169309cfe4f8c5427cacd4aeb6e2cabf6faecf7e2bd11"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3268-factory-safe-startup.test.mjs",
+        "targetDigest": "f1246d6ddff298045fb3e44537417335327754e63009ca72581856c9e09b58b0",
+        "catalogueIds": [
+          "production.modular-runtime-2697"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Source-bound deterministic startup guard tests establish supervisor and Factory reserved-port decisions, and assert both launchers gate Git updates and reuse existing dependencies without runtime mutation. These fixtures do NOT independently prove real Windows coexistence, port/process identity, browser readiness or the independent owner's Product Gate.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/launcher/factory-startup-guard.mjs",
+            "digest": "9a4dc7ff071160de13ca71518072e4394995a34d224f3084c00e02241f5f6d97"
+          },
+          {
+            "path": "Start-PlotPickle.bat",
+            "digest": "dd0b891cdad5c498aa092297673f5b61885735a09956dc919f0534e6a7c05491"
+          },
+          {
+            "path": "GIT-PlotPickle.ps1",
+            "digest": "77c1959ec6752e0bef95d3b6f6512109e7dc6dabb75efcc363fecef0751a51b3"
+          },
+          {
+            "path": "scripts/windows-runtime.mjs",
+            "digest": "48872aea97b93d1a94a8e3d33f9037b35f4c2c6732ebe0cc7a76c79e6ed8a5df"
           }
         ]
       }

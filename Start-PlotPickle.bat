@@ -37,6 +37,8 @@ set "WEBMCP_STARTUP_RUNNER=scripts\run-webmcp-startup-uat.mjs"
 set "WEBMCP_QA_RUNNER=lib\verification\webmcp-qa\cli.mjs"
 set "CONVERSATIONAL_UAT_OBSERVER=scripts\run-uat-closed-loop.mjs"
 set "SOURCE_SYNC=scripts\windows-source-sync.mjs"
+set "FACTORY_UPDATE_GUARD=scripts\engineering-team\windows\launcher\factory-startup-guard.mjs"
+set "PLOTPICKLE_FACTORY_PROTECTED=0"
 set "RUNTIME_SIDECAR_SUPERVISOR=scripts\runtime-sidecar-supervisor.mjs"
 set "RUNTIME_ENV=%TEMP%\plotpickle-runtime-%RANDOM%-%RANDOM%.cmd"
 set "SOURCE_ENV=%TEMP%\plotpickle-source-%RANDOM%-%RANDOM%.cmd"
@@ -97,11 +99,28 @@ echo The local address 127.0.0.1 is available only to this computer.
 echo Keep this window open while using the server started here; closing it stops only that server.
 echo.
 
-rem A clean Git checkout updates before localhost is inspected. Downloaded,
-rem dirty, diverged, and non-main copies are reported but never overwritten.
+rem Never update the checkout or mutate runtime components while any
+rem independent Factory supervisor, candidate listener or MCP tunnel is owned.
+rem This check runs before Git sync, package repair or any process launch.
+if not exist "%FACTORY_UPDATE_GUARD%" (
+  echo !ERROR_TAG! Factory-safe startup guard missing. No startup mutation attempted.
+  exit /b 1
+)
+node "%FACTORY_UPDATE_GUARD%" --update-check
+set "FACTORY_GUARD_RESULT=!ERRORLEVEL!"
+if "!FACTORY_GUARD_RESULT!"=="10" (
+  set "PLOTPICKLE_FACTORY_PROTECTED=1"
+  echo !READY_WARN! Factory runtime is protected. Main source auto-update and dependency mutation are deferred.
+) else if not "!FACTORY_GUARD_RESULT!"=="0" (
+  echo !ERROR_TAG! Factory ownership could not be verified. No update or startup attempted.
+  exit /b 1
+)
+
+rem Normal startup checks for source updates only when they cannot impact
+rem independently owned Factory services. No STOP or PID adoption.
 echo !CYAN![UPDATE CHECK]!RESET! Checking whether PlotPickle itself is current...
 where node >nul 2>&1
-if not errorlevel 1 if exist "%SOURCE_SYNC%" (
+if "!PLOTPICKLE_FACTORY_PROTECTED!"=="0" if not errorlevel 1 if exist "%SOURCE_SYNC%" (
   node "%SOURCE_SYNC%" "%SOURCE_ENV%"
   if exist "%SOURCE_ENV%" (
     call "%SOURCE_ENV%"
@@ -250,7 +269,11 @@ if not exist "%RUNTIME_MANAGER%" (
   exit /b 1
 )
 
-node "%RUNTIME_MANAGER%" prepare "%RUNTIME_ENV%"
+if "!PLOTPICKLE_FACTORY_PROTECTED!"=="1" (
+  node "%RUNTIME_MANAGER%" prepare-protected "%RUNTIME_ENV%"
+) else (
+  node "%RUNTIME_MANAGER%" prepare "%RUNTIME_ENV%"
+)
 if errorlevel 1 (
   if exist "%RUNTIME_ENV%" del /q "%RUNTIME_ENV%" >nul 2>&1
   echo.
@@ -295,7 +318,11 @@ if defined PLOTPICKLE_NATIVE_BINDING echo !OK! Required native binding !PLOTPICK
 if "!PLOTPICKLE_RUNTIME_MIGRATED!"=="1" echo !OK! Previous local packages were moved into the reusable runtime.
 echo.
 
-call :ensure_dependencies
+if "!PLOTPICKLE_FACTORY_PROTECTED!"=="1" (
+  call :dependencies_ready
+) else (
+  call :ensure_dependencies
+)
 set "SETUP_RESULT=!ERRORLEVEL!"
 if "!SETUP_RESULT!"=="2" (
   echo.

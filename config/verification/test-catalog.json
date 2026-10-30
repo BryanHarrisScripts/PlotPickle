@@ -7221,7 +7221,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "740746de789d6f551c696788c678ab38569b98e223b0105c003df1b58df5c55b"
+            "digest": "9eea663f1b2d3b3ee2fa3819fb83ace16224c134646f180344cd595c97f9e302"
           }
         ]
       },
@@ -8055,7 +8055,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "740746de789d6f551c696788c678ab38569b98e223b0105c003df1b58df5c55b"
+            "digest": "9eea663f1b2d3b3ee2fa3819fb83ace16224c134646f180344cd595c97f9e302"
           }
         ]
       },
@@ -10387,7 +10387,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "740746de789d6f551c696788c678ab38569b98e223b0105c003df1b58df5c55b"
+            "digest": "9eea663f1b2d3b3ee2fa3819fb83ace16224c134646f180344cd595c97f9e302"
           }
         ],
         "truthRefs": [
@@ -10427,7 +10427,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "740746de789d6f551c696788c678ab38569b98e223b0105c003df1b58df5c55b"
+            "digest": "9eea663f1b2d3b3ee2fa3819fb83ace16224c134646f180344cd595c97f9e302"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -11649,7 +11649,7 @@
       },
       {
         "target": "tests/issue-1747-ci-two-gates.test.mjs",
-        "targetDigest": "d571eca0947f05ebfacf44e895b60e6adfc0c0ba90403419e6529b4760b5bcb9",
+        "targetDigest": "58f0aeadbbc6687589cd8bc56d752ca45785f170971455f6aca71438121f8b64",
         "catalogueIds": [
           "verification.phase7-merge-authority"
         ],
@@ -11667,11 +11667,19 @@
           "static-source",
           "unit-fixture"
         ],
-        "limits": "Static CI-workflow job-count and split Pi mock-model proof boundary; tests pin native job 12-minute caps and exact-head workflow wiring. Does not establish that actual Windows Pi, model calls, negative controls, installed Undici, or all security alerts pass without separate native execution.",
+        "limits": "Static CI-workflow job-count and split Pi mock-model proof boundary; tests pin native job 12-minute caps and exact-head workflow wiring. Does not establish that actual Windows Pi, model calls, negative controls, installed Undici, or all security alerts pass without separate native execution. #3293 synthetic contract asserts only changed Pi job bodies trigger the existing 12-minute Pi Windows jobs, without broad workflow fanout. Real native job execution remains separately evidenced.",
         "inputs": [
           {
             "path": ".github/workflows/product-gate.yml",
             "digest": "b0563ee2663d315bb8e169309cfe4f8c5427cacd4aeb6e2cabf6faecf7e2bd11"
+          },
+          {
+            "path": "lib/verification/pi-workflow-scope.mjs",
+            "digest": "bb3fd501d0bafdb9dcebb04be542cf577901f79a0533f8b6e8c11b98f542a3ce"
+          },
+          {
+            "path": ".github/workflows/architecture-shadow.yml",
+            "digest": "9eea663f1b2d3b3ee2fa3819fb83ace16224c134646f180344cd595c97f9e302"
           }
         ]
       },

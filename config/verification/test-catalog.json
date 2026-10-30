@@ -1336,7 +1336,8 @@
           "tests/issue-3302-lane-a-service-identity-policy.test.mjs",
           "tests/issue-3302-lane-a-signed-registrar-policy.test.mjs",
           "tests/issue-3302-independent-catalogue-preflight.test.mjs",
-          "tests/issue-3302-independent-qa-claim.test.mjs"
+          "tests/issue-3302-independent-qa-claim.test.mjs",
+          "tests/issue-3302-cross-factory-math-review.test.mjs"
         ]
       },
       "cost": "fast",
@@ -12445,6 +12446,42 @@
           {
             "path": "scripts/engineering-team/gateway/worker-pool/reconcile-failed-syntax-once.mjs",
             "digest": "09ec63163a3d9b8fcc9252d9af3edd8da1fc278754c1bd7cce46d736385b3828"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3302-cross-factory-math-review.test.mjs",
+        "targetDigest": "3d94319733bc032388e066547c7d204b62c4f8270b06693e8e31035a73c226eb",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Synthetic four-factory F01-F04 mathematical preflight, exact-version references, STOP, Ed25519 receipt signature checks, and signed green-gate eligibility; proposed evidence remains UNPROVEN and never grants merge, canon write, credential or reviewer qualification. CLI is read-only and bounded but not a separately isolated installed Windows signer. Tests do NOT demonstrate genuine external registrar, signer key custody, signed W8/W9 ADMIT, owner Windows release, durable nonce consumption, background dispatch or actual merge.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/verification/cross-factory-math-review.mjs",
+            "digest": "a58b006c6a883ba2246798a0e491f84d41a5d844992c7f64078b0c1459be1002"
+          },
+          {
+            "path": "scripts/engineering-team/verification/cross-factory-math-review-cli.mjs",
+            "digest": "da12b29cfaf4007bdfa0d043597b08ad0b7955aca4b74bf945b81e467a899f01"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/signed-green-release.mjs",
+            "digest": "256713b7cb5cf6a8d0ef0187818e416b065324e0ccc479e2b972565a150b04ef"
           }
         ]
       }

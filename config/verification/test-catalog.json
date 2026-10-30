@@ -12573,7 +12573,7 @@
       },
       {
         "target": "tests/issue-3142-native-dispatcher-live.test.mjs",
-        "targetDigest": "c911e42d1d7da72f6d5a861d115d849e27fd10cd40aea8e071334b258c7db02f",
+        "targetDigest": "aa6db69eb4695695a950d8d9e1fd095a5e1f96587c3fecdaebc15df1b275b1cf",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12591,7 +12591,7 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Mock-backed live dispatcher tests verify source-head/STOP gating, one-use claim exclusion, expired grants, worker slot routing, lock retention and bounded heartbeat. Static installer assertions require SID-based principal normalization and refusal of username-only checks, but do not prove actual Windows Task Scheduler identity resolution. Do not infer deployed Windows Task Scheduler service, paid model invocation, independent AEGIS signer, end-to-end issue completion, owner-Windows Product Gate or automatic merge. No legacy Pi queue replay.",
+        "limits": "Static mock-backed native dispatcher tests require source-head/STOP gating, one-use claim exclusion, lock retention, bounded heartbeat, SID-based task-principal normalization, and a PowerShell Start status variable distinct from the Status switch. These tests do not establish native Task Scheduler dispatcher startup, owner-Windows Product Gate, independent AEGIS signing, paid model execution, end-to-end issue completion or automatic merge. No historical Pi queue replay.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/worker-pool/dispatcher/native-dispatcher.mjs",
@@ -12603,7 +12603,7 @@
           },
           {
             "path": "scripts/engineering-team/windows/workers/Install-PlotPickleFactoryWorkers.ps1",
-            "digest": "d1951226224d6d41ee27fb484f437b138c72c23a18fe17af26276bdde9479d8c"
+            "digest": "a6e973910960da1e329630acbf6f6da632d95808dd01e460770927de0fc29b94"
           }
         ]
       }

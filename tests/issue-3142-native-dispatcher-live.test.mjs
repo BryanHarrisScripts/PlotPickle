@@ -91,6 +91,13 @@ test('scheduled dispatcher never promotes other workers, Pi queue or merge right
   assert.match(host,/args\[1\] === 'coding-dispatcher'/);
   assert.match(host,/dispatcher\.serve\(\)/);
   assert.match(installer,/Start-ScheduledTask -TaskName \$names\[0\]/);
+  // PowerShell parameter names are case-insensitive. Assigning an object to
+  // $status overwrites the [switch]$Status parameter and fails before Start.
+  assert.match(installer,/\$supervisorState\s*=\s*\$statusJson\s*\|\s*ConvertFrom-Json/);
+  assert.match(installer,/\$supervisorState\.state\s+-cne\s+'RUNNING'/);
+  assert.match(installer,/\$supervisorState\.exactSha\s+-cne\s+\$head/);
+  assert.match(installer,/\$supervisorState\.pauseAcknowledged/);
+  assert.doesNotMatch(installer,/\$status\s*=\s*\$statusJson\s*\|\s*ConvertFrom-Json/i);
   // Windows Task Scheduler often reports a bare local UserId after
   // registering DOMAIN\\user. Principal ownership must compare SIDs and
   // retain every exact executable, argument, source and STOP guard.

@@ -7,7 +7,7 @@ param(
   [string]$Consent = ''
 )
 $ErrorActionPreference = 'Stop'
-if ($env:OS -ne 'Windows_NT') { throw 'OWNER_WINDOWS_ONLY' }
+if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { throw 'OWNER_WINDOWS_ONLY' }
 $operations = @(@($Plan,$Status,$Install,$Start,$Stop,$Uninstall) | Where-Object { $_ })
 if ($operations.Count -ne 1) { throw 'EXACTLY_ONE_WORKER_OPERATION_REQUIRED' }
 $required = 'ENABLE_PLOTPICKLE_FACTORY_WORKER_POOL'

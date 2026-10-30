@@ -28,6 +28,29 @@ function ExactHead {
   if ($LASTEXITCODE -ne 0 -or $branch -cne 'main' -or $head -cnotmatch '^[a-f0-9]{40}$' -or $dirty) { throw 'EXACT_CLEAN_MAIN_REQUIRED' }
   return $head
 }
+# Resolve Scheduled Task principal to a SID; never trust username-only equality.
+function Test-TaskPrincipalIsCurrentUser([string]$taskUserId) {
+    if ([string]::IsNullOrWhiteSpace($taskUserId)) { return $false }
+    # Task Scheduler may normalize DOMAIN\user to user. Require SID equality.
+    $current = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+    if ($taskUserId -eq $current.User.Value) { return $true }
+    try {
+        $resolved = (New-Object System.Security.Principal.NTAccount($taskUserId)).Translate(
+            [System.Security.Principal.SecurityIdentifier])
+        if ($resolved.Value -eq $current.User.Value) { return $true }
+    } catch {
+        # A bare local username can fail NTAccount translation on some hosts.
+    }
+    # Resolve the unqualified name explicitly against this machine only.
+    if ($taskUserId -match '^[^\\]+$') {
+        try {
+            $local = (New-Object System.Security.Principal.NTAccount($env:COMPUTERNAME, $taskUserId)).Translate(
+                [System.Security.Principal.SecurityIdentifier])
+            return $local.Value -eq $current.User.Value
+        } catch { return $false }
+    }
+    return $false
+}
 function OwnedTask([int]$i) {
   $list = @(Get-ScheduledTask -TaskName $names[$i] -ErrorAction SilentlyContinue)
   if ($list.Count -eq 0) { return $null }
@@ -37,7 +60,7 @@ function OwnedTask([int]$i) {
   if ($task.TaskPath -ne '\' -or @($task.Actions).Count -ne 1 -or
       $task.Actions[0].Execute -cne $node -or $task.Actions[0].Arguments -cne $args -or
       $task.Actions[0].WorkingDirectory -cne $repo -or
-      $task.Principal.UserId -notin @($who.Name,$who.User.Value)) { throw 'WORKER_TASK_OWNERSHIP_UNVERIFIED' }
+      -not (Test-TaskPrincipalIsCurrentUser ([string]$task.Principal.UserId))) { throw 'WORKER_TASK_OWNERSHIP_UNVERIFIED' }
   return $task
 }
 if ($Plan) {

@@ -12573,7 +12573,7 @@
       },
       {
         "target": "tests/issue-3142-native-dispatcher-live.test.mjs",
-        "targetDigest": "2d5e494dd8a8dd1010adfe0bee902a32b7f3cd2eea9fd6cc0170436271214f16",
+        "targetDigest": "c911e42d1d7da72f6d5a861d115d849e27fd10cd40aea8e071334b258c7db02f",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12591,7 +12591,7 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Mock-backed live dispatcher tests verify source-head/STOP gating, one-use claim exclusion, expired grants, worker slot routing, lock retention and bounded heartbeat. Do not infer deployed Windows Task Scheduler service, paid model invocation, independent AEGIS signer, end-to-end issue completion, owner-Windows Product Gate or automatic merge. No legacy Pi queue replay.",
+        "limits": "Mock-backed live dispatcher tests verify source-head/STOP gating, one-use claim exclusion, expired grants, worker slot routing, lock retention and bounded heartbeat. Static installer assertions require SID-based principal normalization and refusal of username-only checks, but do not prove actual Windows Task Scheduler identity resolution. Do not infer deployed Windows Task Scheduler service, paid model invocation, independent AEGIS signer, end-to-end issue completion, owner-Windows Product Gate or automatic merge. No legacy Pi queue replay.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/worker-pool/dispatcher/native-dispatcher.mjs",
@@ -12603,7 +12603,7 @@
           },
           {
             "path": "scripts/engineering-team/windows/workers/Install-PlotPickleFactoryWorkers.ps1",
-            "digest": "248ffb96b99cd4e8537e8fb77c93a43b66a074f2e889db054fe358f4559a9e70"
+            "digest": "d1951226224d6d41ee27fb484f437b138c72c23a18fe17af26276bdde9479d8c"
           }
         ]
       }

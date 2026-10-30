@@ -72,14 +72,14 @@ test("#3110 opt-in engineering changes neither default public nor authenticated 
       ...(name ? { params: { name, arguments: selection() } } : {}),
     }, { engineeringEnabled, controlAuthenticated });
   const defaultList = await call(false, true, "tools/list");
-  assert.equal(defaultList.result.tools.length, 10);
+  assert.equal(defaultList.result.tools.length, 11);
   const disabledSuites = defaultList.result.tools.find(tool => tool.name === "factory_run_named_test").inputSchema.properties.suite.enum;
   assert.equal(disabledSuites.includes("factory-gateway-acceptance"), false,
     "host-disabled gateway execution must not be advertised");
   assert.ok(defaultList.result.tools.some(tool => tool.name === "factory_storage_inventory"));
   assert.ok(defaultList.result.tools.some(tool => tool.name === "factory_conversation"));
   const optInList = await call(true, true, "tools/list");
-  assert.equal(optInList.result.tools.length, 11);
+  assert.equal(optInList.result.tools.length, 12);
   const enabledSuites = optInList.result.tools.find(tool => tool.name === "factory_run_named_test").inputSchema.properties.suite.enum;
   assert.equal(enabledSuites.includes("factory-gateway-acceptance"), true,
     "owner opt-in must preserve the gateway acceptance capability");

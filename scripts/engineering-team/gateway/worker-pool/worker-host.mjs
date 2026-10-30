@@ -82,7 +82,7 @@ export async function inspectOwnerWorkerFleet({
   if (!source || source.channel !== 'main') return blocked('EXACT_CLEAN_MAIN_REQUIRED');
   let supervisor;
   try { supervisor = await inspect(); } catch { supervisor = null; }
-  return projectWorkerFleet({ expectedHead: source.head, supervisor });
+  return Object.freeze({ ...projectWorkerFleet({ expectedHead: source.head, supervisor }), pilotSupervisorObservedOnExactHead: supervisor?.state === "RUNNING" && supervisor?.exactSha === source.head });
 }
 
 /** Live release is intentionally not bootstrapped by author-controlled code. */

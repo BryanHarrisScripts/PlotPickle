@@ -7784,7 +7784,7 @@
       },
       {
         "target": "tests/issue-1185-pi-managed-install.test.mjs",
-        "targetDigest": "d9b39d6982a45664e414e4a28b4052f2ff533707782f46ded5ccad3b87ef5954",
+        "targetDigest": "812de67e133eba722358e26b2d55cb7a4ad0653f1861e28d129adffe25ad1a5c",
         "catalogueIds": [
           "agent.managed-pi-install-3067"
         ],

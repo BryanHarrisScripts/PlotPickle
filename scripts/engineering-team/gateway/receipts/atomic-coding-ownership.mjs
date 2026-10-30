@@ -191,7 +191,7 @@ export function reconcileSyntaxRejectedOwnership(receipts, {
     let fd;
     try {
       fd = openSync(file, 'wx', 0o600);
-      writeSync(fd, JSON.stringify(witness) + '\\n');
+      writeSync(fd, JSON.stringify(witness) + '\n');
       fsyncSync(fd);
     } catch (e) {
       if (e?.code !== 'EEXIST') return DENY;

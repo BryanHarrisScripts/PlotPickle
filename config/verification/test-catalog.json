@@ -12240,7 +12240,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
-            "digest": "cf17f627aa47d5df7ae9460f2d2c9b2cf7fea0f1a5ff83fd4eff69948f50218e"
+            "digest": "8a2cf6116d6336484f1cc03f6ad339990d2b02244199e982778a46c0035c273e"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12254,7 +12254,7 @@
       },
       {
         "target": "tests/issue-3142-authorized-pr-publish-once.test.mjs",
-        "targetDigest": "a4831619d81eeb33490ae8b500f63c79963478f492411b88167b40b30544e3b1",
+        "targetDigest": "d95acd602890a50038edaedea118ae6b99321dabd803457c11130c3fe32409b7",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12272,11 +12272,11 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Native disposable Git worktree/commit and deterministic fake GitHub HTTPS; verifies one-use second owner grant, exact local/remote tree+blob identity, draft-only PR, stale MAIN, dirty stage, uncertain-response non-replay and one-call coding-to-publish handoff. No real owner credentials, real GitHub PR creation, paid model invocation, unattended startup, owner Windows acceptance, independent Product Gate, or merge proof. Pre-commit owner publication grant must bind the single prepared commit in an immutable reservation, never self-mint or grant merge authority; local fixtures are not a live credentialed cycle.",
+        "limits": "Native disposable Git worktree/commit and deterministic fake GitHub HTTPS; verifies one-use second owner grant, exact local/remote tree+blob identity, draft-only PR, stale MAIN, dirty stage, uncertain-response non-replay and one-call coding-to-publish handoff. No real owner credentials, real GitHub PR creation, paid model invocation, unattended startup, owner Windows acceptance, independent Product Gate, or merge proof. Pre-commit owner publication grant must bind the single prepared commit in an immutable reservation, never self-mint or grant merge authority; local fixtures are not a live credentialed cycle. #3142 integration regression: preapproved publication grant verifies the actual prepared SHA against durable coding-resource release witness, rejecting foreign/wrong-commit approvals. Not a live Worker1 result.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
-            "digest": "cf17f627aa47d5df7ae9460f2d2c9b2cf7fea0f1a5ff83fd4eff69948f50218e"
+            "digest": "8a2cf6116d6336484f1cc03f6ad339990d2b02244199e982778a46c0035c273e"
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",

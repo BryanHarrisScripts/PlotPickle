@@ -8770,7 +8770,7 @@
           },
           {
             "path": "GIT-PlotPickle.ps1",
-            "digest": "2d0d2634710eef713023194abfe6889ea5752040f0bd98bd111ca9fef72466ae"
+            "digest": "77c1959ec6752e0bef95d3b6f6512109e7dc6dabb75efcc363fecef0751a51b3"
           }
         ]
       },
@@ -8803,11 +8803,11 @@
           },
           {
             "path": "GIT-PlotPickle.ps1",
-            "digest": "2d0d2634710eef713023194abfe6889ea5752040f0bd98bd111ca9fef72466ae"
+            "digest": "77c1959ec6752e0bef95d3b6f6512109e7dc6dabb75efcc363fecef0751a51b3"
           },
           {
             "path": "Start-PlotPickle.bat",
-            "digest": "00d7cb4733411241606d4bbbed6863464aae016195c0ed14c143c4ac223fb61a"
+            "digest": "dd0b891cdad5c498aa092297673f5b61885735a09956dc919f0534e6a7c05491"
           }
         ]
       },
@@ -8835,7 +8835,7 @@
         "inputs": [
           {
             "path": "Start-PlotPickle.bat",
-            "digest": "00d7cb4733411241606d4bbbed6863464aae016195c0ed14c143c4ac223fb61a"
+            "digest": "dd0b891cdad5c498aa092297673f5b61885735a09956dc919f0534e6a7c05491"
           }
         ]
       },
@@ -8868,11 +8868,11 @@
           },
           {
             "path": "GIT-PlotPickle.ps1",
-            "digest": "2d0d2634710eef713023194abfe6889ea5752040f0bd98bd111ca9fef72466ae"
+            "digest": "77c1959ec6752e0bef95d3b6f6512109e7dc6dabb75efcc363fecef0751a51b3"
           },
           {
             "path": "Start-PlotPickle.bat",
-            "digest": "00d7cb4733411241606d4bbbed6863464aae016195c0ed14c143c4ac223fb61a"
+            "digest": "dd0b891cdad5c498aa092297673f5b61885735a09956dc919f0534e6a7c05491"
           }
         ]
       },
@@ -8999,7 +8999,7 @@
           },
           {
             "path": "Start-PlotPickle.bat",
-            "digest": "00d7cb4733411241606d4bbbed6863464aae016195c0ed14c143c4ac223fb61a"
+            "digest": "dd0b891cdad5c498aa092297673f5b61885735a09956dc919f0534e6a7c05491"
           },
           {
             "path": ".github/workflows/product-gate.yml",

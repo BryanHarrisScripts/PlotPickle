@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
-import { piWindowsJobChanged, piJobBody } from "../lib/verification/pi-workflow-scope.mjs";
+import { piWindowsJobChanged, piJobBody } from "../lib/verification/development/pi-workflow-scope.mjs";
 
 const root = new URL("..", import.meta.url);
 const workflowRoot = new URL(".github/workflows/", root);

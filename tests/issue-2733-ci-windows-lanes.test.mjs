@@ -89,7 +89,7 @@ test("#2753 workflow metadata changes do not fan out into unrelated heavyweight 
 
   assert.ok(scope.includes("grep -Fxq '.github/workflows/product-gate.yml'"),
     "only the exact reusable Product Gate may trigger Pi-specific self-proof");
-  assert.ok(scope.includes("node lib/verification/pi-workflow-scope.mjs"),
+  assert.ok(scope.includes("node lib/verification/development/pi-workflow-scope.mjs"),
     "Pi self-proof must use a job-scoped comparison rather than blanket workflow fanout");
   assert.ok(!scope.includes("grep -Eq '^(\\.github/workflows/"),
     "never select all native Windows lanes for arbitrary workflow changes");

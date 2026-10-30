@@ -7221,7 +7221,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "9eea663f1b2d3b3ee2fa3819fb83ace16224c134646f180344cd595c97f9e302"
+            "digest": "e71606152f52b321274fa97e384868a517c16528c08de2a453759bfb0a1d7621"
           }
         ]
       },
@@ -8055,7 +8055,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "9eea663f1b2d3b3ee2fa3819fb83ace16224c134646f180344cd595c97f9e302"
+            "digest": "e71606152f52b321274fa97e384868a517c16528c08de2a453759bfb0a1d7621"
           }
         ]
       },
@@ -10387,7 +10387,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "9eea663f1b2d3b3ee2fa3819fb83ace16224c134646f180344cd595c97f9e302"
+            "digest": "e71606152f52b321274fa97e384868a517c16528c08de2a453759bfb0a1d7621"
           }
         ],
         "truthRefs": [
@@ -10427,7 +10427,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "9eea663f1b2d3b3ee2fa3819fb83ace16224c134646f180344cd595c97f9e302"
+            "digest": "e71606152f52b321274fa97e384868a517c16528c08de2a453759bfb0a1d7621"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -11649,7 +11649,7 @@
       },
       {
         "target": "tests/issue-1747-ci-two-gates.test.mjs",
-        "targetDigest": "58f0aeadbbc6687589cd8bc56d752ca45785f170971455f6aca71438121f8b64",
+        "targetDigest": "4f2dbd5e74506ea0db9d2177460f65e5acb8e822a359004554b635aa7c88cc62",
         "catalogueIds": [
           "verification.phase7-merge-authority"
         ],
@@ -11674,12 +11674,12 @@
             "digest": "b0563ee2663d315bb8e169309cfe4f8c5427cacd4aeb6e2cabf6faecf7e2bd11"
           },
           {
-            "path": "lib/verification/pi-workflow-scope.mjs",
+            "path": "lib/verification/development/pi-workflow-scope.mjs",
             "digest": "bb3fd501d0bafdb9dcebb04be542cf577901f79a0533f8b6e8c11b98f542a3ce"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "9eea663f1b2d3b3ee2fa3819fb83ace16224c134646f180344cd595c97f9e302"
+            "digest": "e71606152f52b321274fa97e384868a517c16528c08de2a453759bfb0a1d7621"
           }
         ]
       },
@@ -12417,7 +12417,7 @@
       },
       {
         "target": "tests/issue-2733-ci-windows-lanes.test.mjs",
-        "targetDigest": "4b0668e814fc1d5e3cc1c8c9d7a1a77881178fcf89fd0ffb30724c3c377eb7bb",
+        "targetDigest": "7696ce5f157ddc9fca6f47ca1555e2dd37fb2a7509baa6ae0b5b43f0e67770c9",
         "catalogueIds": [
           "verification.phase7-merge-authority"
         ],
@@ -12439,10 +12439,10 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "9eea663f1b2d3b3ee2fa3819fb83ace16224c134646f180344cd595c97f9e302"
+            "digest": "e71606152f52b321274fa97e384868a517c16528c08de2a453759bfb0a1d7621"
           },
           {
-            "path": "lib/verification/pi-workflow-scope.mjs",
+            "path": "lib/verification/development/pi-workflow-scope.mjs",
             "digest": "bb3fd501d0bafdb9dcebb04be542cf577901f79a0533f8b6e8c11b98f542a3ce"
           },
           {

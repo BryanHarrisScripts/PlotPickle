@@ -119,6 +119,15 @@ export async function conversationStatus({ root, source, now = Date.now() } = {}
     const dir = await existingFolder(root, source);
     if (!dir) return { code: "NO_TEST", sourceHead: source.head, sourceChannel: source.channel, count: 0 };
     const questions = path.join(dir, "questions");
+    try {
+      const info = await lstat(questions);
+      if (!info.isDirectory() || info.isSymbolicLink())
+        throw Error("GATEWAY_STORAGE_UNVERIFIABLE");
+    } catch (error) {
+      if (error?.code === "ENOENT")
+        return { code: "NO_TEST", sourceHead: source.head, sourceChannel: source.channel, count: 0 };
+      throw error;
+    }
     let newest = null, count = 0;
     try {
       const entries = await readdir(questions);

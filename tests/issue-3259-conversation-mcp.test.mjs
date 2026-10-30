@@ -10,7 +10,7 @@ import { conversationMcpAction, conversationStatus, startConversationTest } from
 import { dispatchConversationRequest } from "../scripts/engineering-team/gateway/conversation-http.mjs";
 import { gatewayAppSource } from "../scripts/engineering-team/gateway/gateway-host.mjs";
 import { gatewayDigest } from "../scripts/engineering-team/gateway/gateway-contract.mjs";
-import { createLocalMcpHttpServer } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
+import { createLocalMcpHttpServer, handleRpc, MCP_CONVERSATION_TOOLS } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
 
 const run = promisify(execFile), source = { head: "a".repeat(40), channel: "main" };
 const Q = "b".repeat(32), A = "c".repeat(32);
@@ -182,4 +182,64 @@ test("#3259 source identity checks actual clean Git and pins PR TEST to its laun
   assert.equal(await gatewayAppSource({ repoRoot: root, env: { ...env, PLOTPICKLE_LAUNCH_SOURCE_HEAD: "f".repeat(40) } }), null);
   await writeFile(path.join(root, "source.txt"), "dirty\n");
   assert.equal(await gatewayAppSource({ repoRoot: root, env }), null);
+}));
+
+
+test("#3259 split MCP tools provide truthful roles, owner-authenticated receipt observation and a correlated reply", () => sandbox(async root => {
+  const now=Date.now();
+  const unused=path.join(root,"empty");
+  const blank=await conversationStatus({root:unused,source,now});
+  assert.equal(blank.code,"NO_TEST");
+  await assert.rejects(readFile(path.join(unused,"main",source.head,"questions",Q+".json")),{code:"ENOENT"});
+  await startConversationTest({root,source,requestId:Q,now});
+  assert.deepEqual(MCP_CONVERSATION_TOOLS.map(tool=>tool.name),[
+    "factory_conversation","factory_conversation_observe",
+    "factory_conversation_receive","factory_conversation_reply"
+  ]);
+  assert.deepEqual(MCP_CONVERSATION_TOOLS.map(tool=>tool.annotations.readOnlyHint),[
+    false,true,false,false
+  ]);
+  const services={controlAuthenticated:true,gatewayRoot:root,
+    gatewaySource:async head=>head===source.head?source:null,now:()=>now};
+  const call=(name,args,authenticated=true)=>handleRpc({
+    jsonrpc:"2.0",id:42,method:"tools/call",params:{name,arguments:args}
+  },{...services,controlAuthenticated:authenticated});
+  const pending={action:"pending",expectedHead:source.head};
+  assert.equal((await call("factory_conversation_observe",pending,false)).error.code,-32001);
+  assert.equal((await call("factory_conversation_observe",pending)).result.structuredContent.code,"PENDING");
+  assert.equal((await call("factory_conversation_observe",{
+    ...pending,action:"read",questionId:Q
+  })).error.code,-32602);
+  assert.equal((await call("factory_conversation_receive",{
+    expectedHead:source.head,questionId:Q,action:"read"
+  })).error.code,-32602);
+  const delivered=(await call("factory_conversation_receive",{
+    expectedHead:source.head,questionId:Q
+  })).result.structuredContent;
+  assert.equal(delivered.question.expectedSourceHead,source.head);
+  assert.match(delivered.deliveryId,/^[a-f0-9]{32}$/);
+  assert.equal((await call("factory_conversation_observe",pending))
+    .result.structuredContent.plotpickleToChatgpt,"UNPROVEN",
+    "delivery marker alone is never a verified external delivery");
+  const reply={expectedHead:source.head,questionId:Q,
+    deliveryId:delivered.deliveryId,answerId:A,answer};
+  assert.equal((await call("factory_conversation_reply",{...reply,shell:"cmd.exe"})).error.code,-32602);
+  assert.equal((await call("factory_conversation_reply",{
+    ...reply,expectedHead:"f".repeat(40)
+  })).result.structuredContent.code,"GATEWAY_SOURCE_UNVERIFIED");
+  assert.equal((await call("factory_conversation_reply",{
+    ...reply,deliveryId:"d".repeat(32)
+  })).result.structuredContent.code,"GATEWAY_DELIVERY_UNVERIFIED");
+  const completed=(await call("factory_conversation_reply",reply)).result.structuredContent;
+  assert.equal(completed.code,"ANSWERED");
+  assert.equal(completed.plotpickleToChatgpt,"VERIFIED");
+  assert.equal(completed.chatgptToPlotpickle,"VERIFIED");
+  const saved=(await call("factory_conversation_observe",{
+    action:"receipt",expectedHead:source.head,questionId:Q
+  })).result.structuredContent;
+  assert.equal(saved.receipt.answerId,A);
+  assert.equal(saved.independentVerification,false);
+  assert.equal(saved.backgroundDelivery,false);
+  const replay=(await call("factory_conversation_reply",reply)).result.structuredContent;
+  assert.equal(replay.receipt.answerCreatedAt,now);
 }));

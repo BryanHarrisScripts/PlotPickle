@@ -12451,7 +12451,7 @@
       },
       {
         "target": "tests/issue-3302-cross-factory-math-review.test.mjs",
-        "targetDigest": "3d94319733bc032388e066547c7d204b62c4f8270b06693e8e31035a73c226eb",
+        "targetDigest": "b8bcb9a310a8f573b8431d7d96474bc808a1378774311921d5e0016ce583751c",
         "catalogueIds": [
           "verification.phase2-core"
         ],
@@ -12481,7 +12481,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/signed-green-release.mjs",
-            "digest": "256713b7cb5cf6a8d0ef0187818e416b065324e0ccc479e2b972565a150b04ef"
+            "digest": "eebf4db407b4298cc532665bb562b007f1ffde1020c0e8176d0dc88dc746cc7b"
           }
         ]
       }

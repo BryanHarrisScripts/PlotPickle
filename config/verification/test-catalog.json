@@ -12573,7 +12573,7 @@
       },
       {
         "target": "tests/issue-3142-native-dispatcher-live.test.mjs",
-        "targetDigest": "aa6db69eb4695695a950d8d9e1fd095a5e1f96587c3fecdaebc15df1b275b1cf",
+        "targetDigest": "cdaaea5f0b900d047c0519a8432d7e8e83783e5cfc79eb85fee2df97ea84e9ed",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12591,11 +12591,11 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Static mock-backed native dispatcher tests require source-head/STOP gating, one-use claim exclusion, lock retention, bounded heartbeat, SID-based task-principal normalization, and a PowerShell Start status variable distinct from the Status switch. These tests do not establish native Task Scheduler dispatcher startup, owner-Windows Product Gate, independent AEGIS signing, paid model execution, end-to-end issue completion or automatic merge. No historical Pi queue replay.",
+        "limits": "Mock-backed dispatcher tests verify exact clean MAIN/STOP gating, one-use claims, source-pinned grants, lock ownership, heartbeat freshness, and default callable Date.now clock (including live PID, expired heartbeat and owner-nonce mismatch). Installer assertions preserve SID-verified Windows task identity and distinct PowerShell Start status variable. Neither a mock test nor a CLI status result proves independent F00/AEGIS signing, owner-Windows lifecycle Product Gate, model invocation, autonomous issue-to-merge, or automatic merge. No legacy Pi jobs may replay.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/worker-pool/dispatcher/native-dispatcher.mjs",
-            "digest": "429162badbfe153eac60082f5d2846e6b577fad982a2de44d8ffd3dea86cd11a"
+            "digest": "b40e6fcb320c5b9170c64760343dbf3f9f75bf188e1e5968b4528a75ed3c8ded"
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",

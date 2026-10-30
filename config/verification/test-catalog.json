@@ -12386,7 +12386,7 @@
       },
       {
         "target": "tests/issue-3142-factory-worker-pool.test.mjs",
-        "targetDigest": "00000000000000000000000000000000ae7cb043718272a8a3b2a2cdc011f3f3",
+        "targetDigest": "c62318ef3c3090f94ecc8cad4d9c26ba5893a08a8ca816122a451ba7f42724fc",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12412,7 +12412,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
-            "digest": "000000000000000000000000000000001c3a4d195e35eb890e81f5183921a83f"
+            "digest": "e2fcfdd119797902217d4904745a983e5a05500da705dbd3e0b91064fbd6f58f"
           }
         ]
       },

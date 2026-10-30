@@ -8770,7 +8770,7 @@
           },
           {
             "path": "GIT-PlotPickle.ps1",
-            "digest": "77c1959ec6752e0bef95d3b6f6512109e7dc6dabb75efcc363fecef0751a51b3"
+            "digest": "3e69586ffe959286530ebbfc7ca901085a71e69b6a5d49a4fb7799a05e28e68a"
           }
         ]
       },
@@ -8803,7 +8803,7 @@
           },
           {
             "path": "GIT-PlotPickle.ps1",
-            "digest": "77c1959ec6752e0bef95d3b6f6512109e7dc6dabb75efcc363fecef0751a51b3"
+            "digest": "3e69586ffe959286530ebbfc7ca901085a71e69b6a5d49a4fb7799a05e28e68a"
           },
           {
             "path": "Start-PlotPickle.bat",
@@ -8868,7 +8868,7 @@
           },
           {
             "path": "GIT-PlotPickle.ps1",
-            "digest": "77c1959ec6752e0bef95d3b6f6512109e7dc6dabb75efcc363fecef0751a51b3"
+            "digest": "3e69586ffe959286530ebbfc7ca901085a71e69b6a5d49a4fb7799a05e28e68a"
           },
           {
             "path": "Start-PlotPickle.bat",
@@ -12562,7 +12562,7 @@
           },
           {
             "path": "GIT-PlotPickle.ps1",
-            "digest": "77c1959ec6752e0bef95d3b6f6512109e7dc6dabb75efcc363fecef0751a51b3"
+            "digest": "3e69586ffe959286530ebbfc7ca901085a71e69b6a5d49a4fb7799a05e28e68a"
           },
           {
             "path": "scripts/windows-runtime.mjs",

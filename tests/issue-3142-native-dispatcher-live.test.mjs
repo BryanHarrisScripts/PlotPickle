@@ -91,6 +91,14 @@ test('scheduled dispatcher never promotes other workers, Pi queue or merge right
   assert.match(host,/args\[1\] === 'coding-dispatcher'/);
   assert.match(host,/dispatcher\.serve\(\)/);
   assert.match(installer,/Start-ScheduledTask -TaskName \$names\[0\]/);
+  // Windows Task Scheduler often reports a bare local UserId after
+  // registering DOMAIN\\user. Principal ownership must compare SIDs and
+  // retain every exact executable, argument, source and STOP guard.
+  assert.match(installer,/function Test-TaskPrincipalIsCurrentUser/);
+  assert.match(installer,/NTAccount\(\$env:COMPUTERNAME,\s*\$taskUserId\)/);
+  assert.match(installer,/\$local\.Value -eq \$current\.User\.Value/);
+  assert.match(installer,/-not \(Test-TaskPrincipalIsCurrentUser/);
+  assert.doesNotMatch(installer,/\$task\.Principal\.UserId -notin/);
   assert.match(installer,/legacyPiStarted=\$false/);
   assert.match(installer,/liveProcessVerified=\$false/);
   assert.match(installer,/LEGACY_PI_TASK_MUST_BE_DISABLED_BEFORE_DISPATCHER_START/);

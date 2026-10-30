@@ -10625,7 +10625,7 @@
       },
       {
         "target": "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
-        "targetDigest": "951e8a278073fbfa603e2b897a11712e5236f926c4a0f1760ccfba634ae2773d",
+        "targetDigest": "7873c27699c40cfbf175bccc4d933165282fdf74f665105c9ee571da78b1f8e0",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -10643,7 +10643,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Mocked staged Windows worktree and authenticated MCP behaviour; validates exact candidate identity, no main mutation, opt-in tool discovery, no inline shell, bounded PowerShell -File dispatch and failure receipts. Does NOT run native Windows PowerShell, prove OS sandboxing, perform Human browser UAT, spend, publish, or merge.",
+        "limits": "Mocked staged Windows worktree and authenticated MCP behaviour; validates exact candidate identity, no main mutation, opt-in tool discovery, no inline shell, bounded PowerShell -File dispatch and failure receipts. Does NOT run native Windows PowerShell, prove OS sandboxing, perform Human browser UAT, spend, publish, or merge. #3333 tool-inventory assertion permits one additional owner-authenticated read-only Windows diagnostic; public tool set and engineering opt-in remain unchanged.",
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",

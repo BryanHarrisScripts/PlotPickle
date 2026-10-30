@@ -154,6 +154,54 @@ test('publisher requires separate exact-commit owner authorization; invalid gran
     assert.equal(gh.calls.length, 0);
   }));
 
+test('owner preapproval binds one future coding commit at publication; cannot replay', () =>
+  fixture(async f => {
+    const gh = fakeGitHub(f);
+    const grant = { ...f.grant,
+      kind: 'draft-pr-publish-approved-coding-once',
+      consent: 'AUTHORIZE_ONE_DRAFT_PR_FROM_ONE_APPROVED_CODING_EDIT',
+      localCommit: null };
+    assert.equal(validatePublicationGrant(grant, f.prepared, f.codingGrant,
+      f.source, Date.now()), true);
+    const success = await publishAuthorizedDraftOnce({ ...options(f, gh.fetchImpl), grant });
+    assert.equal(success.state, 'DRAFT_PR_CREATED');
+    assert.equal(success.localCommit, f.localCommit);
+    assert.equal(gh.calls.length, 8);
+    const reserved = JSON.parse(await readFile(path.join(f.privateRoot,
+      'publication-attempts', PUB + '.reserved.json'), 'utf8'));
+    assert.equal(reserved.localCommit, f.localCommit);
+    assert.equal((await publishAuthorizedDraftOnce({ ...options(f, gh.fetchImpl),
+      grant })).code, 'PUBLISH_ALREADY_RESERVED_OR_UNVERIFIABLE');
+    assert.equal(gh.calls.length, 8);
+  }));
+
+test('future-commit preapproval fails closed on wrong consent, path, identity and stage SHA', () =>
+  fixture(async f => {
+    const gh = fakeGitHub(f);
+    const grant = { ...f.grant,
+      kind: 'draft-pr-publish-approved-coding-once',
+      consent: 'AUTHORIZE_ONE_DRAFT_PR_FROM_ONE_APPROVED_CODING_EDIT',
+      localCommit: null };
+    const invalid = [
+      { ...grant, consent:'AUTHORIZE_ONE_DRAFT_ENGINEERING_PR' },
+      { ...grant, kind:'draft-pr-publish-once' },
+      { ...grant, localCommit:f.localCommit },
+      { ...grant, targetPath:'scripts/engineering-team/gateway/another.mjs' },
+      { ...grant, grantId:'d'.repeat(32) },
+      { ...grant, sourceHead:'e'.repeat(40) },
+      { ...grant, maxRequests:2 },
+      { ...grant, expiresAt:Date.now() - 1000 },
+    ];
+    for (const item of invalid)
+      assert.equal((await publishAuthorizedDraftOnce({ ...options(f, gh.fetchImpl),
+        grant:item })).state, 'BLOCKED');
+    assert.equal(gh.calls.length, 0);
+    const corrupted = await publishAuthorizedDraftOnce({ ...options(f, gh.fetchImpl),
+      grant, prepared:{ ...f.prepared, commit:'f'.repeat(40) } });
+    assert.equal(corrupted.code, 'PUBLISH_STAGED_COMMIT_UNVERIFIABLE');
+    assert.equal(gh.calls.length, 0);
+  }));
+
 test('native Git prepared commit publishes exactly one draft PR matching source tree; never merge', () =>
   fixture(async f => {
     const gh = fakeGitHub(f);

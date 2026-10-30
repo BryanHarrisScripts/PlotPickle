@@ -12240,7 +12240,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
-            "digest": "f8c41457677aaab34afd257ea54e04a7f34acb848a9e604cd6013dba7ff37470"
+            "digest": "cf17f627aa47d5df7ae9460f2d2c9b2cf7fea0f1a5ff83fd4eff69948f50218e"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12254,7 +12254,7 @@
       },
       {
         "target": "tests/issue-3142-authorized-pr-publish-once.test.mjs",
-        "targetDigest": "c0bff2d3e180255ec3e67cdaf41ddce7cd5c5907036111af027dd11b6681299c",
+        "targetDigest": "a4831619d81eeb33490ae8b500f63c79963478f492411b88167b40b30544e3b1",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12272,11 +12272,11 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Native disposable Git worktree/commit and deterministic fake GitHub HTTPS; verifies one-use second owner grant, exact local/remote tree+blob identity, draft-only PR, stale MAIN, dirty stage, uncertain-response non-replay and one-call coding-to-publish handoff. No real owner credentials, real GitHub PR creation, paid model invocation, unattended startup, owner Windows acceptance, independent Product Gate, or merge proof.",
+        "limits": "Native disposable Git worktree/commit and deterministic fake GitHub HTTPS; verifies one-use second owner grant, exact local/remote tree+blob identity, draft-only PR, stale MAIN, dirty stage, uncertain-response non-replay and one-call coding-to-publish handoff. No real owner credentials, real GitHub PR creation, paid model invocation, unattended startup, owner Windows acceptance, independent Product Gate, or merge proof. Pre-commit owner publication grant must bind the single prepared commit in an immutable reservation, never self-mint or grant merge authority; local fixtures are not a live credentialed cycle.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
-            "digest": "f8c41457677aaab34afd257ea54e04a7f34acb848a9e604cd6013dba7ff37470"
+            "digest": "cf17f627aa47d5df7ae9460f2d2c9b2cf7fea0f1a5ff83fd4eff69948f50218e"
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
@@ -12294,7 +12294,7 @@
       },
       {
         "target": "tests/issue-3302-two-receipt-verifier.test.mjs",
-        "targetDigest": "6d8499f19dd19cc26a39f2dda21046fcdd685bc93a703425483dafcc8e2ae80d",
+        "targetDigest": "fa710ac68e024ff569379a9cb1df65a60b666237e1fbdf5bc2a76c7f13db7bba",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12312,11 +12312,11 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Fixture-only correlated owner-private coding/publication receipts, real Ed25519 signing/verification, fixed read-only mocked GitHub API, seven architecture layers and hosted Windows step. Independent changed-file identity, Git blob SHA-1 and content SHA-256 reject extra files, unauthorized paths and changed bytes before CI; negative cancelled/skipped/timed-out/stale/forged cases and write-once no-replay verifier reservation. No real owner-host signer, real GitHub token, actual PR publication, native Product Gate, unattended dispatch or automatic merge proof.",
+        "limits": "Fixture-only correlated owner-private coding/publication receipts, real Ed25519 signing/verification, fixed read-only mocked GitHub API, seven architecture layers and hosted Windows step. Independent changed-file identity, Git blob SHA-1 and content SHA-256 reject extra files, unauthorized paths and changed bytes before CI; negative cancelled/skipped/timed-out/stale/forged cases and write-once no-replay verifier reservation. No real owner-host signer, real GitHub token, actual PR publication, native Product Gate, unattended dispatch or automatic merge proof. Pre-commit owner publication grant must bind the single prepared commit in an immutable reservation, never self-mint or grant merge authority; local fixtures are not a live credentialed cycle.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/verification/two-receipt-verifier.mjs",
-            "digest": "2b4f14dd1373e9da1b1a998d20371336cb29a115a9e2c65436f895a448244d4f"
+            "digest": "9a937b5dbc129fbf91654e335d8b701066ebf409ff8586d031e5dd3c1a093f82"
           },
           {
             "path": "scripts/engineering-team/gateway/receipts/write-once-json.mjs",

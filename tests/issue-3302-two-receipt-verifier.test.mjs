@@ -41,6 +41,25 @@ const published = { state: 'DRAFT_PR_CREATED', pullRequestCreated: true,
   remoteCommit: REMOTE, prNumber: 4242 };
 const receipt = () => engineeringReceiptFor({ requestId: REQUEST, grant, edit,
   publicationGrant, reservation, published, at: NOW });
+test('preauthorized publication is bound to prepared SHA by immutable reservation', () => {
+  const future = { ...publicationGrant,
+    kind:'draft-pr-publish-approved-coding-once',
+    consent:'AUTHORIZE_ONE_DRAFT_PR_FROM_ONE_APPROVED_CODING_EDIT',
+    localCommit:null };
+  assert.ok(engineeringReceiptFor({ requestId:REQUEST, grant, edit,
+    publicationGrant:future, reservation, published, at:NOW }));
+  for (const invalid of [
+    { ...future, consent:'AUTHORIZE_ONE_DRAFT_ENGINEERING_PR' },
+    { ...future, kind:'draft-pr-publish-once' },
+    { ...future, localCommit:LOCAL },
+    { ...future, grantId:'d'.repeat(32) },
+  ]) assert.equal(engineeringReceiptFor({ requestId:REQUEST, grant, edit,
+    publicationGrant:invalid, reservation, published, at:NOW }), null);
+  assert.equal(engineeringReceiptFor({ requestId:REQUEST, grant, edit,
+    publicationGrant:future, reservation:{ ...reservation, localCommit:SOURCE },
+    published, at:NOW }), null);
+});
+
 const layers = [
   'Layer 1 Experience Skins', 'Layer 2 Experience Contract',
   'Layer 3 Production Orchestration', 'Layer 4 Agent & Skill Mesh',

@@ -22,6 +22,8 @@ const SOURCE = /^scripts\/engineering-team\/(?:[a-z0-9-]+\/)*[a-z0-9-]+\.mjs$/;
 const REPO = 'BryanHarrisScripts/PlotPickle';
 const API = 'https://api.github.com/repos/' + REPO;
 const CONSENT = 'AUTHORIZE_ONE_DRAFT_ENGINEERING_PR';
+const PRECOMMIT_KIND = 'draft-pr-publish-approved-coding-once';
+const PRECOMMIT_CONSENT = 'AUTHORIZE_ONE_DRAFT_PR_FROM_ONE_APPROVED_CODING_EDIT';
 const exact = (value, fields) => value && typeof value === 'object' &&
   !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype &&
   Object.keys(value).length === fields.length && fields.every(f => Object.hasOwn(value, f));
@@ -37,13 +39,21 @@ export function validatePublicationGrant(grant, prepared, codingGrant, source, a
     'sourceHead', 'localCommit', 'branch', 'targetPath', 'expiresAt', 'maxRequests', 'consent']))
     return false;
   const expectedBranch = 'engineering/' + grant.issueNumber + '-' + grant.grantId;
-  return grant.schemaVersion === 1 && grant.kind === 'draft-pr-publish-once' &&
+  // The owner may preauthorize exactly one draft PR for an unknown future
+  // commit, but only the prepared commit from their separately scoped coding
+  // grant is publishable. The write-once reservation binds that exact SHA.
+  const commitAuthorized = (grant.kind === 'draft-pr-publish-once' &&
+    grant.consent === CONSENT && SHA.test(grant.localCommit) &&
+    prepared?.commit === grant.localCommit) ||
+    (grant.kind === PRECOMMIT_KIND && grant.consent === PRECOMMIT_CONSENT &&
+    grant.localCommit === null && SHA.test(prepared?.commit || ''));
+  return grant.schemaVersion === 1 && commitAuthorized &&
     ID.test(grant.publicationId) && ID.test(grant.grantId) &&
     Number.isSafeInteger(grant.issueNumber) && grant.issueNumber > 0 &&
     grant.issueNumber <= 9_999_999 && SHA.test(grant.sourceHead) &&
-    SHA.test(grant.localCommit) && SOURCE.test(grant.targetPath) &&
+    SOURCE.test(grant.targetPath) &&
     grant.branch === expectedBranch && grant.maxRequests === 1 &&
-    grant.consent === CONSENT && Number.isSafeInteger(grant.expiresAt) &&
+    Number.isSafeInteger(grant.expiresAt) &&
     grant.expiresAt > at + 30_000 && grant.expiresAt <= at + 3_600_000 &&
     source?.channel === 'main' && source.head === grant.sourceHead &&
     prepared?.state === 'LOCAL_COMMIT_PREPARED' &&
@@ -53,7 +63,7 @@ export function validatePublicationGrant(grant, prepared, codingGrant, source, a
     prepared.independentVerification === false &&
     prepared.automaticMergeAuthorized === false &&
     prepared.grantId === grant.grantId && prepared.issueNumber === grant.issueNumber &&
-    prepared.sourceHead === grant.sourceHead && prepared.commit === grant.localCommit &&
+    prepared.sourceHead === grant.sourceHead &&
     prepared.branch === grant.branch &&
     codingGrant?.schemaVersion === 1 && codingGrant.kind === 'engineering-edit-once' &&
     codingGrant.grantId === grant.grantId &&
@@ -105,7 +115,7 @@ function makeRequester(fetchImpl, token) {
     return json;
   };
 }
-async function readStagedCommit({ repoRoot, privateRoot, grant, git }) {
+async function readStagedCommit({ repoRoot, privateRoot, grant, prepared, git }) {
   const stage = path.join(privateRoot, 'coding-worktrees', grant.grantId);
   const stageStat = await lstat(stage);
   if (!stageStat.isDirectory() || stageStat.isSymbolicLink())
@@ -121,7 +131,7 @@ async function readStagedCommit({ repoRoot, privateRoot, grant, git }) {
     call(['rev-parse', 'HEAD^{tree}']),
     call(['rev-parse', 'HEAD:' + grant.targetPath]),
   ]);
-  if (head !== grant.localCommit || parent !== grant.sourceHead ||
+  if (head !== prepared.commit || parent !== grant.sourceHead ||
       branch !== grant.branch || tracked || untracked || changed !== grant.targetPath ||
       !SHA.test(tree) || !SHA.test(blob)) throw Error('STAGED_COMMIT_UNVERIFIABLE');
   const source = String((await git(stage, ['show', 'HEAD:' + grant.targetPath])).stdout || '');
@@ -133,7 +143,8 @@ async function readStagedCommit({ repoRoot, privateRoot, grant, git }) {
 
 /**
  * Testable local publisher. Permission cannot be inferred from a successful
- * coding receipt: it requires a SECOND, exact-commit, private owner grant.
+ * coding receipt: it requires a SECOND private owner grant, either exact-commit
+ * or preauthorized one-coding-commit. Actual SHA is verified before reservation.
  */
 export async function publishAuthorizedDraftOnce({
   repoRoot, privateRoot, source, grant, codingGrant, prepared, token,
@@ -159,7 +170,7 @@ export async function publishAuthorizedDraftOnce({
   const git = runGit || ((cwd, args) => exec('git', args,
     { cwd, windowsHide: true, timeout: 15_000, maxBuffer: 65_536 }));
   let staged;
-  try { staged = await readStagedCommit({ repoRoot, privateRoot, grant, git }); }
+  try { staged = await readStagedCommit({ repoRoot, privateRoot, grant, prepared, git }); }
   catch { return blocked('PUBLISH_STAGED_COMMIT_UNVERIFIABLE'); }
   const receipts = path.join(privateRoot, 'publication-attempts');
   try {
@@ -171,7 +182,7 @@ export async function publishAuthorizedDraftOnce({
   const reservation = path.join(receipts, grant.publicationId + '.reserved.json');
   if (!await writeOnce(reservation, { schemaVersion: 1, publicationId: grant.publicationId,
     grantId: grant.grantId, issueNumber: grant.issueNumber, sourceHead: source.head,
-    localCommit: grant.localCommit, tree: staged.tree, contentDigest: staged.digest,
+    localCommit: prepared.commit, tree: staged.tree, contentDigest: staged.digest,
     reservedAt: at, state: 'EXTERNAL_REQUEST_OUTCOME_UNCERTAIN_NO_REPLAY' }))
     return blocked('PUBLISH_ALREADY_RESERVED_OR_UNVERIFIABLE');
   const rawRequest = makeRequester(fetchImpl, token);
@@ -229,7 +240,7 @@ export async function publishAuthorizedDraftOnce({
       title: 'fix(#' + grant.issueNumber + '): owner-authorized engineering candidate',
       head: grant.branch, base: 'main', draft: true,
       body: 'Source-bound one-shot coding candidate. Local commit: ' +
-        grant.localCommit + '\nOwner grant: ' + grant.grantId +
+        prepared.commit + '\nOwner grant: ' + grant.grantId +
         '\nFocused tests and independent CI/Windows Product Gate required. ' +
         'Not independently verified; no automatic merge authorization.',
     });
@@ -240,7 +251,7 @@ export async function publishAuthorizedDraftOnce({
       throw Error('DRAFT_PR_RESPONSE_UNVERIFIABLE');
     result = Object.freeze({ state: 'DRAFT_PR_CREATED', code: 'EXACT_TREE_DRAFT_PR_PUBLISHED',
       issueNumber: grant.issueNumber, publicationId: grant.publicationId,
-      grantId: grant.grantId, sourceHead: source.head, localCommit: grant.localCommit,
+      grantId: grant.grantId, sourceHead: source.head, localCommit: prepared.commit,
       remoteCommit: publishedCommit.sha, tree: staged.tree,
       branch: grant.branch, prNumber: pr.number,
       prUrl: 'https://github.com/' + REPO + '/pull/' + pr.number,

@@ -45,7 +45,7 @@ if ($guardExit -eq 0) {
   Write-Host "[UPDATE] Factory is absent. Pulling the latest PlotPickle from GitHub..."
   & $git.Source pull --ff-only
   if ($LASTEXITCODE -ne 0) {
-    throw "git pull --ff-only failed. Existing processes and source are preserved."
+    throw "git pull --ff-only failed with exit code $LASTEXITCODE. PlotPickle was not started so the repository can be repaired safely."
   }
 } elseif ($guardExit -eq 10) {
   Write-Host "[FACTORY PROTECTED] Source update deferred. Starting the current PlotPickle build without changing Factory-owned code or runtime."

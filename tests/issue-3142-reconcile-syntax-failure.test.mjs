@@ -4,6 +4,7 @@ import { mkdtemp, mkdir, link, readFile, readdir, rm, writeFile } from 'node:fs/
 import os from 'node:os';
 import path from 'node:path';
 import { claimCodingOwnership, reconcileSyntaxRejectedOwnership } from '../scripts/engineering-team/gateway/receipts/atomic-coding-ownership.mjs';
+import { inspectFailedSyntaxClaim } from '../scripts/engineering-team/gateway/worker-pool/reconcile-failed-syntax-once.mjs';
 
 const GRANT='1'.repeat(32), NEXT='2'.repeat(32), HEAD='a'.repeat(40);
 const CONSENT='RECONCILE_ONE_FAILED_SYNTAX_CLAIM_NO_REPLAY';
@@ -58,4 +59,10 @@ test('only CHECK_STAGE_SYNTAX exact blocked result is eligible', async()=>{
     assert.equal(outcome.state,'BLOCKED');
     assert.throws(()=>claimCodingOwnership(receipts,NEXT,Date.now()));
   },'REQUEST_MODEL');
+});
+
+test('owner CLI inspection remains inert and Windows-only', async()=>{
+  const state=await inspectFailedSyntaxClaim({platform:'linux',requestId:GRANT,grantId:GRANT});
+  assert.equal(state.state,'BLOCKED');
+  assert.equal(state.code,'WINDOWS_AND_EXACT_IDENTITIES_REQUIRED');
 });

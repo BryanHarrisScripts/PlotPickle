@@ -4261,7 +4261,8 @@
           "tests/issue-3302-two-receipt-verifier.test.mjs",
           "tests/issue-3142-owner-windows-acceptance-broker.test.mjs",
           "tests/issue-3142-factory-worker-pool.test.mjs",
-          "tests/issue-3142-reconcile-syntax-failure.test.mjs"
+          "tests/issue-3142-reconcile-syntax-failure.test.mjs",
+          "tests/issue-3142-native-dispatcher-live.test.mjs"
         ]
       },
       "cost": "fast",
@@ -12422,7 +12423,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
-            "digest": "e2fcfdd119797902217d4904745a983e5a05500da705dbd3e0b91064fbd6f58f"
+            "digest": "11f015ceffd44a8e900e8326caf76831a603ccb4053ddb2debef74e9ca21f6af"
           }
         ]
       },
@@ -12567,6 +12568,42 @@
           {
             "path": "scripts/windows-runtime.mjs",
             "digest": "48872aea97b93d1a94a8e3d33f9037b35f4c2c6732ebe0cc7a76c79e6ed8a5df"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-native-dispatcher-live.test.mjs",
+        "targetDigest": "2d5e494dd8a8dd1010adfe0bee902a32b7f3cd2eea9fd6cc0170436271214f16",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Mock-backed live dispatcher tests verify source-head/STOP gating, one-use claim exclusion, expired grants, worker slot routing, lock retention and bounded heartbeat. Do not infer deployed Windows Task Scheduler service, paid model invocation, independent AEGIS signer, end-to-end issue completion, owner-Windows Product Gate or automatic merge. No legacy Pi queue replay.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/dispatcher/native-dispatcher.mjs",
+            "digest": "429162badbfe153eac60082f5d2846e6b577fad982a2de44d8ffd3dea86cd11a"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
+            "digest": "11f015ceffd44a8e900e8326caf76831a603ccb4053ddb2debef74e9ca21f6af"
+          },
+          {
+            "path": "scripts/engineering-team/windows/workers/Install-PlotPickleFactoryWorkers.ps1",
+            "digest": "248ffb96b99cd4e8537e8fb77c93a43b66a074f2e889db054fe358f4559a9e70"
           }
         ]
       }

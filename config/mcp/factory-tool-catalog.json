@@ -14,7 +14,10 @@
     "factory_control_receipt"
   ],
   "conversation": [
-    "factory_conversation"
+    "factory_conversation",
+    "factory_conversation_observe",
+    "factory_conversation_receive",
+    "factory_conversation_reply"
   ],
   "storage": [
     "factory_storage_inventory"

@@ -27,6 +27,22 @@ async function folder(root, source) {
   }
   return target;
 }
+// Read-only observation must never create folders or follow a redirected
+// gateway source path. Writers continue using the existing folder() routine.
+async function existingFolder(root, source) {
+  if (typeof root !== "string" || !path.isAbsolute(root) || !validSource(source))
+    throw Error("GATEWAY_SOURCE_UNVERIFIED");
+  const channel = path.join(root, source.channel);
+  const target = path.join(channel, source.head);
+  for (const dir of [root, channel, target]) {
+    let info;
+    try { info = await lstat(dir); }
+    catch (error) { if (error?.code === "ENOENT") return null; throw error; }
+    if (!info.isDirectory() || info.isSymbolicLink())
+      throw Error("GATEWAY_STORAGE_UNVERIFIABLE");
+  }
+  return target;
+}
 async function marker(root, id, suffix, value) {
   const filename = path.join(root, id + suffix + ".json");
   if (value) {
@@ -100,7 +116,9 @@ export async function startConversationTest({ root, source, requestId, now = Dat
 export async function conversationStatus({ root, source, now = Date.now() } = {}) {
   if (!validSource(source)) return { code: "GATEWAY_SOURCE_UNVERIFIED" };
   try {
-    const dir = await folder(root, source), questions = path.join(dir, "questions");
+    const dir = await existingFolder(root, source);
+    if (!dir) return { code: "NO_TEST", sourceHead: source.head, sourceChannel: source.channel, count: 0 };
+    const questions = path.join(dir, "questions");
     let newest = null, count = 0;
     try {
       const entries = await readdir(questions);
@@ -138,8 +156,12 @@ export async function conversationMcpAction(args, { root, source, now = Date.now
   if (!validSource(source) || source.head !== args.expectedHead) return { code: "GATEWAY_SOURCE_UNVERIFIED" };
   try {
     if (args.action === "pending") return conversationStatus({ root, source, now });
+    if (args.action === "receipt") {
+      const readonlyDir = await existingFolder(root, source);
+      return readonlyDir ? await view(readonlyDir, source, args.questionId, now)
+        : { code: "NOT_FOUND" };
+    }
     const dir = await folder(root, source);
-    if (args.action === "receipt") return await view(dir, source, args.questionId, now);
     const stored = await exchange(dir, source, args.questionId, CLIENT, now);
     if (!stored.receipt) return { code: stored.state };
     if (stored.state === "EXPIRED_UNANSWERED") return { code: "GATEWAY_TEST_EXPIRED" };

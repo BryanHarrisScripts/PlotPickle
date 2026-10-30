@@ -9985,14 +9985,14 @@
       },
       {
         "target": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
-        "targetDigest": "5e5563b8f57b11fd9a7fdebc273a53108f745c278a7e495afcd08e844a559ad6",
+        "targetDigest": "7826f9dd72c1d92fe6fd408bfc2517f73f5eb3e49d217e731506b13bb651f0e0",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2b9e01d8f2f031b1ffe764fea024ed564e551875ae8f44f9ea2b372e2e6943c1"
+            "digest": "bf6345215326f3702c34a93a146e976225bdbf6073d8c7bb15d1cae5bc0a7bf2"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -10005,6 +10005,14 @@
           {
             "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
             "digest": "681dba56405951e7fa15df41fda4dce6b9e4c09f67396d4aeca5043fac607862"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-host-diagnostics.mjs",
+            "digest": "3b3b511f87ab2aebd0240a1fcb268445de316759a1d364df04bbbf5e42343970"
+          },
+          {
+            "path": "scripts/engineering-team/windows/supervisor/Read-PlotPickleSupervisorDiagnostics.ps1",
+            "digest": "2eb1b133166fa04db99496b019e71639a14688e9d62a2dcd94db09f900e1b317"
           }
         ],
         "truthRefs": [
@@ -10021,7 +10029,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic private Factory receipts, deterministic observer and MCP HTTP/stdio tests; additionally verifies authenticated-only sanitized read-only canonical supervisor snapshot, forged/stale heartbeat and thrown-read denial. Symlink fixture is conditional on Windows privileges. No independent owner Windows task/PID/descendant ownership, authenticated Start, scheduled ChatGPT dispatch, source edit, Product UAT, replay or autonomous merge proof."
+        "limits": "Synthetic private Factory receipts, deterministic observer and MCP HTTP/stdio tests; additionally verifies authenticated-only sanitized read-only canonical supervisor snapshot, forged/stale heartbeat and thrown-read denial. Symlink fixture is conditional on Windows privileges. No independent owner Windows task/PID/descendant ownership, authenticated Start, scheduled ChatGPT dispatch, source edit, Product UAT, replay or autonomous merge proof. #3333 additional fixtures validate authenticated exact-head fixed diagnostics routing, sanitized task/lock/PID candidate and no arbitrary PowerShell arguments; do not imply real Windows process custody or repair permission."
       },
       {
         "target": "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs",

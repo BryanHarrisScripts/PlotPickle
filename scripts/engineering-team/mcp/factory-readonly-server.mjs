@@ -27,6 +27,7 @@ import { runFactoryDependencyPreflight, checkFactoryDependencyProof,
 import { inspectFactoryServiceLock } from "../queue/factory-service-lock.mjs";
 import { summarizeFactoryObserver } from "./factory-observer.mjs";
 import { supervisorStatus } from "../windows/supervisor/unattended-supervisor.mjs";
+import { inspectOwnerWindowsHost } from "./engineering/factory-host-diagnostics.mjs";
 import { assessCandidateStageCount } from "./storage/factory-stage-budget.mjs";
 import { allowedFactoryTestNames, readFactoryVerificationHead,
   runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr,
@@ -821,6 +822,16 @@ export const MCP_STORAGE_TOOLS = Object.freeze([{
   annotations:{readOnlyHint:true,destructiveHint:false,openWorldHint:false},
 }]);
 
+export const MCP_WINDOWS_DIAGNOSTICS_TOOLS = Object.freeze([{
+  name: "factory_host_diagnostics",
+  title: "Inspect owner Windows supervisor task and lock",
+  description: "Authenticated fixed-script read-only Windows task, PID candidate and STOP/PAUSE marker diagnostics. No commands, repair, source mutation or release approval.",
+  inputSchema: { type:"object", properties:{
+    expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"}
+  }, required:["expectedHead"],additionalProperties:false },
+  annotations:{readOnlyHint:true,destructiveHint:false,openWorldHint:false}
+}]);
+
 export const MCP_CONVERSATION_TOOLS = Object.freeze([{
   name: "factory_conversation", title: "Read and answer PlotPickle's durable conversation",
   description: "Authenticated connection only. Poll pending source-bound questions, read one to receive its delivery ID, then answer it using that ID and a new answer ID. Receipt reads reconcile lost replies. Does not wake ChatGPT, run a model, change source, or grant Factory/merge authority.",
@@ -849,7 +860,8 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
   now=Date.now,controlAuthenticated=false,controlOps,
   engineeringEnabled=false,gatewayRoot=privateGatewayRoot(),gatewaySource=conversationSource,
   storageInspect=inspectFactoryStorage,supervisorRead=supervisorStatus,
-  stageBudgetRead=assessCandidateStageCount,stageLockRead=observeCandidateStageLock}={}) {
+  stageBudgetRead=assessCandidateStageCount,stageLockRead=observeCandidateStageLock,
+  hostDiagnosticsRead=inspectOwnerWindowsHost}={}) {
   if(!request || request.jsonrpc!=="2.0" || typeof request.method!=="string")
     return {error:{code:-32600,message:"Invalid JSON-RPC request"}};
   switch(request.method) {
@@ -865,7 +877,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
         ? {...tool,inputSchema:{...tool.inputSchema,properties:{...tool.inputSchema.properties,
           suite:{...tool.inputSchema.properties.suite,enum:tool.inputSchema.properties.suite.enum.filter(
             suite=>suite!=="factory-gateway-acceptance")}}}}
-        : tool),...MCP_CONVERSATION_TOOLS,...MCP_STORAGE_TOOLS,
+        : tool),...MCP_CONVERSATION_TOOLS,...MCP_STORAGE_TOOLS,...MCP_WINDOWS_DIAGNOSTICS_TOOLS,
       ...(engineeringEnabled?MCP_ENGINEERING_TOOLS:[])]:MCP_TOOLS}};
     case "tools/call": {
       const name=request.params?.name,args=request.params?.arguments??{};
@@ -874,6 +886,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
       const keys=Object.keys(args);
       const isConversation=name==="factory_conversation";
       const isStorage=name==="factory_storage_inventory";
+      const isHostDiagnostics=name==="factory_host_diagnostics";
       const isEngineering=name==="factory_engineering_run";
       // Executing candidate PR code requires the existing explicit owner opt-in,
       // even when exposed as a fixed named suite rather than a generic runner.
@@ -888,7 +901,11 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
       if(isConversation&&!validConversationArgs(args))return {error:invalidParams()};
       if(isStorage&&!controlAuthenticated)return {error:{code:-32001,message:"Storage inventory authorization required"}};
       if(isStorage&&!validStorageReportArgs(args))return {error:invalidParams()};
-      if(!isControl&&!isConversation&&!isStorage&&name!=="factory_evidence" && keys.length)
+      if(isHostDiagnostics&&!controlAuthenticated)
+        return {error:{code:-32001,message:"Host diagnostic authorization required"}};
+      if(isHostDiagnostics && (keys.length!==1 || !HEX_SHA.test(args.expectedHead || "")))
+        return {error:invalidParams()};
+      if(!isControl&&!isConversation&&!isStorage&&!isHostDiagnostics&&name!=="factory_evidence" && keys.length)
         return {error:invalidParams()};
       let value;
       if(name==="factory_status")value=await factoryStatus({
@@ -908,6 +925,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
       }else if(isConversation)value=await conversationMcpAction(args,{
         root:gatewayRoot,source:await gatewaySource(args.expectedHead),now:now()});
       else if(isStorage)value=await storageInspect(args);
+      else if(isHostDiagnostics)value=await hostDiagnosticsRead({expectedHead:args.expectedHead});
       else if(name==="factory_issue_preview")value=await factoryIssuePreview({github});
       else if(isControl)value=await factoryControlAction(name,args,{root,github,now,ops:controlOps});
       else return {error:{code:-32601,message:"Unknown tool"}};

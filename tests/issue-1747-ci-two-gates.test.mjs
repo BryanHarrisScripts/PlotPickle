@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
+import { piWindowsJobChanged, piJobBody } from "../lib/verification/pi-workflow-scope.mjs";
 
 const root = new URL("..", import.meta.url);
 const workflowRoot = new URL(".github/workflows/", root);
@@ -71,4 +72,25 @@ test("issue #1747 leaves specialized workflows outside ordinary PR verification"
     const workflow = await source(`.github/workflows/${file}`);
     assert.doesNotMatch(workflow, /^  pull_request:/m, `${file} should remain specialized rather than becoming another normal PR workflow`);
   }
+});
+
+test("#3293 reusable Product Gate Pi job edits select bounded Pi verification only", () => {
+  const original = [
+    "jobs:", "  pi-runtime-windows:", "    timeout-minutes: 12",
+    "    steps:", "      - run: node --test pi-runtime.test.mjs",
+    "  pi-cli-mock-windows:", "    timeout-minutes: 12",
+    "    steps:", "      - run: node --test pi-mock.test.mjs",
+    "  story-architect-windows:", "    timeout-minutes: 12",
+    "    steps:", "      - run: node --test story.test.mjs", "",
+  ].join("\n");
+  assert.equal(piWindowsJobChanged(original, original), false);
+  assert.equal(piWindowsJobChanged(original,
+    original.replace("pi-runtime.test.mjs", "pi-runtime-v2.test.mjs")), true);
+  assert.equal(piWindowsJobChanged(original,
+    original.replace("pi-mock.test.mjs", "pi-mock-v2.test.mjs")), true);
+  assert.equal(piWindowsJobChanged(original,
+    original.replace("story.test.mjs", "story-v2.test.mjs")), false);
+  assert.match(piJobBody(original, "pi-cli-mock-windows"), /timeout-minutes: 12/);
+  assert.throws(() => piWindowsJobChanged(original,
+    original.replace("  pi-runtime-windows:", "  missing-runtime:")), /Missing Pi Product Gate job/);
 });

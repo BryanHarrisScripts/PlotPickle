@@ -197,7 +197,7 @@ jobs:
           # #3293: Only modified Pi job bodies in the reusable Product Gate
           # select Pi native verification; unrelated workflow metadata does not.
           if printf '%s\n' "$changed" | grep -Fxq '.github/workflows/product-gate.yml'; then
-            pi_workflow_changed="$(node lib/verification/development/pi-workflow-scope.mjs "$BASE_SHA")"
+            pi_workflow_changed="$(node lib/verification/ci/pi-workflow-scope.mjs "$BASE_SHA")"
             if [ "$pi_workflow_changed" = true ]; then pi=true; fi
           fi
           if printf '%s\n' "$changed" | grep -Eq '^(app/_components/settings/command-review-panel\.tsx$|app/skin-v1/global-dsdd-conversation(\.module\.css|\.tsx)$|build/dsdd/(dsdd-pi-session|dsdd-session-gateway|hunk-review-controller)\.(mjs|ts)$|build/dsdd/hunk-review-gateway\.ts$|build/openpencil/|designs/openpencil/|scripts/settings-command-product-proof\.mjs$|scripts/pi/hunk-review-terminal\.ps1$|tools/hunk-review/|tests/issue-(2717-(settings-command|command-gateway)|2780-openpencil-command-mcp|2782-openpencil-profile-startup|2787-openpencil-gui-review)\.test\.mjs$)'; then command=true; fi

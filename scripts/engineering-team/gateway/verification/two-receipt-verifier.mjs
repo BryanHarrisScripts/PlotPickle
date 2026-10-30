@@ -57,15 +57,18 @@ export function engineeringReceiptFor({ requestId, grant, edit, publicationGrant
       edit.grantId !== requestId || edit.issueNumber !== issue ||
       edit.focusedTest !== grant.focusedTest || edit.branch !== branch ||
       publicationGrant.schemaVersion !== 1 ||
-      publicationGrant.kind !== 'draft-pr-publish-once' ||
-      publicationGrant.consent !== 'AUTHORIZE_ONE_DRAFT_ENGINEERING_PR' ||
+      !((publicationGrant.kind === 'draft-pr-publish-once' &&
+        publicationGrant.consent === 'AUTHORIZE_ONE_DRAFT_ENGINEERING_PR' &&
+        publicationGrant.localCommit === edit.commit) ||
+        (publicationGrant.kind === 'draft-pr-publish-approved-coding-once' &&
+        publicationGrant.consent === 'AUTHORIZE_ONE_DRAFT_PR_FROM_ONE_APPROVED_CODING_EDIT' &&
+        publicationGrant.localCommit === null)) ||
       publicationGrant.maxRequests !== 1 ||
       !ID.test(publicationGrant.publicationId || '') ||
       publicationGrant.grantId !== requestId ||
       publicationGrant.issueNumber !== issue ||
       publicationGrant.sourceHead !== head ||
       publicationGrant.targetPath !== grant.targetPath ||
-      publicationGrant.localCommit !== edit.commit ||
       publicationGrant.branch !== branch ||
       reservation.grantId !== requestId ||
       reservation.sourceHead !== head || reservation.localCommit !== edit.commit ||

@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash,createPublicKey,generateKeyPairSync,sign} from 'node:crypto';
+import {spawn} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import {inspectCrossFactoryTruth,checkCrossFactoryReceiptSignature,
   crossFactoryReceiptPayload} from
   '../scripts/engineering-team/verification/cross-factory-math-review.mjs';
@@ -194,4 +196,26 @@ test('merge eligibility requires independently signed exact head and still never
     assert.equal(result.state,'BLOCKED');
     assert.equal(result.maySubmitMerge,false);
   }
+});
+
+test('actual bounded F00 CLI subprocess returns proposal without reviewer key or side effects',async()=>{
+  const cli=fileURLToPath(new URL('../scripts/engineering-team/verification/cross-factory-math-review-cli.mjs',import.meta.url));
+  const run=(args,input)=>new Promise((resolve,reject)=>{
+    const child=spawn(process.execPath,[cli,...args],{stdio:['pipe','pipe','pipe'],windowsHide:true});
+    let output='',err='';
+    child.stdout.on('data',b=>output+=b.toString('utf8'));
+    child.stderr.on('data',b=>err+=b.toString('utf8'));
+    child.once('error',reject);
+    child.once('close',code=>resolve({code,output,err}));
+    child.stdin.end(input);
+  });
+  const good=await run(['--inspect'],JSON.stringify(fixture('PP-F03')));
+  assert.equal(good.code,0);
+  const value=JSON.parse(good.output.trim());
+  assert.equal(value.disposition,'UNPROVEN');
+  assert.equal(value.maySign,false);
+  assert.equal(value.mayMerge,false);
+  const rejected=await run(['--sign'],JSON.stringify(fixture('PP-F03')));
+  assert.equal(rejected.code,2);
+  assert.equal(JSON.parse(rejected.output.trim()).code,'READ_ONLY_INSPECT_COMMAND_REQUIRED');
 });

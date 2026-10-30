@@ -18,8 +18,9 @@ $script = Join-Path $repo 'scripts\engineering-team\gateway\worker-pool\worker-h
 if (-not (Test-Path -LiteralPath $script -PathType Leaf)) { throw 'WORKER_HOST_MISSING' }
 $node = (Get-Command node.exe -ErrorAction Stop).Source
 $who = [System.Security.Principal.WindowsIdentity]::GetCurrent()
-$names = @('PlotPickleCodingDispatcher','PlotPickleCodingWorker1','PlotPickleCodingWorker2')
-$roles = @('coding-dispatcher','coding-worker-1','coding-worker-2')
+# One entry point, one implementation, five separate worker IDs.
+$names = @('PlotPickleCodingDispatcher') + @(1..5 | ForEach-Object { 'PlotPickleCodingWorker' + $_ })
+$roles = @('coding-dispatcher') + @(1..5 | ForEach-Object { 'coding-worker-' + $_ })
 function ExactHead {
   $branch = (& git -C $repo branch --show-current).Trim()
   $head = (& git -C $repo rev-parse HEAD).Trim()
@@ -40,7 +41,7 @@ function OwnedTask([int]$i) {
   return $task
 }
 if ($Plan) {
-  [pscustomobject]@{ state='PLAN_ONLY'; sourceHead=(ExactHead); reviewer='F00_SIGNED_SERVICE_REQUIRED'; dispatcher='DISABLED'; worker1='DISABLED'; worker2='PARKED_TWO_CYCLES_REQUIRED'; modelInvoked=$false; mergeEnabled=$false } | ConvertTo-Json -Compress
+  [pscustomobject]@{ state='PLAN_ONLY'; sourceHead=(ExactHead); reviewer='F00_SIGNED_SERVICE_REQUIRED'; dispatcher='DISABLED'; worker1='DISABLED'; worker2To5='PARKED_RELEASE_AND_CAPACITY_PROOF_REQUIRED'; modelInvoked=$false; mergeEnabled=$false } | ConvertTo-Json -Compress
   return
 }
 if ($Status) {

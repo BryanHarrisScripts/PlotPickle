@@ -95,18 +95,19 @@ export async function runOwnerWorkerTicket({
   if (!FACTORY_WORKERS.some(x => x.id === role)) return blocked('UNKNOWN_WORKER_ROLE');
   if (role === 'independent-reviewer') return blocked('F00_SEPARATE_WINDOWS_SERVICE_REQUIRED');
   if (role === 'coding-dispatcher') return blocked('DISPATCHER_DURABLE_GRANT_BROKER_NOT_ADMITTED');
-  if (role === 'coding-worker-2') return blocked('TWO_CONSECUTIVE_CYCLES_AND_RESOURCE_PROOF_REQUIRED');
   if (!ID.test(requestId || '')) return blocked('OWNER_REQUEST_ID_REQUIRED');
   const source = await gatewayAppSource({ repoRoot, env });
   if (!source || source.channel !== 'main') return blocked('EXACT_CLEAN_MAIN_REQUIRED');
   const root = privateGatewayRoot(env);
   const order = await readOwnerOrder(root, requestId);
   if (!order) return blocked('PRIVATE_OWNER_WORK_ORDER_REQUIRED');
+  if (order.assignedWorker !== role) return blocked('WORKER_ROLE_MISMATCH');
   // Only the explicit owner's #3142 single-use local exception can replace
   // the unavailable F00 release preflight for this one draft-PR attempt.
   // All other issues still require the existing independent release callback.
   const release = async () => await independentReleaseReady() === true ||
-    await readOwnerPilotException(root, order, source.head, Date.now());
+    (role === 'coding-worker-1' &&
+      await readOwnerPilotException(root, order, source.head, Date.now()));
   return claimAndRunOwnerJobOnce({
     order, expectedHead: source.head, privateRoot: root,
     operatorReady: () => ownerOneShotAllowed(source.head),

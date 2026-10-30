@@ -1,5 +1,5 @@
 /**
- * #3142/#3302: one Software Factory, four worker roles, no implicit grants.
+ * #3142/#3302: one Software Factory, five identical coding slots, no implicit grants.
  * The F00 signer is an EXTERNAL Windows identity; it is never a coding child.
  * This is a candidate scheduling primitive, not an independent verifier.
  */
@@ -11,8 +11,9 @@ const ID = /^[a-f0-9]{32}$/;
 const ROLES = Object.freeze([
   Object.freeze({ id: 'independent-reviewer', authority: 'external-lane-a-service', slot: 0 }),
   Object.freeze({ id: 'coding-dispatcher', authority: 'owner-windows-supervisor', slot: 0 }),
-  Object.freeze({ id: 'coding-worker-1', authority: 'owner-granted-coding', slot: 1 }),
-  Object.freeze({ id: 'coding-worker-2', authority: 'owner-granted-coding', slot: 2 }),
+  ...Array.from({ length: 5 }, (_, i) => Object.freeze({
+    id: 'coding-worker-' + (i + 1), authority: 'owner-granted-coding', slot: i + 1,
+  })),
 ]);
 export { ROLES as FACTORY_WORKERS };
 
@@ -32,7 +33,7 @@ export function projectWorkerFleet({ expectedHead, supervisor, reviewer, verifie
         code = 'EXTERNAL_F00_SIGNED_QUALIFICATION_REQUIRED';
       } else if (id === 'coding-dispatcher') {
         code = 'AUTHENTICATED_QUEUE_AND_DISPATCHER_RELEASE_REQUIRED';
-      } else if (id === 'coding-worker-1') {
+      } else if (slot === 1) {
         code = 'ONE_USE_OWNER_GRANT_AND_INDEPENDENT_GATE_REQUIRED';
       } else {
         state = 'PARKED';
@@ -58,7 +59,7 @@ export function validateOwnerWorkOrder(work, expectedHead) {
       ['assignedWorker','consent','grantId','issueNumber','kind','publicationId','requestId','schemaVersion','sourceHead'].sort().join(',') &&
     work.schemaVersion === 1 && work.kind === 'owner-authorized-factory-job' &&
     work.consent === 'ONE_OWNER_AUTHORIZED_JOB_NO_REPLAY' &&
-    work.assignedWorker === 'coding-worker-1' &&
+    ROLES.some(role => role.slot >= 1 && role.id === work.assignedWorker) &&
     ID.test(work.requestId || '') && ID.test(work.grantId || '') &&
     ID.test(work.publicationId || '') && work.grantId !== work.publicationId &&
     Number.isSafeInteger(work.issueNumber) && work.issueNumber > 0 &&

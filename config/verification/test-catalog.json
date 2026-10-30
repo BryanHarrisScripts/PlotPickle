@@ -7785,7 +7785,7 @@
       },
       {
         "target": "tests/issue-1185-pi-managed-install.test.mjs",
-        "targetDigest": "fd48d65bac410802e01043242bccf1c983050cfa9c2fad8ecc8c5f0336a509f5",
+        "targetDigest": "812de67e133eba722358e26b2d55cb7a4ad0653f1861e28d129adffe25ad1a5c",
         "catalogueIds": [
           "agent.managed-pi-install-3067"
         ],
@@ -7803,7 +7803,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Existing managed-pin, private install/lock rejection, native MCP and DSDD source/fixture obligations preserved while moving current Pi family to1.3.0. Historical candidate contracts retain original versions. No actual provider, real story session or Windows product acceptance established by these tests. #3289 filesystem fixtures verify same-version stale dependency rejection, disabled-install preservation, repair/reuse, missing metadata and post-install rejection. No live owner upgrade or model inference established.",
+        "limits": "Existing managed-pin, private install/lock rejection, native MCP and DSDD source/fixture obligations preserved while moving current Pi family to1.3.0. Historical candidate contracts retain original versions. No actual provider, real story session or Windows product acceptance established by these tests. #3289 filesystem fixtures verify same-version stale dependency rejection, disabled-install preservation, repair/reuse, missing metadata and post-install rejection. No live owner upgrade or model inference established. #3291 managed code quality review migrates to reviewed unbundled helper; native Pi runtime acceptance still pending.",
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
@@ -7871,7 +7871,7 @@
           },
           {
             "path": "scripts/run-pi-code-quality-review.mjs",
-            "digest": "de1d4153f8d260b30c6fcdb59a090da893adb1908abd7c152cc879a27287f137"
+            "digest": "de225e2564a6bd613b844440d43657ef9e7117a5bc41ad72529977f89c1613e3"
           }
         ]
       },
@@ -9688,7 +9688,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "3982d15e84c7529b92ab9f5b851efd19a9311840b73a686f0e5698f6181b3e5d"
+            "digest": "36021aa4f94b673e19d9299b0cce26683ac1a808e1651db806312dbaf147c846"
           }
         ]
       },
@@ -11622,7 +11622,7 @@
       },
       {
         "target": "tests/issue-3291-pi-unbundled-cli.test.mjs",
-        "targetDigest": "e1a89920b3a900e4ea1efaad7c8ee99452f567c0f881c686841e396247410d29",
+        "targetDigest": "8653e471cdc47dadcab8f73427c65b6571c5742b3b854c3c4024233de81e51bb",
         "catalogueIds": [
           "agent.managed-pi-install-3067"
         ],
@@ -11640,11 +11640,19 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Isolated published-bin versus unbundled entry selection, missing-entry fail-closed and non-Windows symlink boundary only. Does not demonstrate a real installed Pi CLI, patched Undici behavior, nested subagents, Windows host acceptance or live Dependabot alert closure.",
+        "limits": "Isolated published-bin versus unbundled entry selection, missing-entry fail-closed and non-Windows symlink boundary only. Does not demonstrate a real installed Pi CLI, patched Undici behavior, nested subagents, Windows host acceptance or live Dependabot alert closure. #3291 static regression ensures both managed Pi review call sites use unbundled direct Node launcher, no pi.cmd. Not native Windows product acceptance or overall security closeout.",
         "inputs": [
           {
             "path": "Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs",
             "digest": "a0ce94a6a775fed575797bbaddf94af6c614a3833983f461aed1c066aa065a02"
+          },
+          {
+            "path": "scripts/run-pi-code-quality-review.mjs",
+            "digest": "de225e2564a6bd613b844440d43657ef9e7117a5bc41ad72529977f89c1613e3"
+          },
+          {
+            "path": "scripts/pi/run-architecture-review.mjs",
+            "digest": "03c760d20c0bad0d7e6c49917d0b59d978e2d69d83df4913412e0be94b16130f"
           }
         ]
       },

@@ -6,9 +6,9 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { ensureManagedPiInstalled } from "../pi-managed-install.mjs";
+import { runManagedPiReadOnly } from "../../Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs";
 import {
   resolvePiLocalRuntime,
-  runPiReadOnly,
   runPortableCommand,
 } from "../pi-worker-runtime.mjs";
 import {
@@ -151,9 +151,8 @@ async function prepareBenEvidence(inputRoot) {
 
 async function runJsonReview({ pi, runtime, purpose, prompt, label }) {
   status(label, "START", `${runtime.model} via ${runtime.label}`);
-  const review = await runPiReadOnly({
-    command: pi.command,
-    runtime,
+  const review = await runManagedPiReadOnly({
+    pi, runtime,
     prompt,
     cwd: repoRoot,
     purpose,
@@ -188,7 +187,6 @@ async function main() {
   const impact = await prepareImpactMap(args.impactMap, inputRoot);
 
   const pi = await ensureManagedPiInstalled({ allowInstall: false });
-  process.env.PLOTPICKLE_PI_COMMAND = pi.command;
   const runtime = await resolvePiLocalRuntime();
   const runtimeEvidence = { model: runtime.model, label: runtime.label, piVersion: pi.version };
 

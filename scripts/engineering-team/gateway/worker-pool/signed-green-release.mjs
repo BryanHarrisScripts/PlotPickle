@@ -64,7 +64,7 @@ export function assessSignedGreenRelease({
      ownerWindows.candidateHead!==head||
      ownerWindows.prNumber!==pr.number||
      !DIGEST.test(ownerWindows.proofDigest||'')||
-     ownerWindows.independentEvidence===false)
+     ownerWindows.independentEvidence!==true)
     return denied('OWNER_WINDOWS_PRODUCT_ACCEPTANCE_REQUIRED');
   if(!plain(workflow)||workflow.name!=='Architecture Verification'||
      workflow.status!=='completed'||workflow.conclusion!=='success'||

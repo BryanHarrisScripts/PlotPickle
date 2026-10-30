@@ -12386,7 +12386,7 @@
       },
       {
         "target": "tests/issue-3142-factory-worker-pool.test.mjs",
-        "targetDigest": "c5d26fb9e0250d9395cbe20ad460cc2ac1a99f029f0a327edf5bbdb2e04a1f23",
+        "targetDigest": "00000000000000000000000000000000ae7cb043718272a8a3b2a2cdc011f3f3",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12404,7 +12404,7 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Owner-approved narrow one-issue (#3142) pilot exception recorded in GitHub issue #3142 comment 6510212423; exact-edition source/test change still requires scoped approval and Windows evidence. Disposable unit fixtures validate strict single work-order, source head, two grant IDs, expiry under 1 hour, one request, private regular-file path (no symlink/junction), negative issue and consent cases, existing STOP and nonreplayable claims. Local owner-authored JSON consent is NOT an independent F00 registrar signature or WHITE-PAPER-V3 W8/W9 ADMIT; test does not prove owner signature, credential provision, installed Windows worker, autonomous source edit, paid model invocation, published PR, native Windows Product Gate or merge. Manual owner exact-head approval and independent GitHub CI plus owner-Windows acceptance remain mandatory; no auto merge or backlog authorization. Five worker slots share a single claim implementation; each slot is independently identified but no replica is commissioned by this test.",
+        "limits": "Owner-approved narrow one-issue (#3142) pilot exception recorded in GitHub issue #3142 comment 6510212423; exact-edition source/test change still requires scoped approval and Windows evidence. Disposable unit fixtures validate strict single work-order, source head, two grant IDs, expiry under 1 hour, one request, private regular-file path (no symlink/junction), negative issue and consent cases, existing STOP and nonreplayable claims. Local owner-authored JSON consent is NOT an independent F00 registrar signature or WHITE-PAPER-V3 W8/W9 ADMIT; test does not prove owner signature, credential provision, installed Windows worker, autonomous source edit, paid model invocation, published PR, native Windows Product Gate or merge. Manual owner exact-head approval and independent GitHub CI plus owner-Windows acceptance remain mandatory; no auto merge or backlog authorization. Five worker slots share a single claim implementation; each slot is independently identified but no replica is commissioned by this test. #3142 owner-pilot additional negative fixture checks current-head supervisor RUNNING observation without worker release, cross-source or STOP/PAUSE success. Neither this fixture nor the returned draft PR verifies an independently qualified F00 reviewer, owner Windows Product Gate, live dispatcher or merge.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-pool.mjs",
@@ -12412,7 +12412,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
-            "digest": "33084f4f7b09a0d8e73bc8c16b47027bbf141fa9969d45a3091f00d7c7448f75"
+            "digest": "000000000000000000000000000000001c3a4d195e35eb890e81f5183921a83f"
           }
         ]
       },

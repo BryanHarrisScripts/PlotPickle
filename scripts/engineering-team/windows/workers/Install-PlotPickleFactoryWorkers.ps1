@@ -111,9 +111,9 @@ if ($Start) {
   $supervisor=Join-Path $repo 'scripts\engineering-team\windows\supervisor\unattended-supervisor.mjs'
   $statusJson = & $node $supervisor --status
   if ($LASTEXITCODE -ne 0) { throw 'SUPERVISOR_STATUS_UNVERIFIABLE' }
-  $status = $statusJson | ConvertFrom-Json
-  if ($status.state -cne 'RUNNING' -or $status.exactSha -cne $head -or
-      $status.pauseAcknowledged -eq $true) { throw 'SUPERVISOR_STOP_PAUSE_OR_HEAD_UNVERIFIED' }
+  $supervisorState = $statusJson | ConvertFrom-Json
+  if ($supervisorState.state -cne 'RUNNING' -or $supervisorState.exactSha -cne $head -or
+      $supervisorState.pauseAcknowledged -eq $true) { throw 'SUPERVISOR_STOP_PAUSE_OR_HEAD_UNVERIFIED' }
   if ([string]$task.State -eq 'Running') { throw 'DISPATCHER_ALREADY_RUNNING_RECHECK_STATUS' }
   Enable-ScheduledTask -TaskName $names[0] -ErrorAction Stop | Out-Null
   Start-ScheduledTask -TaskName $names[0] -ErrorAction Stop

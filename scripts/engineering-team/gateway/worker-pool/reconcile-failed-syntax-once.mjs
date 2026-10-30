@@ -19,6 +19,8 @@ const ID = /^[a-f0-9]{32}$/;
 const CONSENT = 'RECONCILE_ONE_FAILED_SYNTAX_CLAIM_NO_REPLAY';
 const blocked = reason => Object.freeze({state:'BLOCKED', code:reason, noReplay:true});
 const relative = 'scripts/engineering-team/gateway/worker-pool/worker-host.mjs';
+// git() trims stdout: porcelain ` M path` becomes `M path`.
+export const onlyUnstagedTarget = (porcelain, target=relative) => porcelain==='M '+target;
 const safeJson = async file => {
   const stat = await lstat(file);
   if (!stat.isFile() || stat.isSymbolicLink() || stat.size < 2 || stat.size > 4096)
@@ -76,7 +78,7 @@ export async function inspectFailedSyntaxClaim({
         await git(stage,'branch','--show-current')!=='engineering/3142-'+grantId ||
         await git(stage,'diff','--cached','--name-only')!=='' ||
         await git(stage,'diff','--name-only')!==relative ||
-        await git(stage,'status','--porcelain','--untracked-files=normal')!=='M '+relative)
+        !onlyUnstagedTarget(await git(stage,'status','--porcelain','--untracked-files=normal'),relative))
       return blocked('ONLY_UNCOMMITTED_SOURCE_CHANGE_NOT_PROVEN');
     await git(stage,'diff','--check');
     const syntaxFile=path.join(stage,...relative.split('/'));

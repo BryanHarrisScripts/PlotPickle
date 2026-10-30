@@ -82,6 +82,26 @@ test('separate long-lived dispatcher process owns nonce lock and durable heartbe
   assert.equal((await serve({root,platform:'win32',maxCycles:1,
     cycle:async()=>({state:'IDLE'})})).code,'DISPATCH_OWNER_LOCK_RETAINED');
 }));
+test('default status clock verifies real live owner PID and fresh heartbeat',()=>sandbox(async root=>{
+  const dir=path.join(root,'native-dispatcher');
+  await mkdir(dir,{recursive:true});
+  const nonce='0123456789abcdef0123456789abcdef';
+  await writeFile(path.join(dir,'owner.lock'),
+    JSON.stringify({pid:process.pid,nonce,state:'CLAIMED_NO_STEAL'}));
+  await writeFile(path.join(dir,'heartbeat.json'),
+    JSON.stringify({pid:process.pid,nonce,at:Date.now(),state:'IDLE',count:2}));
+  const observed=await status({root});
+  assert.equal(observed.state,'ONLINE_OBSERVED');
+  assert.equal(observed.pid,process.pid);
+  assert.equal(observed.lastCycle,'IDLE');
+  const expired=await status({root,now:()=>Date.now()+60_000});
+  assert.equal(expired.code,'DISPATCH_HEARTBEAT_OR_PID_UNVERIFIED');
+  await writeFile(path.join(dir,'owner.lock'),
+    JSON.stringify({pid:process.pid,nonce:'different-owner'}));
+  const mismatched=await status({root});
+  assert.equal(mismatched.code,'DISPATCH_HEARTBEAT_OR_PID_UNVERIFIED');
+}));
+
 test('scheduled dispatcher never promotes other workers, Pi queue or merge rights',async()=>{
   const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
   const host=await readFile(path.join(root,

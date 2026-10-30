@@ -5,9 +5,9 @@ import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {inspectCrossFactoryTruth,checkCrossFactoryReceiptSignature,
   crossFactoryReceiptPayload} from
-  '../scripts/engineering-team/verification/cross-factory-math-review.mjs';
+  '../scripts/engineering-team/verification/aegis/cross-factory-math-review.mjs';
 import {runCrossFactoryInspect} from
-  '../scripts/engineering-team/verification/cross-factory-math-review-cli.mjs';
+  '../scripts/engineering-team/verification/aegis/cross-factory-math-review-cli.mjs';
 import {assessSignedGreenRelease,ownerReleasePayload} from
   '../scripts/engineering-team/gateway/worker-pool/signed-green-release.mjs';
 
@@ -199,7 +199,7 @@ test('merge eligibility requires independently signed exact head and still never
 });
 
 test('actual bounded F00 CLI subprocess returns proposal without reviewer key or side effects',async()=>{
-  const cli=fileURLToPath(new URL('../scripts/engineering-team/verification/cross-factory-math-review-cli.mjs',import.meta.url));
+  const cli=fileURLToPath(new URL('../scripts/engineering-team/verification/aegis/cross-factory-math-review-cli.mjs',import.meta.url));
   const run=(args,input)=>new Promise((resolve,reject)=>{
     const child=spawn(process.execPath,[cli,...args],{stdio:['pipe','pipe','pipe'],windowsHide:true});
     let output='',err='';

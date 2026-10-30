@@ -76,7 +76,7 @@ export async function inspectFailedSyntaxClaim({
         await git(stage,'branch','--show-current')!=='engineering/3142-'+grantId ||
         await git(stage,'diff','--cached','--name-only')!=='' ||
         await git(stage,'diff','--name-only')!==relative ||
-        await git(stage,'status','--porcelain','--untracked-files=normal')!==' M '+relative)
+        await git(stage,'status','--porcelain','--untracked-files=normal')!=='M '+relative)
       return blocked('ONLY_UNCOMMITTED_SOURCE_CHANGE_NOT_PROVEN');
     await git(stage,'diff','--check');
     const syntaxFile=path.join(stage,...relative.split('/'));

@@ -206,7 +206,11 @@ test("#3259 split MCP tools provide truthful roles, owner-authenticated receipt 
   },{...services,controlAuthenticated:authenticated});
   const pending={action:"pending",expectedHead:source.head};
   assert.equal((await call("factory_conversation_observe",pending,false)).error.code,-32001);
-  assert.equal((await call("factory_conversation_observe",pending)).result.structuredContent.code,"PENDING");
+  const observed=(await call("factory_conversation_observe",pending)).result.structuredContent;
+  assert.equal(observed.code,"PENDING");
+  assert.equal(Object.hasOwn(observed,"question"),false,
+    "receipt polling must not expose question text before acknowledged delivery");
+  assert.equal(Object.hasOwn(observed,"answer"),false);
   assert.equal((await call("factory_conversation_observe",{
     ...pending,action:"read",questionId:Q
   })).error.code,-32602);
@@ -238,6 +242,8 @@ test("#3259 split MCP tools provide truthful roles, owner-authenticated receipt 
     action:"receipt",expectedHead:source.head,questionId:Q
   })).result.structuredContent;
   assert.equal(saved.receipt.answerId,A);
+  assert.equal(Object.hasOwn(saved,"question"),false);
+  assert.equal(Object.hasOwn(saved,"answer"),false);
   assert.equal(saved.independentVerification,false);
   assert.equal(saved.backgroundDelivery,false);
   const replay=(await call("factory_conversation_reply",reply)).result.structuredContent;

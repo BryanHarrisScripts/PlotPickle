@@ -847,7 +847,7 @@ export const MCP_CONVERSATION_TOOLS = Object.freeze([{
 },
   {name: "factory_conversation_observe",
     title: "Inspect source-bound PlotPickle conversation status and receipts",
-    description: "Authenticated read-only status or receipt inspection for an existing source-bound PlotPickle question. May return question and answer text to the authorized client; never acknowledges delivery, creates storage, or grants execution.",
+    description: "Authenticated metadata-only status or receipt inspection for a source-bound PlotPickle question. Never returns message text, acknowledges delivery, creates storage, or grants execution.",
     inputSchema: {type:"object",properties:{
       action:{type:"string",enum:["pending","receipt"]},
       expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
@@ -855,8 +855,8 @@ export const MCP_CONVERSATION_TOOLS = Object.freeze([{
     },required:["action","expectedHead"],additionalProperties:false},
     annotations:{readOnlyHint:true,destructiveHint:false,openWorldHint:false}},
   {name: "factory_conversation_receive",
-    title: "Receive and acknowledge one PlotPickle conversation question",
-    description: "Authenticated write-once delivery marker for a source-bound question, returning one durable delivery ID. Requires the existing tunnel authorization; no model, job or merge authority.",
+    title: "Receive one PlotPickle question with a durable delivery token",
+    description: "Authenticated write-once delivery marker for one source-bound question. Returns a token for the reply; delivery is not verified until a correlated answer is recorded. No model, job or merge authority.",
     inputSchema: {type:"object",properties:{
       expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
       questionId:{type:"string",pattern:"^[a-f0-9]{32}$"},

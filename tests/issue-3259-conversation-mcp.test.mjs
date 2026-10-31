@@ -88,7 +88,11 @@ test("#3259 offline expiry, credential-shaped content and corrupt acknowledgemen
   const read = await conversationMcpAction(selection("read"), { root, source, now });
   const invalid = await conversationMcpAction(response(read.deliveryId, { answer: "Bearer fixture-private-do-not-store" }), { root, source, now });
   assert.equal(invalid.code, "INVALID_ENVELOPE");
+  // Rejected content must not leave an ACK implying remote delivery was
+  // independently completed. The original delivery marker alone is unproven.
+  await assert.rejects(readFile(path.join(root, "main", source.head, Q + ".ack.json"), "utf8"), { code: "ENOENT" });
   const pending = await conversationStatus({ root, source, now });
+  assert.equal(pending.plotpickleToChatgpt, "UNPROVEN");
   assert.equal(pending.chatgptToPlotpickle, "UNPROVEN");
   assert.equal(pending.answer, null);
   const expired = await conversationStatus({ root, source, now: now + 16 * 60_000 });

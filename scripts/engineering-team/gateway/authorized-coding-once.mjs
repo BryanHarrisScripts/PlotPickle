@@ -349,9 +349,10 @@ async function modelEdit({ grant, original, credential, fetchImpl }) {
     // token, tools, persistent conversation, or external model request.
     const response = await fetchImpl(LOCAL_ENDPOINT, {
       method: 'POST',
+      redirect: 'error', // Never follow a local server redirect to another origin.
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: LOCAL_MODEL, stream: false, keep_alive: 0,
+        model: LOCAL_MODEL, stream: false, keep_alive: '0',
         options: { temperature: 0, num_predict: grant.maxOutputTokens },
         format: { type: 'object', additionalProperties: false,
           properties: { oldText: { type: 'string' }, newText: { type: 'string' } },

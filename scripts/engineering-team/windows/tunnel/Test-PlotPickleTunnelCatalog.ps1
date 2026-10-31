@@ -26,9 +26,9 @@ try {
     $upgrade = Join-Path $tunnel 'Upgrade-PlotPickleTunnelCatalog.ps1'
     $catalog = Get-Content -LiteralPath (Join-Path $catalogDir 'factory-tool-catalog.json') -Raw | ConvertFrom-Json
     $public = @($catalog.public)
-    $auth = @($catalog.public) + @($catalog.control) + @($catalog.conversation) + @($catalog.storage)
+    $auth = @($catalog.public) + @($catalog.control) + @($catalog.conversation) + @($catalog.storage) + @($catalog.diagnostics)
     $engineering = @($auth) + @($catalog.engineeringOptIn)
-    Assert-True ($public.Count -eq 4 -and $auth.Count -eq 10 -and $engineering.Count -eq 11) 'catalogue fixture cardinality'
+    Assert-True ($public.Count -eq 4 -and $auth.Count -eq 14 -and $engineering.Count -eq 15) 'catalogue fixture cardinality'
     & $assertion -PublicTools $public -AuthenticatedTools $auth
     & $assertion -PublicTools $public -AuthenticatedTools $engineering -EngineeringEnabled
     Assert-Reject { & $assertion -PublicTools (@($public) + @('fabricated')) -AuthenticatedTools $auth } 'unexpected public tool rejected'

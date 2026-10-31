@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -175,6 +175,9 @@ test("#3259 P1 expiration and unreadable records do not turn into success or sil
     authorization:auth("worker1","answer.record",now),now:now+21_000});
   assert.equal(late.state,"CORRELATION_DENIED");
   const answers=path.join(root,"answers");
+  // Read-only receipt inspection must not create this directory; the hostile
+  // symlink fixture explicitly owns its setup before testing rejection.
+  await mkdir(answers);
   await symlinkOrCorruptFile(path.join(root,"questions",Q+".json"),path.join(answers,Q+".json"));
   const corrupt=await readGatewayReceipt({root,questionId:Q,
     authorization:readAuth,now:now+100});

@@ -9989,14 +9989,14 @@
       },
       {
         "target": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
-        "targetDigest": "f1f05578dc042b7e77d810c76cebf672200d88e6ea41e9088f3f92960f496d54",
+        "targetDigest": "bd895237bc6d45265dab3f77693b13b90b8264816387849f736c7ad1638589c5",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "bf6345215326f3702c34a93a146e976225bdbf6073d8c7bb15d1cae5bc0a7bf2"
+            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -10033,7 +10033,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic private Factory receipts, deterministic observer and MCP HTTP/stdio tests; additionally verifies authenticated-only sanitized read-only canonical supervisor snapshot, forged/stale heartbeat and thrown-read denial. Symlink fixture is conditional on Windows privileges. No independent owner Windows task/PID/descendant ownership, authenticated Start, scheduled ChatGPT dispatch, source edit, Product UAT, replay or autonomous merge proof. #3333 additional fixtures validate authenticated exact-head fixed diagnostics routing, sanitized task/lock/PID candidate and no arbitrary PowerShell arguments; do not imply real Windows process custody or repair permission."
+        "limits": "Synthetic private Factory receipts, deterministic observer and MCP HTTP/stdio tests; additionally verifies authenticated-only sanitized read-only canonical supervisor snapshot, forged/stale heartbeat and thrown-read denial. Symlink fixture is conditional on Windows privileges. No independent owner Windows task/PID/descendant ownership, authenticated Start, scheduled ChatGPT dispatch, source edit, Product UAT, replay or autonomous merge proof. #3333 additional fixtures validate authenticated exact-head fixed diagnostics routing, sanitized task/lock/PID candidate and no arbitrary PowerShell arguments; do not imply real Windows process custody or repair permission. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release."
       },
       {
         "target": "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs",
@@ -10052,7 +10052,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "bf6345215326f3702c34a93a146e976225bdbf6073d8c7bb15d1cae5bc0a7bf2"
+            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
           }
         ],
         "truthRefs": [
@@ -10069,7 +10069,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic GitHub QA issue objects, injected factory snapshot, private temp-root monitor heartbeat and local MCP sanitization; no real Windows Scheduler, GitHub issue publication, ChatGPT-only engineer execution, production UAT or released Normal installation."
+        "limits": "Synthetic GitHub QA issue objects, injected factory snapshot, private temp-root monitor heartbeat and local MCP sanitization; no real Windows Scheduler, GitHub issue publication, ChatGPT-only engineer execution, production UAT or released Normal installation. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release."
       },
       {
         "target": "tests/issue-3110-factory-named-test-mcp.test.mjs",
@@ -10088,7 +10088,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "bf6345215326f3702c34a93a146e976225bdbf6073d8c7bb15d1cae5bc0a7bf2"
+            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
@@ -10113,7 +10113,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Runtime synthetic exact pinned worktree stage, allowlisted Git-error classification, browser-denial on staging failure, and immutable authenticated MCP receipt scrub against private path injection. No on-owner Windows root-cause, actual browser run, STOP/tree proof, or authorized cleanup."
+        "limits": "Runtime synthetic exact pinned worktree stage, allowlisted Git-error classification, browser-denial on staging failure, and immutable authenticated MCP receipt scrub against private path injection. No on-owner Windows root-cause, actual browser run, STOP/tree proof, or authorized cleanup. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release."
       },
       {
         "target": "tests/issue-3159-pi-headless-inference.test.mjs",
@@ -10331,7 +10331,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "bf6345215326f3702c34a93a146e976225bdbf6073d8c7bb15d1cae5bc0a7bf2"
+            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
@@ -10356,7 +10356,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Only fixture safety behavior of fixed clean-main local Windows Vite lifecycle and MCP caller authorization/receipts. No real owner Windows app startup or browser proof; no independent source-authorized merge."
+        "limits": "Only fixture safety behavior of fixed clean-main local Windows Vite lifecycle and MCP caller authorization/receipts. No real owner Windows app startup or browser proof; no independent source-authorized merge. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release."
       },
       {
         "target": "tests/issue-3222-verified-pr-launch.test.mjs",
@@ -10379,7 +10379,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "bf6345215326f3702c34a93a146e976225bdbf6073d8c7bb15d1cae5bc0a7bf2"
+            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
@@ -10408,7 +10408,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Fixture-controlled Git ancestry, exact stage receipts, unchanged package graph, Windows process ownership, on-page provenance and no arbitrary path/shell inputs. Real owner PR browser acceptance, authenticated saved project continuity, on-device managed STOP, and source merge require separate evidence."
+        "limits": "Fixture-controlled Git ancestry, exact stage receipts, unchanged package graph, Windows process ownership, on-page provenance and no arbitrary path/shell inputs. Real owner PR browser acceptance, authenticated saved project continuity, on-device managed STOP, and source merge require separate evidence. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release."
       },
       {
         "target": "tests/issue-3222-factory-concurrent-session.test.mjs",
@@ -10427,7 +10427,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "bf6345215326f3702c34a93a146e976225bdbf6073d8c7bb15d1cae5bc0a7bf2"
+            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
@@ -10460,7 +10460,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Only deterministic fixture assertions of loopback separation, synthetic storage metadata and owned Factory lifecycle. Not real owner Windows process/browser acceptance, kernel isolation, profile continuity or merge authorization."
+        "limits": "Only deterministic fixture assertions of loopback separation, synthetic storage metadata and owned Factory lifecycle. Not real owner Windows process/browser acceptance, kernel isolation, profile continuity or merge authorization. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release."
       },
       {
         "target": "tests/issue-118-consolidated-reports.test.mjs",
@@ -10629,7 +10629,7 @@
       },
       {
         "target": "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
-        "targetDigest": "7873c27699c40cfbf175bccc4d933165282fdf74f665105c9ee571da78b1f8e0",
+        "targetDigest": "469497a0dddfab8e5b1930d267e01b0c58f12d54780affb4731fb15a23d256cd",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -10647,11 +10647,11 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Mocked staged Windows worktree and authenticated MCP behaviour; validates exact candidate identity, no main mutation, opt-in tool discovery, no inline shell, bounded PowerShell -File dispatch and failure receipts. Does NOT run native Windows PowerShell, prove OS sandboxing, perform Human browser UAT, spend, publish, or merge. #3333 tool-inventory assertion permits one additional owner-authenticated read-only Windows diagnostic; public tool set and engineering opt-in remain unchanged.",
+        "limits": "Mocked staged Windows worktree and authenticated MCP behaviour; validates exact candidate identity, no main mutation, opt-in tool discovery, no inline shell, bounded PowerShell -File dispatch and failure receipts. Does NOT run native Windows PowerShell, prove OS sandboxing, perform Human browser UAT, spend, publish, or merge. #3333 tool-inventory assertion permits one additional owner-authenticated read-only Windows diagnostic; public tool set and engineering opt-in remain unchanged. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release.",
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "bf6345215326f3702c34a93a146e976225bdbf6073d8c7bb15d1cae5bc0a7bf2"
+            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -11170,7 +11170,7 @@
       },
       {
         "target": "tests/issue-3259-bidirectional-gateway-p1.test.mjs",
-        "targetDigest": "9be4a0ce95535b0520e82b5b21fb2ede9b885391244562b65a84864535f37ce1",
+        "targetDigest": "5913a32d55105178197dd9adf39bb4adf58983b87df001517e58d63fb9045531",
         "catalogueIds": [
           "agent.bidirectional-gateway-p1-3259"
         ],
@@ -11188,11 +11188,11 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Disposable filesystem and injected host-auth unit tests only. Does not demonstrate authenticated live MCP, outbound dispatcher, paid AI, source modification, actual Windows processes, autonomous decisions or independent product acceptance.",
+        "limits": "Disposable filesystem and injected host-auth unit tests only. Does not demonstrate authenticated live MCP, outbound dispatcher, paid AI, source modification, actual Windows processes, autonomous decisions or independent product acceptance. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release. Preproduction hostile-record fixture now explicitly creates its own answers directory; source read-only missing-directory behavior remains unchanged. No real Windows acceptance implied.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/gateway-contract.mjs",
-            "digest": "a9370aee52db068a185dc61e117e884c347f1ce334d3333cd647eae0a17d88c4"
+            "digest": "78d77f810b6a78c1b41f7dbc44cf6aa377abff2b93cc94656d11c7bb279a3575"
           },
           {
             "path": "schema/gateway/message-envelope.v1.schema.json",
@@ -11411,7 +11411,7 @@
       },
       {
         "target": "tests/issue-3259-conversation-mcp.test.mjs",
-        "targetDigest": "47144c4a3c6b8803120174ccd63110a95dd207e9c68ddd7aba127abde66a9e85",
+        "targetDigest": "0b8c6130f91a58b10b47fb206f1d3aa762ee3e2fb69bb741b09de45f1c46eca0",
         "catalogueIds": [
           "agent.conversation-mcp-3259"
         ],
@@ -11429,11 +11429,11 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Disposable local HTTP MCP with synthetic token and host identity, temporary private records, temporary Git repository, and fresh Node process readback. Proves scoped local transport/authentication, immutable correlation/idempotency, expiry, source pinning, and recoverable readback within fixtures only. Does not prove owner GUI, external ChatGPT, provider/model identity or execution, unattended delivery, Windows owner restart/reconnect or independent product acceptance.",
+        "limits": "Disposable local HTTP MCP with synthetic token and host identity, temporary private records, temporary Git repository, and fresh Node process readback. Proves scoped local transport/authentication, immutable correlation/idempotency, expiry, source pinning, and recoverable readback within fixtures only. Does not prove owner GUI, external ChatGPT, provider/model identity or execution, unattended delivery, Windows owner restart/reconnect or independent product acceptance. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/gateway-contract.mjs",
-            "digest": "a9370aee52db068a185dc61e117e884c347f1ce334d3333cd647eae0a17d88c4"
+            "digest": "78d77f810b6a78c1b41f7dbc44cf6aa377abff2b93cc94656d11c7bb279a3575"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -11441,7 +11441,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/conversation-service.mjs",
-            "digest": "7291486d145d2645e5fae2b6c8f09c44f661a90b679602a02b028164642f8f57"
+            "digest": "32986e45f03a929c29b0e828bb963c08b872b620ae88090249c2137353188c14"
           },
           {
             "path": "scripts/engineering-team/gateway/conversation-http.mjs",
@@ -11449,13 +11449,13 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "bf6345215326f3702c34a93a146e976225bdbf6073d8c7bb15d1cae5bc0a7bf2"
+            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
           }
         ]
       },
       {
         "target": "tests/issue-3278-storage-mcp.test.mjs",
-        "targetDigest": "16954f9128c34ecb1e97a751d2253893c5ea18cc6ce18dae5d492a0282c55b4a",
+        "targetDigest": "860813354c4fa592e909b1d88e6343bf7e7f864282c85ff8fe2c989d5992f4f7",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11473,7 +11473,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "#3278 synthetic storage scanner state, exact main head, privacy projection, authenticated MCP list and guarded migration source assertions only. Not live owner Windows storage acceptance, Windows PowerShell 5.1 execution, authenticated launcher migration, browser UAT, cleanup permission or independent product proof.",
+        "limits": "#3278 synthetic storage scanner state, exact main head, privacy projection, authenticated MCP list and guarded migration source assertions only. Not live owner Windows storage acceptance, Windows PowerShell 5.1 execution, authenticated launcher migration, browser UAT, cleanup permission or independent product proof. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release.",
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/storage/factory-storage-inventory.mjs",
@@ -11481,7 +11481,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "bf6345215326f3702c34a93a146e976225bdbf6073d8c7bb15d1cae5bc0a7bf2"
+            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/Upgrade-PlotPickleTunnelCatalog.ps1",
@@ -11489,15 +11489,15 @@
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/Assert-PlotPickleMcpCatalog.ps1",
-            "digest": "b64319dd4a3358f3ecb9ad6e5ca1ddcb1651cb4993869eafc556352e9316eda1"
+            "digest": "81b5a2dcdf9d86ee0e74b1a29aaf829bf7be0c236559bd013950f1ceae85c3b6"
           },
           {
             "path": "config/mcp/factory-tool-catalog.json",
-            "digest": "bbf739b2b0c80f77ff351849536058206a3be88440fb03e7946cb286f3c54e66"
+            "digest": "dfb452f33f826463f0cbe92b498fae08beedc33804407654450ab22745a6a21e"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/Test-PlotPickleTunnelCatalog.ps1",
-            "digest": "bfba02b88cf74e89e072aaab13ac30be8b02af1e5ccc4b13349839bb5d4bbfdd"
+            "digest": "05464dc0b20b4c224a1f140ae93d3c5cb2be30a94d76a9e14f4bc5717fabab74"
           }
         ]
       },
@@ -11521,7 +11521,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic bounded selected operational-root scanning, sibling selection, symlink denial, redaction and source exact-head checks; does not establish actual owner disk growth, cleanup authority, physical reclaimable bytes or Windows filesystem acceptance.",
+        "limits": "Synthetic bounded selected operational-root scanning, sibling selection, symlink denial, redaction and source exact-head checks; does not establish actual owner disk growth, cleanup authority, physical reclaimable bytes or Windows filesystem acceptance. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release.",
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/storage/factory-storage-profile.mjs",
@@ -11533,7 +11533,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "bf6345215326f3702c34a93a146e976225bdbf6073d8c7bb15d1cae5bc0a7bf2"
+            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
           }
         ]
       },
@@ -11704,7 +11704,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "bf6345215326f3702c34a93a146e976225bdbf6073d8c7bb15d1cae5bc0a7bf2"
+            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -11725,7 +11725,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic authenticated MCP request, exact stage receipt, pinned fixed node-test target, write-once result, replay and invalid-selection refusal. Does not prove live owner-Windows execution, API provider invocation, independent product verification, worker dispatcher, source mutation, or merge."
+        "limits": "Synthetic authenticated MCP request, exact stage receipt, pinned fixed node-test target, write-once result, replay and invalid-selection refusal. Does not prove live owner-Windows execution, API provider invocation, independent product verification, worker dispatcher, source mutation, or merge. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release."
       },
       {
         "target": "tests/issue-3259-outbound-openai-once.test.mjs",
@@ -11747,7 +11747,7 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Synthetic one-shot OpenAI Responses fetch only; temporary private owner grant, durable reservation, canonical question/answer journal and fixture Git source. Verifies fail-closed local authorization, no retry after ambiguous external outcomes and source-bound persistence. Does NOT prove live provider credentials/inference, real paid invocation, owner Windows Task Scheduler, autonomous code editing, independent product UAT, or merge authority.",
+        "limits": "Synthetic one-shot OpenAI Responses fetch only; temporary private owner grant, durable reservation, canonical question/answer journal and fixture Git source. Verifies fail-closed local authorization, no retry after ambiguous external outcomes and source-bound persistence. Does NOT prove live provider credentials/inference, real paid invocation, owner Windows Task Scheduler, autonomous code editing, independent product UAT, or merge authority. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/outbound-openai-once.mjs",
@@ -11755,7 +11755,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-contract.mjs",
-            "digest": "a9370aee52db068a185dc61e117e884c347f1ce334d3333cd647eae0a17d88c4"
+            "digest": "78d77f810b6a78c1b41f7dbc44cf6aa377abff2b93cc94656d11c7bb279a3575"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -11763,7 +11763,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/conversation-service.mjs",
-            "digest": "7291486d145d2645e5fae2b6c8f09c44f661a90b679602a02b028164642f8f57"
+            "digest": "32986e45f03a929c29b0e828bb963c08b872b620ae88090249c2137353188c14"
           }
         ]
       },
@@ -12371,7 +12371,7 @@
         "scopes": [
           "unit-fixture"
         ],
-        "limits": "Injected local-console owner authorization, exact clean-MAIN and supervisor STOP/PAUSE/heartbeat checks, bounded PR identity, immutable read-back, uncertain no-replay and static-stage non-promotion. Does not prove an owner-machine call, paid model invocation, real candidate checkout, independent signed verifier, process-tree STOP, product acceptance or merge.",
+        "limits": "Injected local-console owner authorization, exact clean-MAIN and supervisor STOP/PAUSE/heartbeat checks, bounded PR identity, immutable read-back, uncertain no-replay and static-stage non-promotion. Does not prove an owner-machine call, paid model invocation, real candidate checkout, independent signed verifier, process-tree STOP, product acceptance or merge. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release.",
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/acceptance/owner-windows-acceptance.mjs",
@@ -12391,7 +12391,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "bf6345215326f3702c34a93a146e976225bdbf6073d8c7bb15d1cae5bc0a7bf2"
+            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
           }
         ]
       },

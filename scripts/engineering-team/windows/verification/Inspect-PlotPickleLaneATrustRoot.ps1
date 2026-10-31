@@ -7,7 +7,7 @@
 [CmdletBinding()]
 param([string]$ExpectedRootFingerprint)
 $ErrorActionPreference='Stop'
-if ($env:OS -ne 'Windows_NT') { throw 'WINDOWS_REQUIRED' }
+if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { throw 'WINDOWS_REQUIRED' }
 
 $registryPath='Registry::HKEY_LOCAL_MACHINE\SOFTWARE\PlotPickle\ServiceManager\Trust\LaneA'
 $out=[ordered]@{

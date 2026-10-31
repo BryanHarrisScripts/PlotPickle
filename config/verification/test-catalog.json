@@ -11170,7 +11170,7 @@
       },
       {
         "target": "tests/issue-3259-bidirectional-gateway-p1.test.mjs",
-        "targetDigest": "9be4a0ce95535b0520e82b5b21fb2ede9b885391244562b65a84864535f37ce1",
+        "targetDigest": "5913a32d55105178197dd9adf39bb4adf58983b87df001517e58d63fb9045531",
         "catalogueIds": [
           "agent.bidirectional-gateway-p1-3259"
         ],
@@ -11188,7 +11188,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Disposable filesystem and injected host-auth unit tests only. Does not demonstrate authenticated live MCP, outbound dispatcher, paid AI, source modification, actual Windows processes, autonomous decisions or independent product acceptance. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release.",
+        "limits": "Disposable filesystem and injected host-auth unit tests only. Does not demonstrate authenticated live MCP, outbound dispatcher, paid AI, source modification, actual Windows processes, autonomous decisions or independent product acceptance. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release. Preproduction hostile-record fixture now explicitly creates its own answers directory; source read-only missing-directory behavior remains unchanged. No real Windows acceptance implied.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/gateway-contract.mjs",

@@ -183,15 +183,20 @@ export async function conversationMcpAction(args, { root, source, now = Date.now
     const delivery = await marker(dir, args.questionId, ".delivery");
     if (!delivery || delivery.deliveryId !== args.deliveryId) return { code: "GATEWAY_DELIVERY_UNVERIFIED" };
     if (args.answer.trim() === stored.question.payload.text.trim()) return { code: "GATEWAY_ECHO_REJECTED" };
-    await marker(dir, args.questionId, ".ack", { questionId: args.questionId, deliveryId: args.deliveryId, at: now });
-    // Replaying the same answer preserves its original timestamp, including
-    // after a lost HTTP response. Conflicting answers cannot overwrite it.
-    if (stored.answer?.messageId === args.answerId && stored.answer.payload.text === args.answer)
+    // Only acknowledge externally delivered work after its exact answer has
+    // actually been persisted. Otherwise a denied/failed answer could leave
+    // a misleading PlotPickle-to-ChatGPT VERIFIED marker.
+    if (stored.answer?.messageId === args.answerId && stored.answer.payload.text === args.answer) {
+      await marker(dir, args.questionId, ".ack", { questionId: args.questionId, deliveryId: args.deliveryId, at: now });
       return await view(dir, source, args.questionId, now);
+    }
     const answer = envelope("answer", source, args.answerId, args.answer, now, stored.question);
     const recorded = await persistGatewayAnswer({ root: dir, envelope: answer, now,
       authorization: context(source, CLIENT, "answer.record", now) });
     if (!["CREATED", "REPLAY"].includes(recorded.state)) return { code: recorded.state };
+    // A lost reply can be reconciled using the same answer ID; never forge
+    // an ACK for an answer the journal rejected.
+    await marker(dir, args.questionId, ".ack", { questionId: args.questionId, deliveryId: args.deliveryId, at: now });
     return await view(dir, source, args.questionId, now);
   } catch { return { code: "GATEWAY_STORAGE_UNVERIFIABLE" }; }
 }

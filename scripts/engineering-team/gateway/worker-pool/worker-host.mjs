@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * #3142 candidate Windows worker entry point. Does not activate F00 signer,
+ * #3142 candidate owner-granted Windows worker entry point. Does not activate F00 signer,
  * mint private grants, bypass local STOP, or dispatch legacy Pi jobs.
  */
 import { lstat, readFile } from 'node:fs/promises';

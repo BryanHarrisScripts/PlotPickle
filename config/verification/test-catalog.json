@@ -4262,7 +4262,8 @@
           "tests/issue-3142-owner-windows-acceptance-broker.test.mjs",
           "tests/issue-3142-factory-worker-pool.test.mjs",
           "tests/issue-3142-reconcile-syntax-failure.test.mjs",
-          "tests/issue-3142-native-dispatcher-live.test.mjs"
+          "tests/issue-3142-native-dispatcher-live.test.mjs",
+          "tests/issue-3142-ollama-coding-provider.test.mjs"
         ]
       },
       "cost": "fast",
@@ -12232,7 +12233,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "8ed8d9edcfaa281774c11d4e2c65885e86da906941d648042ce04101ddcae8d4"
+            "digest": "11115343662dcb4e4924de1f9612cdab0eacc64bcdaa2cd5b533e953e4e64f3e"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12241,6 +12242,34 @@
           {
             "path": "scripts/engineering-team/gateway/receipts/write-once-json.mjs",
             "digest": "e93a45ace974f9b53544b9544bd4e97eef6c475ec4f01ff77ef947c8d4316131"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-ollama-coding-provider.test.mjs",
+        "targetDigest": "6668c2f6227dcd5ebc8b51dfacd331a9249c468cb456477e06240b2cc7a98bbb",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic local Ollama and Git fixtures: only qwen2.5-coder:7b receives a fixed loopback structured request without a credential, one source-bound staged edit, mismatch and replay denial. Does not prove actual owner-Windows worker inference, real draft PR publication, independent F00 admission, product acceptance, background automation or green-only merge. Development-only owner-authorized exact-edition binding for PR #3352 at reviewed source HEAD 246c361100323f065c04baf5329d15aa615f4e33, GitHub comment #6543241425; all CI gates still required on the final new head.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
+            "digest": "11115343662dcb4e4924de1f9612cdab0eacc64bcdaa2cd5b533e953e4e64f3e"
           }
         ]
       },
@@ -12308,7 +12337,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "8ed8d9edcfaa281774c11d4e2c65885e86da906941d648042ce04101ddcae8d4"
+            "digest": "11115343662dcb4e4924de1f9612cdab0eacc64bcdaa2cd5b533e953e4e64f3e"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",

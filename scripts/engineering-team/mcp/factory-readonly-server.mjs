@@ -966,9 +966,18 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
            ((args.attempt??1)===2 && args.issueNumber!==3141))
           return {error:invalidParams()};
         value=await factoryEvidence({root,issueNumber:args.issueNumber,attempt:args.attempt??1});
-      }else if(isConversation)value=await conversationMcpAction(conversationArgs,{
-        root:gatewayRoot,source:await gatewaySource(args.expectedHead),now:now()});
-      else if(isStorage)value=await storageInspect(args);
+      }else if(isConversation){
+        value=await conversationMcpAction(conversationArgs,{
+          root:gatewayRoot,source:await gatewaySource(args.expectedHead),now:now()});
+        // The observation tool is intentionally metadata-only. Question and
+        // answer text require explicit authenticated delivery, not polling.
+        // The original combined tool remains unchanged for existing clients.
+        if(name==="factory_conversation_observe" && value &&
+           typeof value==="object" && !Array.isArray(value)){
+          const {question:_question,answer:_answer,...metadata}=value;
+          value=metadata;
+        }
+      }else if(isStorage)value=await storageInspect(args);
       else if(isHostDiagnostics)value=await hostDiagnosticsRead({expectedHead:args.expectedHead});
       else if(name==="factory_issue_preview")value=await factoryIssuePreview({github});
       else if(isControl)value=await factoryControlAction(name,args,{root,github,now,ops:controlOps});

@@ -11411,7 +11411,7 @@
       },
       {
         "target": "tests/issue-3259-conversation-mcp.test.mjs",
-        "targetDigest": "ebf1edfee4068ad24f5774ace07eb1af3b2488139d253370ca85ffff20361c3e",
+        "targetDigest": "0b8c6130f91a58b10b47fb206f1d3aa762ee3e2fb69bb741b09de45f1c46eca0",
         "catalogueIds": [
           "agent.conversation-mcp-3259"
         ],
@@ -11441,7 +11441,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/conversation-service.mjs",
-            "digest": "f9eceace5b5a5a632df29733d99de13f31370306f65bf185130f60ffea4eb6e1"
+            "digest": "32986e45f03a929c29b0e828bb963c08b872b620ae88090249c2137353188c14"
           },
           {
             "path": "scripts/engineering-team/gateway/conversation-http.mjs",
@@ -11763,7 +11763,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/conversation-service.mjs",
-            "digest": "f9eceace5b5a5a632df29733d99de13f31370306f65bf185130f60ffea4eb6e1"
+            "digest": "32986e45f03a929c29b0e828bb963c08b872b620ae88090249c2137353188c14"
           }
         ]
       },

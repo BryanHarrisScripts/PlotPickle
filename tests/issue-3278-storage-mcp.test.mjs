@@ -8,7 +8,7 @@ import {
 } from "../scripts/engineering-team/mcp/storage/factory-storage-inventory.mjs";
 import {
   handleRpc, MCP_TOOLS, MCP_CONTROL_TOOLS, MCP_CONVERSATION_TOOLS,
-  MCP_ENGINEERING_TOOLS, MCP_STORAGE_TOOLS,
+  MCP_ENGINEERING_TOOLS, MCP_STORAGE_TOOLS, MCP_WINDOWS_DIAGNOSTICS_TOOLS,
 } from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
 
 const MAIN = "a".repeat(40);
@@ -135,11 +135,12 @@ test("#3278 repository manifest matches exact named catalogue in both opt-in mod
   assert.deepEqual(catalog.control, names(MCP_CONTROL_TOOLS));
   assert.deepEqual(catalog.conversation, names(MCP_CONVERSATION_TOOLS));
   assert.deepEqual(catalog.storage, names(MCP_STORAGE_TOOLS));
+  assert.deepEqual(catalog.diagnostics, names(MCP_WINDOWS_DIAGNOSTICS_TOOLS));
   assert.deepEqual(catalog.engineeringOptIn, names(MCP_ENGINEERING_TOOLS));
   const publicNames = catalog.public;
-  const baseline = [...publicNames, ...catalog.control, ...catalog.conversation, ...catalog.storage];
-  assert.equal(new Set(baseline).size, 13);
-  assert.equal(new Set([...baseline, ...catalog.engineeringOptIn]).size, 14);
+  const baseline = [...publicNames, ...catalog.control, ...catalog.conversation, ...catalog.storage, ...catalog.diagnostics];
+  assert.equal(new Set(baseline).size, 14);
+  assert.equal(new Set([...baseline, ...catalog.engineeringOptIn]).size, 15);
   assert.equal(publicNames.length, 4);
 });
 

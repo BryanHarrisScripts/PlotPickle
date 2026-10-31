@@ -23,6 +23,10 @@ const SOURCE = /^scripts\/engineering-team\/(?:[a-z0-9-]+\/)*[a-z0-9-]+\.mjs$/;
 const TEST = /^tests\/issue-[0-9]+-[a-z0-9-]+\.test\.mjs$/;
 const CONSENT = 'AUTHORIZE_ONE_ENGINEERING_SOURCE_EDIT';
 const ENDPOINT = 'https://api.openai.com/v1/responses';
+// #3142 explicitly allowed local model: never accept an owner/model-supplied URL.
+const LOCAL_MODEL = 'qwen2.5-coder:7b';
+const LOCAL_ENDPOINT = 'http://127.0.0.1:11434/api/generate';
+const localModel = model => model === LOCAL_MODEL;
 // Retained evidence does not consume a concurrent worker slot. Reserve disk
 // headroom for one new worktree and leave every historical stage untouched.
 const MIN_CODING_STAGE_FREE_BYTES = 9n * 1024n ** 3n;
@@ -47,7 +51,7 @@ export function validateCodingGrant(grant, source, at) {
     TEST.test(grant.focusedTest) && typeof grant.objective === 'string' &&
     grant.objective.length >= 16 && grant.objective.length <= 1000 &&
     !/(?:sk-[a-z0-9_-]{12,}|ghp_[a-z0-9]{12,}|bearer\s+\S+)/i.test(grant.objective) &&
-    MODEL.test(grant.model) &&
+    (MODEL.test(grant.model) || localModel(grant.model)) &&
     Number.isInteger(grant.maxOutputTokens) && grant.maxOutputTokens >= 512 &&
     grant.maxOutputTokens <= 2500 && Number.isSafeInteger(grant.expiresAt) &&
     grant.expiresAt > at + 30_000 && grant.expiresAt <= at + 3_600_000 &&
@@ -317,7 +321,52 @@ async function boundedResponse(response) {
   finally { reader.releaseLock(); }
 }
 
+async function boundedLocalResponse(response, model) {
+  if (!response?.ok || !response.body?.getReader) return null;
+  const reader = response.body.getReader(), chunks = [];
+  let count = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      count += value.byteLength;
+      if (count > 32_768) { await reader.cancel().catch(() => {}); return null; }
+      chunks.push(Buffer.from(value));
+    }
+    const data = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+    if (data?.done !== true || data.model !== model || data.error ||
+        typeof data.response !== 'string' || data.response.length > 16_384)
+      return null;
+    const edit = JSON.parse(data.response);
+    return exact(edit, ['oldText', 'newText']) ? edit : null;
+  } catch { return null; }
+  finally { reader.releaseLock(); }
+}
+
 async function modelEdit({ grant, original, credential, fetchImpl }) {
+  if (localModel(grant.model)) {
+    // No arbitrary host, redirected provider URL, authorization header,
+    // token, tools, persistent conversation, or external model request.
+    const response = await fetchImpl(LOCAL_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: LOCAL_MODEL, stream: false, keep_alive: 0,
+        options: { temperature: 0, num_predict: grant.maxOutputTokens },
+        format: { type: 'object', additionalProperties: false,
+          properties: { oldText: { type: 'string' }, newText: { type: 'string' } },
+          required: ['oldText', 'newText'] },
+        prompt: `Return JSON only with exact oldText/newText strings. Replace one
+unique substring without altering unrelated code. No shell, tools, network,
+additional files, or claims of tests. Issue #${grant.issueNumber}.
+Owner objective: ${grant.objective}
+Modify only ${grant.targetPath}. Current source:
+${original}`,
+      }),
+      signal: AbortSignal.timeout(180_000),
+    });
+    return boundedLocalResponse(response, LOCAL_MODEL);
+  }
   const response = await fetchImpl(ENDPOINT, {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + credential, 'Content-Type': 'application/json' },
@@ -344,7 +393,8 @@ export async function runAuthorizedCodingOnce({ repoRoot, privateRoot, source, g
   const at = now();
   if (!validateCodingGrant(grant, source, at)) return block('CODING_OWNER_GRANT_REQUIRED');
   if (!path.isAbsolute(repoRoot || '') || !path.isAbsolute(privateRoot || '') ||
-      !credential || typeof credential !== 'string' || credential.length < 20)
+      (!localModel(grant.model) &&
+        (!credential || typeof credential !== 'string' || credential.length < 20)))
     return block('CODING_HOST_OR_CREDENTIAL_UNAVAILABLE');
   const rawGit = runGit || (async (cwd, args) => exec('git', args,
     { cwd, windowsHide: true, timeout: 30_000, maxBuffer: 8192 }));
@@ -459,7 +509,7 @@ export async function runOwnerCodingOnce({ grantId, env = process.env,
     if (grant.grantId !== grantId) return block('CODING_GRANT_ID_MISMATCH');
   } catch { return block('CODING_OWNER_GRANT_REQUIRED'); }
   return runAuthorizedCodingOnce({ repoRoot, privateRoot, source, grant,
-    credential: env.OPENAI_API_KEY, now,
+    credential: localModel(grant.model) ? undefined : env.OPENAI_API_KEY, now,
     operatorReady: () => ownerOneShotAllowed(source.head) });
 }
 

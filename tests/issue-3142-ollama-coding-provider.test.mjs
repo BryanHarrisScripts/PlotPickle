@@ -81,7 +81,8 @@ test('owner-granted local model sends one bounded loopback request without a cre
       assert.deepEqual(payload.format.required, ['oldText', 'newText']);
       assert.equal(payload.model, MODEL);
       assert.equal(payload.stream, false);
-      assert.equal(payload.keep_alive, 0);
+      assert.equal(init.redirect, 'error');
+      assert.equal(payload.keep_alive, '0');
       assert.equal(payload.options.num_predict, 512);
       assert.equal(payload.options.temperature, 0);
       assert.match(payload.prompt, /Correct the calculation/);

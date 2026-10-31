@@ -275,6 +275,7 @@ test('Worker 1 pilot observation is read-only, exact-head scoped and never a wor
     assert.ok(observed.workers.every(worker => !worker.canCode && !worker.canMerge));
     for (const supervisor of [
       { state: 'RUNNING', exactSha: 'b'.repeat(40) },
+      { state: 'RUNNING', exactSha: pinned, pauseAcknowledged: true },
       { state: 'PAUSED', exactSha: pinned },
       { state: 'STOP_REQUESTED', exactSha: pinned },
       null,

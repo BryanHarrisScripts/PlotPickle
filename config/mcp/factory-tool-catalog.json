@@ -24,5 +24,8 @@
   ],
   "engineeringOptIn": [
     "factory_engineering_run"
+  ],
+  "diagnostics": [
+    "factory_host_diagnostics"
   ]
 }

@@ -12,11 +12,11 @@ The previous `factory_conversation` combined observation, delivery acknowledgeme
 
 Retain `factory_conversation` without changed behavior for existing clients and October 24 receipt continuity. Append three narrowly described, authenticated tools to the reviewed MCP catalogue:
 
-- `factory_conversation_observe` — status `pending` or `receipt`; genuinely read-only, may return authorized question/answer text; `readOnlyHint:true`.
+- `factory_conversation_observe` — status `pending` or `receipt`; genuinely read-only and metadata-only, excludes private question/answer text; `readOnlyHint:true`.
 - `factory_conversation_receive` — write-once question delivery marker and durable delivery ID; `readOnlyHint:false`.
 - `factory_conversation_reply` — write-once correlated answer requiring expected HEAD, question ID, delivery ID and answer ID; `readOnlyHint:false`.
 
-The read-only code validates existing private directory identities, refuses symlinks and missing/corrupt evidence without creating new directories. No model, arbitrary script, outbound event delivery, worker ticket, protected test catalogue approval or merge authority is added. Existing `conversationMcpAction`, source pin, 15-minute expiry, idempotency, data-integrity, principal/transport authentication and fail-closed write-once behavior remain the only execution path.
+The read-only code validates existing private directory identities, refuses symlinks and missing/corrupt evidence without creating new directories. Observation strips question and answer text before MCP response serialization; receiving the actual question still requires explicit, authenticated delivery acknowledgement. No model, arbitrary script, outbound event delivery, worker ticket, protected test catalogue approval or merge authority is added. Existing `conversationMcpAction`, source pin, 15-minute expiry, idempotency, data-integrity, principal/transport authentication and fail-closed write-once behavior remain the only execution path.
 
 The authenticated catalogue expands by three names; existing launcher verification uses `config/mcp/factory-tool-catalog.json`. **Do not hot-reload or upgrade a currently running tunnel in this PR.** An installed launcher / ChatGPT plugin may still advertise the old tool definitions until an owner-approved offline and reversible catalogue/plugin refresh, with exact version/source verification. Any new tool may still be denied by OpenAI safety checks; accurate definitions are not a permission override.
 

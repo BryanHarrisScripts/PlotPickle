@@ -10,6 +10,7 @@ import { gatewayAppSource, privateGatewayRoot } from "../gateway/gateway-host.mj
 import { conversationMcpAction, validConversationArgs } from "../gateway/conversation-service.mjs";
 import { timingSafeEqual } from "node:crypto";
 import { requestIndependentSupervisorStart } from "./engineering/factory-supervisor-start.mjs";
+import { observeFactoryWindowsProductGate } from "./engineering/factory-windows-product-gate.mjs";
 import { existsSync } from "node:fs";
 import { lstat, mkdir, readFile, writeFile, unlink } from "node:fs/promises";
 import os from "node:os";
@@ -447,7 +448,12 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "ENGINEERING_SOURCE_CHANGED","ENGINEERING_SOURCE_UNVERIFIED",
   "ENGINEERING_EXECUTABLE_UNAVAILABLE","ENGINEERING_EXECUTION_UNCONFIRMED",
   "ENGINEERING_TASK_TIMEOUT","ENGINEERING_STOP_UNVERIFIED",
-  "ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"]);
+  "ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED",
+  "PRODUCT_GATE_SELECTION_INVALID","PRODUCT_GATE_STAGE_UNVERIFIED",
+  "PRODUCT_GATE_HOST_UNVERIFIED","PRODUCT_GATE_HOST_CHANGED",
+  "PRODUCT_GATE_CANDIDATE_UNVERIFIED","PRODUCT_GATE_NATIVE_PROBE_UNAVAILABLE",
+  "PRODUCT_GATE_NATIVE_PROBE_UNVERIFIED","PRODUCT_GATE_EVIDENCE_UNVERIFIED",
+  "PRODUCT_GATE_OBSERVED_NOT_RELEASED"]);
 export function controlTokenMatches(presented,configured) {
   if(typeof configured!=="string"||!CONTROL_TOKEN.test(configured)||
      typeof presented!=="string"||!CONTROL_TOKEN.test(presented))return false;
@@ -458,7 +464,7 @@ const APP_CONTROL_SUITES=Object.freeze(["plotpickle-app-start","plotpickle-app-s
 const allowedFactoryControlSuites=()=>[...allowedFactoryTestNames(),...APP_CONTROL_SUITES,
   "factory-pr-head","factory-pr-stage","factory-sync-main",
   "factory-story-uat","factory-story-verify","factory-supervisor-start",
-  "factory-gateway-acceptance"];
+  "factory-gateway-acceptance","factory-windows-product-gate"];
 export const MCP_CONTROL_TOOLS=Object.freeze([
   {name:"factory_run_dependency_preflight",title:"Run Windows Factory dependency preflight",
     description:"On the paired, stopped Windows host, run the non-reserving npm dependency preflight for an exact main SHA. May take several minutes. Never invokes a model or retries an issue.",
@@ -522,7 +528,7 @@ function validControlArgs(name,args) {
       Number.isSafeInteger(args.candidatePrNumber)&&validIssue(args.candidatePrNumber)&&
       CONTROL_HEAD.test(args.candidateHead||"");
     if(["plotpickle-app-candidate-start","plotpickle-app-factory-start",
-      "factory-gateway-acceptance"].includes(args.suite))return keys.length===6 &&
+      "factory-gateway-acceptance","factory-windows-product-gate"].includes(args.suite))return keys.length===6 &&
       Number.isSafeInteger(args.candidatePrNumber)&&validIssue(args.candidatePrNumber)&&
       CONTROL_HEAD.test(args.candidateHead||"")&&REQUEST_ID.test(args.sourceRequestId||"")&&
       args.sourceRequestId!==args.requestId;
@@ -553,25 +559,25 @@ function safeControlReceipt(raw,requestId) {
     diagnostic:raw.code==="ENGINEERING_TASK_FAILED"&&raw.state==="TEST_FAILED"?sanitizeEngineeringOutput(raw.diagnostic):null,
     outputDigest:/^[a-f0-9]{64}$/.test(raw.outputDigest||"")?raw.outputDigest:null,
     candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED",
-      "ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(raw.code)&&
+      "ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED","PRODUCT_GATE_OBSERVED_NOT_RELEASED"].includes(raw.code)&&
       raw.state==="TEST_PASSED"&&validIssue(raw.candidatePrNumber)?raw.candidatePrNumber:null,
     candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED",
-      "ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(raw.code)&&
+      "ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED","PRODUCT_GATE_OBSERVED_NOT_RELEASED"].includes(raw.code)&&
       raw.state==="TEST_PASSED"?safeSha(raw.candidateHead):null,
     stageReason:raw.code==="PRODUCT_UAT_STAGE_UNVERIFIED"&&raw.state==="BLOCKED"&&
       FACTORY_STORY_STAGE_REASONS.includes(raw.stageReason)?raw.stageReason:null,
-    stageId:["CANDIDATE_STATIC_STAGED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(raw.code)&&
+    stageId:["CANDIDATE_STATIC_STAGED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED","PRODUCT_GATE_OBSERVED_NOT_RELEASED"].includes(raw.code)&&
       ["TEST_PASSED","TEST_FAILED"].includes(raw.state)&&
       REQUEST_ID.test(raw.stageId||"")?raw.stageId:null,
     changedFileCount:raw.code==="CANDIDATE_STATIC_STAGED"&&raw.state==="TEST_PASSED"&&
       Number.isSafeInteger(raw.changedFileCount)&&raw.changedFileCount>=1&&
       raw.changedFileCount<=500?raw.changedFileCount:null,
-    sourceRequestId:["PRODUCT_UAT_EVIDENCE_ATTESTED","APP_CANDIDATE_STARTED_VERIFIED"].includes(raw.code)&&raw.state==="TEST_PASSED"&&
+    sourceRequestId:["PRODUCT_UAT_EVIDENCE_ATTESTED","APP_CANDIDATE_STARTED_VERIFIED","PRODUCT_GATE_OBSERVED_NOT_RELEASED"].includes(raw.code)&&raw.state==="TEST_PASSED"&&
       REQUEST_ID.test(raw.sourceRequestId||"")?raw.sourceRequestId:null,
     checkpointCount:raw.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"&&raw.state==="TEST_PASSED"&&
       Number.isSafeInteger(raw.checkpointCount)&&raw.checkpointCount>=55&&
       raw.checkpointCount<=250?raw.checkpointCount:null,
-    evidenceDigest:raw.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"&&raw.state==="TEST_PASSED"&&
+    evidenceDigest:["PRODUCT_UAT_EVIDENCE_ATTESTED","PRODUCT_GATE_OBSERVED_NOT_RELEASED"].includes(raw.code)&&raw.state==="TEST_PASSED"&&
       /^[a-f0-9]{64}$/.test(raw.evidenceDigest||"")?raw.evidenceDigest:null,
     projectIdentityDigest:raw.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"&&raw.state==="TEST_PASSED"&&
       /^[a-f0-9]{64}$/.test(raw.projectIdentityDigest||"")?raw.projectIdentityDigest:null,
@@ -579,7 +585,8 @@ function safeControlReceipt(raw,requestId) {
       ?raw.issueCount:null,
     modelInvoked:raw.code.startsWith("ENGINEERING_")?null:false,
     replayAuthorized:false,
-    independentVerification:false};
+    ownerMachineObserved:raw.code==="PRODUCT_GATE_OBSERVED_NOT_RELEASED"&&raw.state==="TEST_PASSED"&&raw.ownerMachineObserved===true,
+    independentVerification:false,releaseAuthorized:false};
 }
 export async function factoryControlReceipt({root,requestId}){
   const dir=path.join(root,"mcp-control-requests");
@@ -601,6 +608,7 @@ export async function factoryControlAction(name,args,{
     storyUat:runFactoryStoryUat,storyVerify:runFactoryStoryEvidenceVerify,
     appControl:controlPlotpickleOwnerApp,
     supervisorStart:requestIndependentSupervisorStart,
+    productGate:observeFactoryWindowsProductGate,
     engineering:runStagedEngineeringTask,
   },
 }={}) {
@@ -638,9 +646,9 @@ export async function factoryControlAction(name,args,{
     await writeFile(path.join(dir,args.requestId+".json"),JSON.stringify({
       schemaVersion:1,requestId:args.requestId,operation:name,
       expectedHead:args.expectedHead,
-      candidatePrNumber:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start","plotpickle-app-factory-start","factory-gateway-acceptance"].includes(args.suite)?args.candidatePrNumber:null,
-      candidateHead:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start","plotpickle-app-factory-start","factory-gateway-acceptance"].includes(args.suite)?args.candidateHead:null,
-      sourceRequestId:["factory-story-verify","plotpickle-app-candidate-start","plotpickle-app-factory-start","factory-gateway-acceptance"].includes(args.suite)?args.sourceRequestId:null,
+      candidatePrNumber:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start","plotpickle-app-factory-start","factory-gateway-acceptance","factory-windows-product-gate"].includes(args.suite)?args.candidatePrNumber:null,
+      candidateHead:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start","plotpickle-app-factory-start","factory-gateway-acceptance","factory-windows-product-gate"].includes(args.suite)?args.candidateHead:null,
+      sourceRequestId:["factory-story-verify","plotpickle-app-candidate-start","plotpickle-app-factory-start","factory-gateway-acceptance","factory-windows-product-gate"].includes(args.suite)?args.sourceRequestId:null,
       stageRequestId:name==="factory_engineering_run"?args.stageRequestId:null,
       mode:name==="factory_engineering_run"?args.mode:null,
       at:now(),replayAuthorized:false,
@@ -667,6 +675,15 @@ export async function factoryControlAction(name,args,{
             ?await ops.engineering({selection:args,root,repoRoot:ENGINEERING_REPO_ROOT,
               stageReceipt:await factoryControlReceipt({root,requestId:args.stageRequestId}),
               verifyHead:ops.testHead})
+            :args.suite==="factory-windows-product-gate"
+            ?await ops.productGate({
+              selection:{requestId:args.requestId,expectedHead:args.expectedHead,
+                candidatePrNumber:args.candidatePrNumber,candidateHead:args.candidateHead,
+                sourceRequestId:args.sourceRequestId},
+              root,repoRoot:ENGINEERING_REPO_ROOT,
+              stageReceipt:await factoryControlReceipt({root,requestId:args.sourceRequestId}),
+              verifyHead:ops.testHead,inspectPr:ops.inspectPr,
+            })
             :args.suite==="factory-gateway-acceptance"
             ?await (async()=>{
               // Candidate test source is untrusted until its approved-truth
@@ -733,19 +750,20 @@ export async function factoryControlAction(name,args,{
             durationMs:name==="factory_engineering_run"||args.suite==="factory-gateway-acceptance"?result.durationMs:null,
             diagnostic:name==="factory_engineering_run"||args.suite==="factory-gateway-acceptance"?result.diagnostic:null,
             outputDigest:name==="factory_engineering_run"||args.suite==="factory-gateway-acceptance"?result.outputDigest:null,
-            candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(result.code)
+            candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED","PRODUCT_GATE_OBSERVED_NOT_RELEASED"].includes(result.code)
               ?(result.candidatePrNumber??args.candidatePrNumber):null,
-            candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(result.code)
+            candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED","PRODUCT_GATE_OBSERVED_NOT_RELEASED"].includes(result.code)
               ?(result.candidateHead??args.candidateHead):null,
-            stageId:["CANDIDATE_STATIC_STAGED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(result.code)?result.stageId:null,
+            stageId:["CANDIDATE_STATIC_STAGED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED","PRODUCT_GATE_OBSERVED_NOT_RELEASED"].includes(result.code)?result.stageId:null,
             stageReason:result.code==="PRODUCT_UAT_STAGE_UNVERIFIED"&&
               FACTORY_STORY_STAGE_REASONS.includes(result.stageReason)
               ?result.stageReason:null,
             changedFileCount:result.code==="CANDIDATE_STATIC_STAGED"
               ?result.changedFileCount:null,
-            sourceRequestId:["PRODUCT_UAT_EVIDENCE_ATTESTED","APP_CANDIDATE_STARTED_VERIFIED"].includes(result.code)?(result.sourceRequestId??args.sourceRequestId):null,
+            sourceRequestId:["PRODUCT_UAT_EVIDENCE_ATTESTED","APP_CANDIDATE_STARTED_VERIFIED","PRODUCT_GATE_OBSERVED_NOT_RELEASED"].includes(result.code)?(result.sourceRequestId??args.sourceRequestId):null,
             checkpointCount:result.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"?result.checkpointCount:null,
-            evidenceDigest:result.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"?result.evidenceDigest:null,
+            evidenceDigest:["PRODUCT_UAT_EVIDENCE_ATTESTED","PRODUCT_GATE_OBSERVED_NOT_RELEASED"].includes(result.code)?result.evidenceDigest:null,
+            ownerMachineObserved:result.code==="PRODUCT_GATE_OBSERVED_NOT_RELEASED"&&result.ownerMachineObserved===true,
             projectIdentityDigest:result.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"?result.projectIdentityDigest:null};
         }finally{await unlink(lockFile).catch(()=>{});}
       }

@@ -12606,7 +12606,7 @@
       },
       {
         "target": "tests/issue-3142-reconcile-syntax-failure.test.mjs",
-        "targetDigest": "a4a3bc385adbc9aea6bf77bbef7f99face75755c68eee00f039e3d221dc96bdd",
+        "targetDigest": "003e5232eea1b2b3d911c1046da9c259c32350ba71f1156132dc9fbfc7df9c72",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],

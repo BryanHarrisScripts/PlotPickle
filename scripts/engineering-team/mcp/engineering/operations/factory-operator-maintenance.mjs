@@ -8,13 +8,13 @@ import {promisify} from "node:util";
 import path from "node:path";
 import process from "node:process";
 import {fileURLToPath} from "node:url";
-import {readFactoryVerificationHead} from "../factory-named-tests.mjs";
-import {inspectOwnerWorkerFleet} from "../../gateway/worker-pool/worker-host.mjs";
-import {status as readNativeDispatcherStatus} from "../../gateway/worker-pool/dispatcher/native-dispatcher.mjs";
-import {supervisorStatus,migrateSupervisorHead} from "../../windows/supervisor/unattended-supervisor.mjs";
+import {readFactoryVerificationHead} from "../../factory-named-tests.mjs";
+import {inspectOwnerWorkerFleet} from "../../../gateway/worker-pool/worker-host.mjs";
+import {status as readNativeDispatcherStatus} from "../../../gateway/worker-pool/dispatcher/native-dispatcher.mjs";
+import {supervisorStatus,migrateSupervisorHead} from "../../../windows/supervisor/unattended-supervisor.mjs";
 
 const exec=promisify(execFile);
-const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..","..","..","..");
+const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..","..","..","..","..");
 const SCRIPT=path.join(ROOT,"scripts","engineering-team","windows","workers","Install-PlotPickleFactoryWorkers.ps1");
 const SHA=/^[a-f0-9]{40}$/;
 const CONSENT="ENABLE_INDEPENDENT_WINDOWS_SUPERVISOR";

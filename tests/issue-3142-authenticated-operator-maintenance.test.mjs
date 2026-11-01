@@ -4,7 +4,7 @@ import {mkdtemp,rm} from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {inspectOwnerWorkerOperations,requestOwnerSupervisorMigration}
-  from "../scripts/engineering-team/mcp/engineering/factory-operator-maintenance.mjs";
+  from "../scripts/engineering-team/mcp/engineering/operations/factory-operator-maintenance.mjs";
 import {factoryStatus,handleRpc,MCP_CONTROL_TOOLS}
   from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
 

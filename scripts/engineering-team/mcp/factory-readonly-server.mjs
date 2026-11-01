@@ -10,7 +10,7 @@ import { gatewayAppSource, privateGatewayRoot } from "../gateway/gateway-host.mj
 import { conversationMcpAction, validConversationArgs } from "../gateway/conversation-service.mjs";
 import { timingSafeEqual } from "node:crypto";
 import { requestIndependentSupervisorStart } from "./engineering/factory-supervisor-start.mjs";
-import { inspectOwnerWorkerOperations, requestOwnerSupervisorMigration } from "./engineering/factory-operator-maintenance.mjs";
+import { inspectOwnerWorkerOperations, requestOwnerSupervisorMigration } from "./engineering/operations/factory-operator-maintenance.mjs";
 import { observeFactoryWindowsProductGate, verifyFactoryWindowsProductGateReceipt } from "./engineering/factory-windows-product-gate.mjs";
 import { existsSync } from "node:fs";
 import { lstat, mkdir, readFile, writeFile, unlink } from "node:fs/promises";

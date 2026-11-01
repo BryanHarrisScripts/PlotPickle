@@ -34,7 +34,7 @@ const jsonBytes=value=>Buffer.from(JSON.stringify(value)+"\n","utf8");
 // Later Factory change types require their own trusted, source-reviewed probe.
 const DIAGNOSTICS_PROBE_FILES=new Set([
   "config/verification/test-catalog.json",
-  "scripts/engineering-team/mcp/engineering/factory-operator-maintenance.mjs",
+  "scripts/engineering-team/mcp/engineering/operations/factory-operator-maintenance.mjs",
   "scripts/engineering-team/mcp/factory-readonly-server.mjs",
   "tests/issue-3142-authenticated-operator-maintenance.test.mjs",
 ]);

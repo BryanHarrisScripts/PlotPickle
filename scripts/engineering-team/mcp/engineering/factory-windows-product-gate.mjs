@@ -30,6 +30,35 @@ export async function readFactoryGateVerifierDigest(){
 }
 const knownProofs=new Set(["windows-factory-acceptance"]);
 const jsonBytes=value=>Buffer.from(JSON.stringify(value)+"\n","utf8");
+// This first fixed probe only covers the #3362 diagnostics/migration edition.
+ // Later Factory change types require their own trusted, source-reviewed probe.
+const DIAGNOSTICS_PROBE_FILES=new Set([
+  "config/verification/test-catalog.json",
+  "scripts/engineering-team/mcp/engineering/factory-operator-maintenance.mjs",
+  "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+  "tests/issue-3142-authenticated-operator-maintenance.test.mjs",
+]);
+export function admissibleFactoryDiagnosticsDiff(files){
+  return Array.isArray(files)&&files.length===DIAGNOSTICS_PROBE_FILES.size&&
+    new Set(files).size===files.length&&files.every(file=>
+      typeof file==="string"&&DIAGNOSTICS_PROBE_FILES.has(file));
+}
+export async function attestFactoryDiagnosticsScope({
+  stage,expectedHead,candidateHead,run=exec,
+}={}){
+  if(typeof stage!=="string"||!path.isAbsolute(stage)||
+    !SHA.test(expectedHead||"")||!SHA.test(candidateHead||""))return false;
+  try{
+    const result=await run("git",[
+      "diff","--name-only","--no-ext-diff",expectedHead,candidateHead,"--",
+    ],{cwd:stage,windowsHide:true,encoding:"utf8",
+      timeout:30000,maxBuffer:8192});
+    const raw=String(result.stdout||"");
+    if(raw.length>4096||raw.includes("\\0")||raw.includes("\\r")||
+      !raw.endsWith("\\n"))return false;
+    return admissibleFactoryDiagnosticsDiff(raw.trimEnd().split("\\n"));
+  }catch{return false;}
+}
 const cleanStage=async({stage,candidateHead,run=exec,fs={lstat,realpath}})=>{
   const [entry,actual,head,status]=await Promise.all([
       fs.lstat(stage),fs.realpath(stage),
@@ -59,7 +88,7 @@ export async function observeFactoryWindowsProductGate({
   selection,root,repoRoot,stageReceipt,
   platform=process.platform,verifyHead=readFactoryVerificationHead,
   inspectPr=inspectFactoryCandidatePr,readSupervisor=supervisorStatus,
-  attestStage=cleanStage,
+  attestStage=cleanStage,attestScope=attestFactoryDiagnosticsScope,
   nativeProbe=probeFactoryWindowsCandidate,
   fs={writeFile,readFile},now=Date.now,
 }={}){
@@ -93,6 +122,8 @@ export async function observeFactoryWindowsProductGate({
   try{stageReady=await attestStage({stage,candidateHead:a.candidateHead});}
   catch{return blocked("PRODUCT_GATE_STAGE_UNVERIFIED",a.expectedHead);}
   if(!stageReady)return blocked("PRODUCT_GATE_STAGE_UNVERIFIED",a.expectedHead);
+  if(!await attestScope({stage,expectedHead:a.expectedHead,candidateHead:a.candidateHead}))
+    return blocked("PRODUCT_GATE_SCOPE_UNSUPPORTED",a.expectedHead);
   // Bind the verifier edition before executing candidate code. This is not
   // an F00 signature; source authority still comes from clean trusted MAIN.
   let verifierSourceDigest;
@@ -123,6 +154,8 @@ export async function observeFactoryWindowsProductGate({
   catch{return blocked("PRODUCT_GATE_HOST_CHANGED",a.expectedHead);}
   if(last!==a.expectedHead||!running(supervisorAfter,a.expectedHead)||!stageAfter)
     return blocked("PRODUCT_GATE_HOST_CHANGED",a.expectedHead);
+  if(!await attestScope({stage,expectedHead:a.expectedHead,candidateHead:a.candidateHead}))
+    return blocked("PRODUCT_GATE_SCOPE_UNSUPPORTED",a.expectedHead);
   const evidence=Object.freeze({
     schemaVersion:1,requestId:a.requestId,sourceHead:a.expectedHead,
     verifierSourceHead:a.expectedHead,verifierSourceDigest,

@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, link, readFile, readdir, rm, writeFile } from 'node:fs/
 import os from 'node:os';
 import path from 'node:path';
 import { claimCodingOwnership, reconcileSyntaxRejectedOwnership } from '../scripts/engineering-team/gateway/receipts/atomic-coding-ownership.mjs';
-import { inspectFailedSyntaxClaim, onlyUnstagedTarget } from '../scripts/engineering-team/gateway/worker-pool/reconcile-failed-syntax-once.mjs';
+import { inspectFailedSyntaxClaim, onlyUnstagedTarget, recoveryTargetAllowed } from '../scripts/engineering-team/gateway/worker-pool/reconcile-failed-syntax-once.mjs';
 
 const GRANT='1'.repeat(32), NEXT='2'.repeat(32), HEAD='a'.repeat(40);
 const CONSENT='RECONCILE_ONE_FAILED_SYNTAX_CLAIM_NO_REPLAY';
@@ -74,4 +74,19 @@ test('trimmed porcelain status admits only the one unstaged authorized source ed
   assert.equal(onlyUnstagedTarget('M  '+target),false,'staged source edit not allowed');
   assert.equal(onlyUnstagedTarget('?? '+target),false,'untracked source edit not allowed');
   assert.equal(onlyUnstagedTarget('M '+target+'\nM another.mjs'),false,'additional modified paths not allowed');
+});
+
+test('reconciliation permits only two fixed #3142 coding source targets',()=>{
+  const host='scripts/engineering-team/gateway/worker-pool/worker-host.mjs';
+  const pool='scripts/engineering-team/gateway/worker-pool/worker-pool.mjs';
+  for(const target of [host,pool]){
+    assert.equal(recoveryTargetAllowed(target),true);
+    assert.equal(onlyUnstagedTarget('M '+target,target),true);
+    assert.equal(onlyUnstagedTarget('M '+target+'\nM another.mjs',target),false);
+  }
+  for(const target of [
+    '../worker-pool.mjs','scripts/engineering-team/gateway/worker-pool/other.mjs',
+    'scripts/engineering-team/gateway/worker-pool/worker-pool.mjs/../other.mjs',
+    host.toUpperCase(),'',null,undefined
+  ]) assert.equal(recoveryTargetAllowed(target),false);
 });

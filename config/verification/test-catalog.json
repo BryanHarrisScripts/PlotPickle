@@ -12606,7 +12606,7 @@
       },
       {
         "target": "tests/issue-3142-reconcile-syntax-failure.test.mjs",
-        "targetDigest": "a4a3bc385adbc9aea6bf77bbef7f99face75755c68eee00f039e3d221dc96bdd",
+        "targetDigest": "003e5232eea1b2b3d911c1046da9c259c32350ba71f1156132dc9fbfc7df9c72",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12632,7 +12632,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/reconcile-failed-syntax-once.mjs",
-            "digest": "09ec63163a3d9b8fcc9252d9af3edd8da1fc278754c1bd7cce46d736385b3828"
+            "digest": "d66f83718aebdd05fd42c98465af283c37facd7d41ae42d18197a4ba1515afa3"
           }
         ]
       },

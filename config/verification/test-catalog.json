@@ -4263,7 +4263,8 @@
           "tests/issue-3142-factory-worker-pool.test.mjs",
           "tests/issue-3142-reconcile-syntax-failure.test.mjs",
           "tests/issue-3142-native-dispatcher-live.test.mjs",
-          "tests/issue-3142-ollama-coding-provider.test.mjs"
+          "tests/issue-3142-ollama-coding-provider.test.mjs",
+        "tests/issue-3142-authenticated-operator-maintenance.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4481,7 +4482,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-3142-supervisor-head-migration.test.mjs"
+          "tests/issue-3142-supervisor-head-migration.test.mjs",
+        "tests/issue-3142-authenticated-operator-maintenance.test.mjs"
         ]
       },
       "cost": "fast",

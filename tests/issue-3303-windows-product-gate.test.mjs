@@ -86,7 +86,7 @@ test("#3303 guest and forged control arguments never execute Product Gate",()=>s
   let calls=0;
   const call=(args,authorized)=>handleRpc({jsonrpc:"2.0",id:99,method:"tools/call",
     params:{name:"factory_run_named_test",arguments:args}},
-    {root,controlAuthenticated:authorized,controlOps:{
+    {root,controlAuthenticated:authorized,engineeringEnabled:true,controlOps:{
       testHead:async()=>MAIN,
       engineering:async()=>({state:"TEST_PASSED",code:"ENGINEERING_TASK_PASSED"}),
       productGate:async()=>{calls++;
@@ -140,3 +140,26 @@ test("#3303 second-phase readback rechecks current PR and evidence; cannot grant
   assert.equal((await verifyFactoryWindowsProductGateReceipt({...verify,
     inspectPr:async()=>({state:"BLOCKED"})})).code,"PRODUCT_GATE_CANDIDATE_UNVERIFIED");
 }));
+
+test("#3303 candidate-executing suite requires the existing owner engineering opt-in",async()=>{
+  const {executeMcpRequest}=await import(
+    "../scripts/engineering-team/mcp/factory-readonly-server.mjs");
+  const listing={jsonrpc:"2.0",method:"tools/list"};
+  const disabled=await executeMcpRequest(listing,{
+    controlAuthenticated:true,engineeringEnabled:false});
+  const disabledSuite=disabled.result.tools.find(t=>t.name==="factory_run_named_test");
+  assert.equal(disabledSuite.inputSchema.properties.suite.enum.includes(
+    "factory-windows-product-gate"),false);
+  assert.equal(disabledSuite.inputSchema.properties.suite.enum.includes(
+    "factory-windows-product-gate-verify"),true);
+  const enabled=await executeMcpRequest(listing,{
+    controlAuthenticated:true,engineeringEnabled:true});
+  const enabledSuite=enabled.result.tools.find(t=>t.name==="factory_run_named_test");
+  assert.equal(enabledSuite.inputSchema.properties.suite.enum.includes(
+    "factory-windows-product-gate"),true);
+  const forbidden=await executeMcpRequest({jsonrpc:"2.0",method:"tools/call",
+    params:{name:"factory_run_named_test",arguments:{
+      ...selection,suite:"factory-windows-product-gate",
+    }}},{controlAuthenticated:true,engineeringEnabled:false});
+  assert.equal(forbidden.error.code,-32601);
+});

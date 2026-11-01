@@ -5,7 +5,8 @@ import os from "node:os";
 import path from "node:path";
 import {spawnSync} from "node:child_process";
 import {observeFactoryWindowsProductGate,evaluateFactoryWindowsProductEvidence,
-  validateFactoryProductGateSelection,verifyFactoryWindowsProductGateReceipt} from "../scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs";
+  validateFactoryProductGateSelection,verifyFactoryWindowsProductGateReceipt,
+  admissibleFactoryDiagnosticsDiff,attestFactoryDiagnosticsScope} from "../scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs";
 import {handleRpc,MCP_CONTROL_TOOLS} from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
 import {resolveProofRoute,assessProductProof} from "../lib/verification/development/proof-routing.mjs";
 
@@ -28,7 +29,7 @@ const sandbox=async fn=>{
 const options=(root)=>({selection,root,repoRoot:root,stageReceipt,platform:"win32",
   verifyHead:async()=>MAIN,readSupervisor:async()=>supervisor(),
   inspectPr:async()=>({state:"TEST_PASSED",code:"CANDIDATE_HEAD_VERIFIED"}),
-  attestStage:async()=>true});
+  attestStage:async()=>true,attestScope:async()=>true});
 
 test("#3303 exact bound selection rejects injected commands and replay identifier",()=>{
   assert.equal(validateFactoryProductGateSelection(selection),true);
@@ -58,6 +59,8 @@ test("#3303 native runner rejects stale head, wrong stage, PAUSE and foreign pla
     readSupervisor:async()=>({...supervisor(),pauseAcknowledged:true})})).code,"PRODUCT_GATE_HOST_UNVERIFIED");
   assert.equal((await observeFactoryWindowsProductGate({...options(root),
     attestStage:async()=>false})).code,"PRODUCT_GATE_STAGE_UNVERIFIED");
+  assert.equal((await observeFactoryWindowsProductGate({...options(root),
+    attestScope:async()=>false})).code,"PRODUCT_GATE_SCOPE_UNSUPPORTED");
   assert.equal((await observeFactoryWindowsProductGate({...options(root),
     inspectPr:async()=>({state:"BLOCKED"})})).code,"PRODUCT_GATE_CANDIDATE_UNVERIFIED");
 }));
@@ -212,4 +215,37 @@ test("#3303 risk route is compositional and requires independent privileged evid
   assert.deepEqual(outcome.missing,["windows-release-authority"]);
   assert.equal(assessProductProof({route:mixed,evidence:partial,
     testedCommit:MAIN,verifiedArtifactRefs:[ref]}).status,"UNPROVEN");
+});
+
+test("#3303 native probe scope refuses unrelated or silently expanded PR diffs",async()=>{
+  const supported=[
+    "config/verification/test-catalog.json",
+    "scripts/engineering-team/mcp/engineering/factory-operator-maintenance.mjs",
+    "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+    "tests/issue-3142-authenticated-operator-maintenance.test.mjs",
+  ];
+  assert.equal(admissibleFactoryDiagnosticsDiff(supported),true);
+  assert.equal(admissibleFactoryDiagnosticsDiff(supported.slice(0,3)),false);
+  assert.equal(admissibleFactoryDiagnosticsDiff([...supported,
+    "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs"]),false);
+  assert.equal(admissibleFactoryDiagnosticsDiff([...supported.slice(0,3),
+    "scripts/engineering-team/gateway/authorized-coding-once.mjs"]),false);
+  assert.equal(admissibleFactoryDiagnosticsDiff([...supported.slice(0,3),
+    supported[0]]),false);
+  assert.equal(await attestFactoryDiagnosticsScope({
+    stage:path.resolve(os.tmpdir()),expectedHead:MAIN,candidateHead:CANDIDATE,
+    run:async()=>({stdout:supported.join("\n")+"\n"}),
+  }),true);
+  assert.equal(await attestFactoryDiagnosticsScope({
+    stage:path.resolve(os.tmpdir()),expectedHead:MAIN,candidateHead:CANDIDATE,
+    run:async()=>({stdout:supported.join("\r\n")+"\r\n"}),
+  }),true);
+  assert.equal(await attestFactoryDiagnosticsScope({
+    stage:path.resolve(os.tmpdir()),expectedHead:MAIN,candidateHead:CANDIDATE,
+    run:async()=>({stdout:supported.join("\n")+"\nother.js\n"}),
+  }),false);
+  assert.equal(await attestFactoryDiagnosticsScope({
+    stage:path.resolve(os.tmpdir()),expectedHead:MAIN,candidateHead:CANDIDATE,
+    run:async()=>{throw Error("UNTRUSTED_GIT");},
+  }),false);
 });

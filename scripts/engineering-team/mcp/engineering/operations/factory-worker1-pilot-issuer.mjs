@@ -45,6 +45,83 @@ async function readTarget(root){
   if(!ts.isFile()||ts.isSymbolicLink())throw Error("FOCUSED_TEST_INVALID");
   return createHash("sha256").update(content.replace(/\r\n/g,"\n"),"utf8").digest("hex");
 }
+/**
+ * A former owner order is never rearmed. Allow a new fixed one-shot grant ONLY
+ * when every pre-issuer order is source-stale, expired, durably claimed, and
+ * demonstrably terminal. Malformed/uncertain records are a permanent block
+ * pending separate review; no historical file is deleted or rewritten.
+ */
+async function historicalRecord(root,folder,name){
+  if(!/^[a-f0-9]{32}(?:\.result)?\.json$/.test(name))
+    throw Error("HISTORICAL_RECORD_NAME_INVALID");
+  const parent=path.join(root,folder);
+  const ps=await lstat(parent);
+  if(!ps.isDirectory()||ps.isSymbolicLink())
+    throw Error("HISTORICAL_DIRECTORY_UNTRUSTED");
+  const file=path.join(parent,name),stat=await lstat(file);
+  if(!stat.isFile()||stat.isSymbolicLink()||stat.size<2||stat.size>8192)
+    throw Error("HISTORICAL_RECORD_UNTRUSTED");
+  return JSON.parse(await readFile(file,"utf8"));
+}
+async function historicalAbsent(root,folder,name){
+  if(!/^[a-f0-9]{32}(?:\.result)?\.json$/.test(name))return false;
+  try{
+    const parent=path.join(root,folder);
+    const stat=await lstat(parent);
+    if(!stat.isDirectory()||stat.isSymbolicLink())return false;
+    await lstat(path.join(parent,name));
+    return false;
+  }catch(error){return error?.code==="ENOENT";}
+}
+export async function priorOwnerOrdersTerminal({root,entries,expectedHead,at}={}){
+  if(!path.isAbsolute(root||"")||!SHA.test(expectedHead||"")||
+     !Number.isSafeInteger(at)||!Array.isArray(entries)||
+     entries.length<1||entries.length>20||
+     new Set(entries).size!==entries.length)return false;
+  for(const filename of entries){
+      if(!/^[a-f0-9]{32}\.json$/.test(filename))return false;
+      const work=await historicalRecord(root,"owner-work-orders",filename);
+      if(work.requestId+".json"!==filename||
+         !validateOwnerWorkOrder(work,work.sourceHead)||
+         work.sourceHead===expectedHead)return false;
+      const claim=await historicalRecord(root,"factory-worker-claims",filename);
+      const grant=await historicalRecord(root,"owner-coding-grants",work.grantId+".json");
+      const publishing=await historicalRecord(root,"owner-publication-grants",work.publicationId+".json");
+      const coding=await historicalRecord(root,"coding-attempts",work.grantId+".result.json");
+      if(claim.state!=="RESERVED_NO_REPLAY"||claim.requestId!==work.requestId||
+         claim.issueNumber!==work.issueNumber||claim.sourceHead!==work.sourceHead||
+         claim.workerId!=="coding-worker-1"||
+         grant.grantId!==work.grantId||grant.sourceHead!==work.sourceHead||
+         grant.issueNumber!==work.issueNumber||grant.maxRequests!==1||
+         !Number.isSafeInteger(grant.expiresAt)||grant.expiresAt>=at||
+         publishing.publicationId!==work.publicationId||
+         publishing.grantId!==work.grantId||publishing.sourceHead!==work.sourceHead||
+         publishing.issueNumber!==work.issueNumber||publishing.maxRequests!==1||
+         !Number.isSafeInteger(publishing.expiresAt)||publishing.expiresAt>=at)
+        return false;
+      if(coding.state==="BLOCKED"){
+        if(typeof coding.code!=="string"||!/^CODING_[A-Z0-9_]+$/.test(coding.code)||
+           coding.replayAuthorized===true||
+           !await historicalAbsent(root,"publication-attempts",work.publicationId+".result.json")||
+           !await historicalAbsent(root,"engineering-receipts",work.grantId+".json"))
+          return false;
+      }else if(coding.state==="LOCAL_COMMIT_PREPARED"){
+        const published=await historicalRecord(root,"publication-attempts",work.publicationId+".result.json");
+        const receipt=await historicalRecord(root,"engineering-receipts",work.grantId+".json");
+        if(coding.grantId!==work.grantId||coding.sourceHead!==work.sourceHead||
+           published.state!=="DRAFT_PR_CREATED"||published.publicationId!==work.publicationId||
+           published.grantId!==work.grantId||published.issueNumber!==work.issueNumber||
+           published.sourceHead!==work.sourceHead||
+           receipt.state!=="SOURCE_COMMITTED_AND_PR_PUBLISHED"||
+           receipt.requestId!==work.grantId||receipt.publicationId!==work.publicationId||
+           receipt.sourceHead!==work.sourceHead||receipt.issueNumber!==work.issueNumber||
+           receipt.prNumber!==published.prNumber||receipt.candidateHead!==published.remoteCommit||
+           receipt.replayAuthorized!==false)return false;
+      }else return false;
+    }
+  return true;
+}
+
 /** Creates exactly one fixed #3142 order. Never issues merge permission. */
 export async function issueFixedWorker1Pilot({
   expectedHead,platform=process.platform,repoRoot=ROOT,
@@ -80,7 +157,9 @@ export async function issueFixedWorker1Pilot({
     // Never admit over an existing owner-issued work order, even if invalid.
     // Historical legacy queue is separate and remains blocked/nonreplayable.
     const existing=await readdir(dirs.orders);
-    if(existing.length!==0)return denied("PILOT_EXISTING_ORDER_REQUIRES_RECONCILIATION");
+    if(existing.length!==0 && !await priorOwnerOrdersTerminal({
+      root,entries:existing,expectedHead,at}))
+      return denied("PILOT_EXISTING_ORDER_REQUIRES_RECONCILIATION");
     if((await readdir(dirs.reserve)).length!==0)
       return denied("PILOT_ALREADY_RESERVED_NO_REPLAY");
   }catch{return denied("PILOT_PRIVATE_STORAGE_UNVERIFIED");}

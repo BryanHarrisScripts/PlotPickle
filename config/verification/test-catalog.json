@@ -9998,7 +9998,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de6baa62634bd469c3c51487ddee44ea1f2429c32462c63b4f58d2278285ab02"
+            "digest": "4fe7b6d4f6aa202473c1a0d96b578c56c21722c59caeea50d5973a27edc2e478"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -10030,7 +10030,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
-            "digest": "b06993011c243835e85b6a98195471fe2f07ce6519fe3e8bb105f82ee1c7d3c7"
+            "digest": "06727be815ea97ff2e504578e3ac7997433f23bec66b8bd2330d0c4985651f4a"
           }
         ],
         "truthRefs": [
@@ -10066,7 +10066,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de6baa62634bd469c3c51487ddee44ea1f2429c32462c63b4f58d2278285ab02"
+            "digest": "4fe7b6d4f6aa202473c1a0d96b578c56c21722c59caeea50d5973a27edc2e478"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
@@ -10078,7 +10078,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
-            "digest": "b06993011c243835e85b6a98195471fe2f07ce6519fe3e8bb105f82ee1c7d3c7"
+            "digest": "06727be815ea97ff2e504578e3ac7997433f23bec66b8bd2330d0c4985651f4a"
           }
         ],
         "truthRefs": [
@@ -10114,7 +10114,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de6baa62634bd469c3c51487ddee44ea1f2429c32462c63b4f58d2278285ab02"
+            "digest": "4fe7b6d4f6aa202473c1a0d96b578c56c21722c59caeea50d5973a27edc2e478"
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
@@ -10134,7 +10134,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
-            "digest": "b06993011c243835e85b6a98195471fe2f07ce6519fe3e8bb105f82ee1c7d3c7"
+            "digest": "06727be815ea97ff2e504578e3ac7997433f23bec66b8bd2330d0c4985651f4a"
           }
         ],
         "truthRefs": [
@@ -10369,7 +10369,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de6baa62634bd469c3c51487ddee44ea1f2429c32462c63b4f58d2278285ab02"
+            "digest": "4fe7b6d4f6aa202473c1a0d96b578c56c21722c59caeea50d5973a27edc2e478"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
@@ -10389,7 +10389,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
-            "digest": "b06993011c243835e85b6a98195471fe2f07ce6519fe3e8bb105f82ee1c7d3c7"
+            "digest": "06727be815ea97ff2e504578e3ac7997433f23bec66b8bd2330d0c4985651f4a"
           }
         ],
         "truthRefs": [
@@ -10429,7 +10429,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de6baa62634bd469c3c51487ddee44ea1f2429c32462c63b4f58d2278285ab02"
+            "digest": "4fe7b6d4f6aa202473c1a0d96b578c56c21722c59caeea50d5973a27edc2e478"
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
@@ -10453,7 +10453,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
-            "digest": "b06993011c243835e85b6a98195471fe2f07ce6519fe3e8bb105f82ee1c7d3c7"
+            "digest": "06727be815ea97ff2e504578e3ac7997433f23bec66b8bd2330d0c4985651f4a"
           }
         ],
         "truthRefs": [
@@ -10489,7 +10489,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de6baa62634bd469c3c51487ddee44ea1f2429c32462c63b4f58d2278285ab02"
+            "digest": "4fe7b6d4f6aa202473c1a0d96b578c56c21722c59caeea50d5973a27edc2e478"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
@@ -10517,7 +10517,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
-            "digest": "b06993011c243835e85b6a98195471fe2f07ce6519fe3e8bb105f82ee1c7d3c7"
+            "digest": "06727be815ea97ff2e504578e3ac7997433f23bec66b8bd2330d0c4985651f4a"
           }
         ],
         "truthRefs": [
@@ -10725,7 +10725,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de6baa62634bd469c3c51487ddee44ea1f2429c32462c63b4f58d2278285ab02"
+            "digest": "4fe7b6d4f6aa202473c1a0d96b578c56c21722c59caeea50d5973a27edc2e478"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -10741,7 +10741,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
-            "digest": "b06993011c243835e85b6a98195471fe2f07ce6519fe3e8bb105f82ee1c7d3c7"
+            "digest": "06727be815ea97ff2e504578e3ac7997433f23bec66b8bd2330d0c4985651f4a"
           }
         ]
       },
@@ -11535,7 +11535,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de6baa62634bd469c3c51487ddee44ea1f2429c32462c63b4f58d2278285ab02"
+            "digest": "4fe7b6d4f6aa202473c1a0d96b578c56c21722c59caeea50d5973a27edc2e478"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
@@ -11547,7 +11547,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
-            "digest": "b06993011c243835e85b6a98195471fe2f07ce6519fe3e8bb105f82ee1c7d3c7"
+            "digest": "06727be815ea97ff2e504578e3ac7997433f23bec66b8bd2330d0c4985651f4a"
           }
         ]
       },
@@ -11579,7 +11579,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de6baa62634bd469c3c51487ddee44ea1f2429c32462c63b4f58d2278285ab02"
+            "digest": "4fe7b6d4f6aa202473c1a0d96b578c56c21722c59caeea50d5973a27edc2e478"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/Upgrade-PlotPickleTunnelCatalog.ps1",
@@ -11607,7 +11607,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
-            "digest": "b06993011c243835e85b6a98195471fe2f07ce6519fe3e8bb105f82ee1c7d3c7"
+            "digest": "06727be815ea97ff2e504578e3ac7997433f23bec66b8bd2330d0c4985651f4a"
           }
         ]
       },
@@ -11643,7 +11643,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de6baa62634bd469c3c51487ddee44ea1f2429c32462c63b4f58d2278285ab02"
+            "digest": "4fe7b6d4f6aa202473c1a0d96b578c56c21722c59caeea50d5973a27edc2e478"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
@@ -11655,7 +11655,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
-            "digest": "b06993011c243835e85b6a98195471fe2f07ce6519fe3e8bb105f82ee1c7d3c7"
+            "digest": "06727be815ea97ff2e504578e3ac7997433f23bec66b8bd2330d0c4985651f4a"
           }
         ]
       },
@@ -11826,7 +11826,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de6baa62634bd469c3c51487ddee44ea1f2429c32462c63b4f58d2278285ab02"
+            "digest": "4fe7b6d4f6aa202473c1a0d96b578c56c21722c59caeea50d5973a27edc2e478"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -11842,7 +11842,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
-            "digest": "b06993011c243835e85b6a98195471fe2f07ce6519fe3e8bb105f82ee1c7d3c7"
+            "digest": "06727be815ea97ff2e504578e3ac7997433f23bec66b8bd2330d0c4985651f4a"
           }
         ],
         "truthRefs": [
@@ -12553,7 +12553,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de6baa62634bd469c3c51487ddee44ea1f2429c32462c63b4f58d2278285ab02"
+            "digest": "4fe7b6d4f6aa202473c1a0d96b578c56c21722c59caeea50d5973a27edc2e478"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
@@ -12565,7 +12565,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
-            "digest": "b06993011c243835e85b6a98195471fe2f07ce6519fe3e8bb105f82ee1c7d3c7"
+            "digest": "06727be815ea97ff2e504578e3ac7997433f23bec66b8bd2330d0c4985651f4a"
           }
         ]
       },
@@ -12783,14 +12783,14 @@
       },
       {
         "target": "tests/issue-3303-windows-product-gate.test.mjs",
-        "targetDigest": "8414b5d2b978f245633bc37fbfe35162b8c002a67a6a3be8eaeca5d8c048aabc",
+        "targetDigest": "3c37501c0f64045c2232f471f2715ad73185e56a6b355b4b75f0061de5a1326b",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de6baa62634bd469c3c51487ddee44ea1f2429c32462c63b4f58d2278285ab02"
+            "digest": "4fe7b6d4f6aa202473c1a0d96b578c56c21722c59caeea50d5973a27edc2e478"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
@@ -12810,7 +12810,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
-            "digest": "b06993011c243835e85b6a98195471fe2f07ce6519fe3e8bb105f82ee1c7d3c7"
+            "digest": "06727be815ea97ff2e504578e3ac7997433f23bec66b8bd2330d0c4985651f4a"
           }
         ],
         "truthRefs": [

@@ -53,3 +53,38 @@ The release gate outputs exactly PASS, FAIL, BLOCKED or UNPROVEN with reasons. N
 6. Prove ONE genuine authorized Worker 1 issue -> model source edit -> commit -> tests -> Windows acceptance -> PR -> approved exact-head merge/receipt. Then immediately build Elara Agent Workspace #3355 before any worker fleet expansion.
 
 Development gate design and new classification alone are not product acceptance; until the trusted runtime operation and independent read-back work, report Product Gate UNPROVEN.
+
+## Engineering design amendment — executable boundaries and bootstrap
+
+Owner instruction (October 31 / November 1): build the developer brief and implementation. This is one permanent capability delivered through successive governed commits, not a one-PR exemption.
+
+### Entry points and responsibility
+
+- `config/development-verification-routing.json` selects proof obligations. The existing `lib/verification/development/proof-routing.mjs` assesses exact-SHA evidence after independent artifact-reference validation. A routing classification is never a PASS.
+- `factory_run_named_test`, already exposed by the authenticated tunnel, gains exactly one fixed `factory-windows-product-gate` suite. Its only candidate inputs are the same pinned `expectedHead`, `candidatePrNumber`, `candidateHead`, and `sourceRequestId` (the previously completed `factory-pr-stage` request). No new MCP method, arbitrary path, command, port, origin or additional token.
+- `scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs` owns trusted admission/probe coordination. It must execute from the installed, reviewed MAIN code. It cannot load an arbitrary candidate module with the owner host credentials, write to MAIN or mutate Supervisor/task scheduling.
+- A candidate-host behavior probe may execute only inside the staged isolated worktree and a restricted child process with a sanitized environment and explicit resource/STOP guards. Source under test cannot write its own authoritative acceptance receipt. Native diagnostic state must originate from the owner machine, not hard-coded fixtures.
+- The existing private `mcp-control-requests/<requestId>.json` reservation and immutable `-result.json` must be used. A separate evidence artifact with an independently recomputed digest is required. The existing read-only `factory_control_receipt` returns only bounded metadata; no raw host path, credential or process command line.
+- A distinct trusted evaluator reads the immutable receipt and independently reads/rehashes the evidence artifact, verifies the required proof IDs, candidate identity, verifier source revision, observed native controls and PR head. It may evaluate owner-host evidence without a dedicated F00 service, but must never claim an F00 signature or global unattended merge authority.
+
+### Fixed acceptance for the first candidate (#3362)
+
+The first supported fixture is the source-reviewed operations/diagnostics change in PR #3362. It must observe real owner task/dispatcher/worker state via the candidate's authenticated read-only path. It must also prove the guarded migration is denied while the independently checked supervisor is running, without ever invoking the migration side effect. A guest/forged request must be denied. Before and after the test the trusted runner must confirm exact host MAIN, healthy running supervisor, no PAUSE/STOP breach, and no unexpected process ownership/port change. If the native probe cannot safely observe the changed candidate, return UNPROVEN, not a fabricated PASS. This first test does not authorize activation of Worker 1 or unattended automatic merging.
+
+### Acceptance matrix
+
+1. Exact clean MAIN + open PR exact candidate SHA + valid staged receipt + correct changed-path classification: eligible for observation. Source changes during run: BLOCKED.
+2. No approved truth edition, dirty main, stale SHA, wrong or reused ID, unknown privileged change class, symlink, missing artifact, ambiguous stage or protected verifier disagreement: BLOCKED or UNPROVEN.
+3. Actual isolated Windows candidate observation and independent read-back of its evidence: PASS only for that narrowly classified proof; unrelated or stronger proof IDs remain UNPROVEN.
+4. Native failure, unauthorized status visibility, accepted supervisor migration while running, PAUSE/STOP violation or foreign-owned process stop: FAIL and preserve forensic evidence.
+5. A snapshot of supervisor RUNNING, simulated health, Linux CI, an injected fake native runner or a candidate-authored pass flag cannot produce Product Gate PASS.
+6. Missing or explicitly skipped required CI: no release even if host proof passes.
+7. Test-timeout/crash or lost response: the durable request remains uncertain and cannot replay with the same ID; reconcile through `factory_control_receipt`.
+
+### Initial trust bootstrap
+
+Because the new operation is not installed on MAIN, it cannot approve its own first merge. The initial trusted implementation must first pass current exact-head CI and existing authenticated owner-Windows staging/isolated regression tests, followed by a separate attributable human review of the exact changed code and protected test truth. An independently qualified already-trusted gate may then accept the bootstrap or a distinct reviewed installer update must be used. No test may silently self-promote to release authority. Only after this independently reviewed first deployment is the permanent gate available for its first candidate; test PR #3362 with the now-installed trusted implementation and record its actual receipt. Until then, PR #3363 remains DRAFT/UNMERGED and #3362 remains OPEN/UNMERGED.
+
+### Definition of done
+
+The approved permanent gate, not just its routing rules, is implemented, independently reviewed and tested on a real Windows host; a source-bound positive acceptance and each mandatory negative case have a durable exact-SHA receipt; the trusted evaluator independently recomputes evidence and handles stale/missing cases; GitHub release checks consume the trustworthy result and preserve seven-layer CI, STOP, W8/W9 and owner release rights; PR #3362 is verified and merged only if every actual relevant gate passes. No live Worker 1 proof, F00 certification or unattended authority is implied by this component.

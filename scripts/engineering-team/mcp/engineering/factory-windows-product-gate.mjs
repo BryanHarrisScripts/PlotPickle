@@ -26,8 +26,7 @@ const sha256=value=>createHash("sha256").update(value).digest("hex");
 const knownProofs=new Set(["windows-factory-acceptance"]);
 const jsonBytes=value=>Buffer.from(JSON.stringify(value)+"\n","utf8");
 const cleanStage=async({stage,candidateHead,run=exec,fs={lstat,realpath}})=>{
-  try{
-    const [entry,actual,head,status]=await Promise.all([
+  const [entry,actual,head,status]=await Promise.all([
       fs.lstat(stage),fs.realpath(stage),
       run("git",["rev-parse","HEAD"],{cwd:stage,windowsHide:true,encoding:"utf8",timeout:30000,maxBuffer:8192}),
       run("git",["status","--porcelain","--untracked-files=no"],{cwd:stage,windowsHide:true,encoding:"utf8",timeout:30000,maxBuffer:8192}),
@@ -36,7 +35,6 @@ const cleanStage=async({stage,candidateHead,run=exec,fs={lstat,realpath}})=>{
       path.normalize(actual).toLowerCase()===path.normalize(stage).toLowerCase()&&
       String(head.stdout||"").trim()===candidateHead&&
       String(status.stdout||"").trim()==="";
-  }catch{return false;}
 };
 const running=(s,head)=>s?.state==="RUNNING" && s.exactSha===head &&
   s.pauseAcknowledged!==true && Number.isSafeInteger(s.checkedAt) &&
@@ -86,8 +84,10 @@ export async function observeFactoryWindowsProductGate({
     repoRoot,platform,verifyHead});
   if(pr?.state!=="TEST_PASSED"||pr.code!=="CANDIDATE_HEAD_VERIFIED")
     return blocked("PRODUCT_GATE_CANDIDATE_UNVERIFIED",a.expectedHead);
-  if(!await attestStage({stage,candidateHead:a.candidateHead}))
-    return blocked("PRODUCT_GATE_STAGE_UNVERIFIED",a.expectedHead);
+  let stageReady;
+  try{stageReady=await attestStage({stage,candidateHead:a.candidateHead});}
+  catch{return blocked("PRODUCT_GATE_STAGE_UNVERIFIED",a.expectedHead);}
+  if(!stageReady)return blocked("PRODUCT_GATE_STAGE_UNVERIFIED",a.expectedHead);
   // The trusted probe receives a fixed selection, never a caller command.
   // It must observe actual candidate behavior on Windows, not a mock test.
   let observation;
@@ -108,8 +108,10 @@ export async function observeFactoryWindowsProductGate({
   let last,supervisorAfter;
   try{[last,supervisorAfter]=await Promise.all([verifyHead({repoRoot}),readSupervisor()]);}
   catch{return blocked("PRODUCT_GATE_HOST_CHANGED",a.expectedHead);}
-  if(last!==a.expectedHead||!running(supervisorAfter,a.expectedHead)||
-     !await attestStage({stage,candidateHead:a.candidateHead}))
+  let stageAfter;
+  try{stageAfter=await attestStage({stage,candidateHead:a.candidateHead});}
+  catch{return blocked("PRODUCT_GATE_HOST_CHANGED",a.expectedHead);}
+  if(last!==a.expectedHead||!running(supervisorAfter,a.expectedHead)||!stageAfter)
     return blocked("PRODUCT_GATE_HOST_CHANGED",a.expectedHead);
   const evidence=Object.freeze({
     schemaVersion:1,requestId:a.requestId,sourceHead:a.expectedHead,

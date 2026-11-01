@@ -88,3 +88,12 @@ Because the new operation is not installed on MAIN, it cannot approve its own fi
 ### Definition of done
 
 The approved permanent gate, not just its routing rules, is implemented, independently reviewed and tested on a real Windows host; a source-bound positive acceptance and each mandatory negative case have a durable exact-SHA receipt; the trusted evaluator independently recomputes evidence and handles stale/missing cases; GitHub release checks consume the trustworthy result and preserve seven-layer CI, STOP, W8/W9 and owner release rights; PR #3362 is verified and merged only if every actual relevant gate passes. No live Worker 1 proof, F00 certification or unattended authority is implied by this component.
+
+### Executable implementation checkpoint — pre-release
+
+Current draft PR #3363 implements two allowlisted suite values under the SAME authenticated `factory_run_named_test` tool, not two new services or public MCP capabilities:
+
+- `factory-windows-product-gate`: exact clean-MAIN/PR/stage and protected truth admission, native supervisor pre/post observation, credential-stripped Node Permission Model candidate probe and private one-use candidate observation evidence. A test fixture or failed/unsupported sandbox remains UNPROVEN. The observation result explicitly states `PRODUCT_GATE_OBSERVED_NOT_RELEASED` and has no independent/F00 or merge authority.
+- `factory-windows-product-gate-verify`: a separate fixed read-only request that loads the immutable first-phase receipt and evidence file from the trusted host, rejects symlinks/stale identities/mismatched digests and recomputes proof on the same PR/head. `PRODUCT_GATE_EVIDENCE_MATCHED` never authorizes a merge or changes `factory_status.productGateVerified` on its own.
+
+The approved source/routing classification and native fixture regressions are currently under exact-edition W8/W9 review. Prior Linux Architecture Verification and native staged owner-Windows node tests are preliminary engineering evidence; a live owner host candidate execution and externally attributable release decision have not yet passed. The permanent gate cannot commission itself: bootstrap requires reviewed current implementation and source truth before deployment to the already existing authenticated Factory connection. Preserve PR #3362 as unmerged until it obtains a genuine accepted Product Gate result under the installed trusted runner.

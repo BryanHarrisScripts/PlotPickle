@@ -1,6 +1,6 @@
 /**
- * #3142: fixed owner-only ONE pilot issuer. Not a general work-order broker.
- * Retained marker is write-once even if a later write fails: never replay.
+ * #3142: owner-only fixed pilot issuance with ONE separately authorized
+ * terminal-recovery attempt. Both reservations are write-once; never replay.
  */
 import { createHash, randomBytes } from "node:crypto";
 import { lstat, mkdir, open, readFile, readdir } from "node:fs/promises";
@@ -122,7 +122,49 @@ export async function priorOwnerOrdersTerminal({root,entries,expectedHead,at}={}
   return true;
 }
 
-/** Creates exactly one fixed #3142 order. Never issues merge permission. */
+/**
+ * Owner-authorized terminal recovery can mint ONE new pilot only after
+ * the original specifically marked #3142 pilot is conclusively rejected,
+ * its coding resource has a retained terminal witness, and publication is
+ * proven absent. A prior success or uncertain claim never reauthorizes.
+ */
+async function priorPilotTerminalRecoveryProven(root,expectedHead,at){
+  try{
+    const dir=path.join(root,"owner-pilot-reservations");
+    const parent=await lstat(dir);
+    if(!parent.isDirectory()||parent.isSymbolicLink())return false;
+    const file=path.join(dir,"issue-3142.json"),stat=await lstat(file);
+    if(!stat.isFile()||stat.isSymbolicLink()||stat.size<2||stat.size>4096)return false;
+    const marker=JSON.parse(await readFile(file,"utf8"));
+    if(marker.schemaVersion!==1||marker.issueNumber!==ISSUE||
+       marker.state!=="GRANT_WRITES_RESERVED_NO_REPLAY"||
+       !/^[a-f0-9]{32}$/.test(marker.requestId||"")||
+       !SHA.test(marker.sourceHead||"")||marker.sourceHead===expectedHead||
+       !Number.isSafeInteger(marker.at)||marker.at>=at)return false;
+    const work=await historicalRecord(root,"owner-work-orders",marker.requestId+".json");
+    if(!validateOwnerWorkOrder(work,work.sourceHead)||
+       work.issueNumber!==ISSUE||work.requestId!==marker.requestId||
+       work.sourceHead!==marker.sourceHead||work.assignedWorker!=="coding-worker-1")return false;
+    const coding=await historicalRecord(root,"coding-attempts",work.grantId+".result.json");
+    if(coding.state!=="BLOCKED"||
+       coding.code!=="CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE"||
+       coding.phase!=="CHECK_STAGE_SYNTAX"||coding.replayAuthorized!==false)return false;
+    const pathname=path.join(root,"coding-attempts",work.grantId+".released.json");
+    const releasedStat=await lstat(pathname);
+    if(!releasedStat.isFile()||releasedStat.isSymbolicLink()||
+       releasedStat.size<2||releasedStat.size>4096)return false;
+    const release=JSON.parse(await readFile(pathname,"utf8"));
+    if(release.schemaVersion!==1||release.kind!=="coding-resource-release"||
+       release.grantId!==work.grantId||release.sourceHead!==work.sourceHead||
+       release.state!=="RECONCILED_SYNTAX_REJECTED_NO_COMMIT"||
+       release.phase!=="CHECK_STAGE_SYNTAX"||release.replayAuthorized!==false||
+       release.publicationAuthorized!==false||release.localCommit!==undefined||
+       release.branch!==undefined)return false;
+    return await historicalAbsent(root,"publication-attempts",work.publicationId+".result.json") &&
+      await historicalAbsent(root,"engineering-receipts",work.grantId+".json");
+  }catch{return false;}
+}
+/** Creates only the first or distinct terminal-recovery #3142 order. Never merges. */
 export async function issueFixedWorker1Pilot({
   expectedHead,platform=process.platform,repoRoot=ROOT,
   verifyHead=readFactoryVerificationHead,root=privateGatewayRoot(),
@@ -145,7 +187,7 @@ export async function issueFixedWorker1Pilot({
     if(!Number.isSafeInteger(at)||!/^[a-f0-9]{64}$/.test(digest))
       return denied("PILOT_SOURCE_UNVERIFIED");
   }catch{return denied("PILOT_READINESS_UNVERIFIED");}
-  let dirs;
+  let dirs,terminalRecovery=false;
   try {
     dirs={
       reserve:await ownerDirectory(root,"owner-pilot-reservations"),
@@ -160,8 +202,12 @@ export async function issueFixedWorker1Pilot({
     if(existing.length!==0 && !await priorOwnerOrdersTerminal({
       root,entries:existing,expectedHead,at}))
       return denied("PILOT_EXISTING_ORDER_REQUIRES_RECONCILIATION");
-    if((await readdir(dirs.reserve)).length!==0)
-      return denied("PILOT_ALREADY_RESERVED_NO_REPLAY");
+    const reserved=await readdir(dirs.reserve);
+    if(reserved.length===0){ /* original fixed pilot */ }
+    else if(reserved.length===1&&reserved[0]==="issue-3142.json"&&
+      await priorPilotTerminalRecoveryProven(root,expectedHead,at)){
+      terminalRecovery=true;
+    }else return denied("PILOT_ALREADY_RESERVED_NO_REPLAY");
   }catch{return denied("PILOT_PRIVATE_STORAGE_UNVERIFIED");}
   const requestId=id(),grantId=id(),publicationId=id();
   if(![requestId,grantId,publicationId].every(x=>/^[a-f0-9]{32}$/.test(x))||
@@ -174,7 +220,7 @@ export async function issueFixedWorker1Pilot({
   const coding={schemaVersion:1,kind:"engineering-edit-once",grantId,
     issueNumber:ISSUE,sourceHead:expectedHead,targetPath:TARGET,
     targetDigest:digest,focusedTest:TEST,
-    objective:"For #3142 Worker 1 proof, make one minimal source-bound clarity improvement in the worker fleet diagnostics without changing any permission, STOP/PAUSE, grant, execution or merge rule. Return one exact oldText/newText replacement only.",
+    objective:"For #3142 Worker 1 commissioning, improve exactly one EXISTING JavaScript line comment in the worker fleet diagnostics. Modify no executable statement, import, grant, permission, STOP/PAUSE, release or merge behavior. Return exact oldText/newText JSON only; the replacement must remain a valid JavaScript line comment.",
     model:"qwen2.5-coder:7b",maxOutputTokens:1200,expiresAt,maxRequests:1,
     consent:"AUTHORIZE_ONE_ENGINEERING_SOURCE_EDIT"};
   const publishing={schemaVersion:1,kind:"draft-pr-publish-approved-coding-once",
@@ -195,7 +241,7 @@ export async function issueFixedWorker1Pilot({
       return denied("PILOT_READINESS_CHANGED");
     // Write a durable no-replay marker BEFORE any granting. A partial result
     // is an explicit operator reconciliation, never permission to retry.
-    await oneFile(dirs.reserve,"issue-3142.json",{
+    await oneFile(dirs.reserve,terminalRecovery?"issue-3142-terminal-recovery.json":"issue-3142.json",{
       schemaVersion:1,issueNumber:ISSUE,requestId,sourceHead:expectedHead,
       state:"GRANT_WRITES_RESERVED_NO_REPLAY",at});
     await oneFile(dirs.coding,grantId+".json",coding);

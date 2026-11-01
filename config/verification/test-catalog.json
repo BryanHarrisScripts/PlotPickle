@@ -12866,7 +12866,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
-            "digest": "7264c5bf3834301619c086f7e147e2c8384b7404aa4944e79bc0b49e13b8fa83"
+            "digest": "a3d0b02c451635ab600c8e2a044e811cc0af6f75b021c8a2977c2e23c93912a7"
           }
         ],
         "truthRefs": [
@@ -12887,14 +12887,14 @@
       },
       {
         "target": "tests/issue-3142-worker1-pilot-issuer.test.mjs",
-        "targetDigest": "d443a62b5dd413c98c3daf70767f3b7277f9f2dd725a686f617be9d30accbef6",
+        "targetDigest": "87ce528f7651cb7f58b274239596306e0c536e39fd079b148aaf67c417528d9d",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
-            "digest": "7264c5bf3834301619c086f7e147e2c8384b7404aa4944e79bc0b49e13b8fa83"
+            "digest": "a3d0b02c451635ab600c8e2a044e811cc0af6f75b021c8a2977c2e23c93912a7"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",

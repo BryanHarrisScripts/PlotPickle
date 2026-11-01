@@ -9997,7 +9997,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
+            "digest": "e678bb111893712a9552c2b3d72673476cda7288ff015f602493c9e44e127afd"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -10053,7 +10053,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
+            "digest": "e678bb111893712a9552c2b3d72673476cda7288ff015f602493c9e44e127afd"
           }
         ],
         "truthRefs": [
@@ -10089,7 +10089,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
+            "digest": "e678bb111893712a9552c2b3d72673476cda7288ff015f602493c9e44e127afd"
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
@@ -10332,7 +10332,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
+            "digest": "e678bb111893712a9552c2b3d72673476cda7288ff015f602493c9e44e127afd"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
@@ -10380,7 +10380,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
+            "digest": "e678bb111893712a9552c2b3d72673476cda7288ff015f602493c9e44e127afd"
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
@@ -10428,7 +10428,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
+            "digest": "e678bb111893712a9552c2b3d72673476cda7288ff015f602493c9e44e127afd"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
@@ -10652,7 +10652,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
+            "digest": "e678bb111893712a9552c2b3d72673476cda7288ff015f602493c9e44e127afd"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -11450,7 +11450,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
+            "digest": "e678bb111893712a9552c2b3d72673476cda7288ff015f602493c9e44e127afd"
           }
         ]
       },
@@ -11482,7 +11482,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
+            "digest": "e678bb111893712a9552c2b3d72673476cda7288ff015f602493c9e44e127afd"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/Upgrade-PlotPickleTunnelCatalog.ps1",
@@ -11534,7 +11534,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
+            "digest": "e678bb111893712a9552c2b3d72673476cda7288ff015f602493c9e44e127afd"
           }
         ]
       },
@@ -11705,7 +11705,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
+            "digest": "e678bb111893712a9552c2b3d72673476cda7288ff015f602493c9e44e127afd"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -12420,7 +12420,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "4cf1b9595ae9348e6fa9807b86e6c26f0fbc0e5f3fda84eeaf8eaeaf66ac09e3"
+            "digest": "e678bb111893712a9552c2b3d72673476cda7288ff015f602493c9e44e127afd"
           }
         ]
       },
@@ -12635,6 +12635,55 @@
             "digest": "a6e973910960da1e329630acbf6f6da632d95808dd01e460770927de0fc29b94"
           }
         ]
+      },
+      {
+        "target": "tests/issue-3142-authenticated-operator-maintenance.test.mjs",
+        "targetDigest": "0d83de7515a8dad5c73388ec07cde042694f997029ebceed4dc6061333964332",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110",
+          "agent.windows-supervisor-offline-source-migration-3142"
+        ],
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "e678bb111893712a9552c2b3d72673476cda7288ff015f602493c9e44e127afd"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-operator-maintenance.mjs",
+            "digest": "64686395cdbef57c06911e107dd4f1235d3ca11247ec23fca39a467c04cd07a4"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
+            "digest": "d98c761e63da7b29e0875692cc6d21a36a1904bb709c6eeb57e4fe0c691537d2"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/dispatcher/native-dispatcher.mjs",
+            "digest": "b40e6fcb320c5b9170c64760343dbf3f9f75bf188e1e5968b4528a75ed3c8ded"
+          },
+          {
+            "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
+            "digest": "681dba56405951e7fa15df41fda4dce6b9e4c09f67396d4aeca5043fac607862"
+          },
+          {
+            "path": "scripts/engineering-team/windows/workers/Install-PlotPickleFactoryWorkers.ps1",
+            "digest": "a6e973910960da1e329630acbf6f6da632d95808dd01e460770927de0fc29b94"
+          }
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Owner-authorized PREPRODUCTION candidate: fixed authenticated read-only Worker 1 diagnostics and one-way offline supervisor SHA migration only. Synthetic role/STOP/PAUSE/head/replay/unauthorized tests; no live product Windows acceptance, independent F00/AEGIS signing, Worker 1 coding result, publisher approval or automated merge. Exact head and changed test/source edition require human review; author prepared binding is not independent W8/W9 ADMIT."
       }
     ]
   }

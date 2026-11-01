@@ -10259,7 +10259,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Real pure Node HTTP Request/Response adapter and actual disposable local supervisor STOP-marker readback, plus source linkage to authenticated Settings. Native Windows fixture does NOT independently prove owner-host process stop, live browser click/CSRF parity, PID/descendant absence, reboot persistence, AI coding or merge.",
+        "limits": "Real pure Node HTTP Request/Response adapter and actual disposable local supervisor STOP-marker readback, plus source linkage to authenticated Settings. Native Windows fixture does NOT independently prove owner-host process stop, live browser click/CSRF parity, PID/descendant absence, reboot persistence, AI coding or merge. #3360 owner-directed four-group display CANDIDATE: existing authenticated supervisor panel now displays Software Factory, Quality/Release/Operations, and Service Manager responsibilities, with Access/Runtime, Validation, Evidence/Safety and Release Control projections. These are read-only labels over existing supervisor GET and actions, not F00 signed admission, runtime readiness, independent verification, service installation, Product Gate or merge. Existing STOP/PAUSE POST authorization and controls remain unchanged; review this exact source edition before merge.",
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
@@ -10271,7 +10271,7 @@
           },
           {
             "path": "app/skin-v1/factory-supervisor-panel.tsx",
-            "digest": "d25dced5b1322ea39e0447f30f287ec35dc92c6e776f165519ea13283ad223d5"
+            "digest": "4656b7f3ed9188c4502c9d92c3ce5dd33fbdcc7f3f547a4ee9587ffdbfa23a45"
           },
           {
             "path": "app/skin-v1/settings-workspace-panel.tsx",

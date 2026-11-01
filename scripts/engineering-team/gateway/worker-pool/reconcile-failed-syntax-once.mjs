@@ -18,7 +18,13 @@ const exec = promisify(execFile);
 const ID = /^[a-f0-9]{32}$/;
 const CONSENT = 'RECONCILE_ONE_FAILED_SYNTAX_CLAIM_NO_REPLAY';
 const blocked = reason => Object.freeze({state:'BLOCKED', code:reason, noReplay:true});
-const relative = 'scripts/engineering-team/gateway/worker-pool/worker-host.mjs';
+// Restrict terminal reconciliation to the two previously admitted #3142
+// coding targets. Never allow a filename from untrusted grant text to escape
+// this fixed source-path allowlist; old grants remain permanently consumed.
+const WORKER_HOST = 'scripts/engineering-team/gateway/worker-pool/worker-host.mjs';
+const WORKER_POOL = 'scripts/engineering-team/gateway/worker-pool/worker-pool.mjs';
+export const recoveryTargetAllowed = target => target === WORKER_HOST || target === WORKER_POOL;
+const relative = WORKER_HOST;
 // git() trims stdout: porcelain ` M path` becomes `M path`.
 export const onlyUnstagedTarget = (porcelain, target=relative) => porcelain==='M '+target;
 const safeJson = async file => {
@@ -55,7 +61,8 @@ export async function inspectFailedSyntaxClaim({
     const grant=await safeJson(path.join(root,'owner-coding-grants',grantId+'.json'));
     if (grant.kind!=='engineering-edit-once' || grant.issueNumber!==3142 ||
         grant.grantId!==grantId || grant.sourceHead!==order.sourceHead ||
-        grant.targetPath!==relative) return blocked('ORIGINAL_CODING_GRANT_UNVERIFIABLE');
+        !recoveryTargetAllowed(grant.targetPath)) return blocked('ORIGINAL_CODING_GRANT_UNVERIFIABLE');
+    const selectedTarget=grant.targetPath;
     const outcome=await safeJson(path.join(receipts,grantId+'.result.json'));
     if (outcome.state!=='BLOCKED' ||
         outcome.code!=='CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE' ||
@@ -77,11 +84,11 @@ export async function inspectFailedSyntaxClaim({
         await git(stage,'rev-parse','HEAD')!==order.sourceHead ||
         await git(stage,'branch','--show-current')!=='engineering/3142-'+grantId ||
         await git(stage,'diff','--cached','--name-only')!=='' ||
-        await git(stage,'diff','--name-only')!==relative ||
-        !onlyUnstagedTarget(await git(stage,'status','--porcelain','--untracked-files=normal'),relative))
+        await git(stage,'diff','--name-only')!==selectedTarget ||
+        !onlyUnstagedTarget(await git(stage,'status','--porcelain','--untracked-files=normal'),selectedTarget))
       return blocked('ONLY_UNCOMMITTED_SOURCE_CHANGE_NOT_PROVEN');
     await git(stage,'diff','--check');
-    const syntaxFile=path.join(stage,...relative.split('/'));
+    const syntaxFile=path.join(stage,...selectedTarget.split('/'));
     let syntaxError=false;
     try { await exec(process.execPath,['--check',syntaxFile],{cwd:stage,windowsHide:true,timeout:15000,maxBuffer:8192}); }
     catch(error) { syntaxError=error?.code===1 &&

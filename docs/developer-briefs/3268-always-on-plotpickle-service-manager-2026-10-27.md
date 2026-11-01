@@ -13,6 +13,29 @@ The Service Manager is a **lifecycle coordinator and status aggregator**, not a 
 
 **Important dependency decision:** The full always-on service and installer are **not a prerequisite for proving the first bounded #3142 coding-to-PR cycle** on the existing owner-supervised Windows path. Requiring an unbuilt installer first would delay the actual worker/verification pilot. A durable, restart-safe, independently governed **equivalent supervisor/service lifecycle** is a prerequisite for claiming sustained unattended 24/7 operation and automatic second-cycle progress. Migrate that proven mechanism under the single manager; do not restart or replace the current owner runtime to satisfy documentation.
 
+## Simplified user-facing operations — October 31, 2026
+
+**One installer, one Service Manager, and four visible security controls.** This is a simplified presentation and orchestration contract that reuses the existing tools, credentials, authenticated tunnel, workers, source-truth catalogue and release policy. It is **not** four new services, extra authorities or a replacement for already implemented code.
+
+The user sees these three operational parts:
+
+1. **Software Factory:** Work Queue → Coding → Build & Test.
+2. **Quality, Release & Operations:** Review → Validate → Approve → Release.
+3. **Service Manager:** the background operational host for all registered components, handling health, process ownership, isolation, STOP/PAUSE and recovery. The Manager cannot approve its own work, sign verdicts, access reviewer private keys or merge without existing authority.
+
+The **four** security and release control groups shown throughout that flow are:
+
+1. **Access & Runtime:** existing identity, authentication, delegated authorization, scoped execution and isolation.
+2. **Validation:** source-truth obligations W8/W9, test execution, source-specific review and applicable Windows/Product Gate. Use an approved human-supervised review for the first Worker 1 cycle; a qualified F00 independent admission is a separate higher-assurance capability, not assumed from a renamed human role.
+3. **Evidence & Safety:** immutable source/test/approval receipts, version hashes, STOP/PAUSE, no-replay, audit trail and rollback safeguards.
+4. **Release Control:** integrity checks, signed evidence where actually required, exact-head release decision and authorized merge/installation.
+
+**Internal mapping:** F00 supplies independent review and source/test gate logic. AEGIS supplies integrity, release evidence and policy/approval checks. The Service Manager hosts and protects the authorized runtime components; it is not an independent review or signing authority. These existing responsibilities remain separated under the hood even though the user sees one Quality, Release & Operations workflow. No new root, registrar, code-signing certificate, secret store or interactive Windows account is created merely by this documentation decision.
+
+**Execution priority:** complete one genuine Worker 1 cycle, then Elara's Agent Workspace #3355, then demonstrate the required broader unattended cycles and expand workers. Full owner-host F00 service commissioning and generalized automatic merging remain **UNPROVEN**, and no implementation/test/release gate is waived here. User-install optional self-development acceptance remains #3358.
+
+---
+
 ## Inventory and reuse
 
 Already present, not to be rebuilt:

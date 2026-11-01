@@ -321,8 +321,11 @@ test("#3303 permission-restricted native child challenges disposable HTTP contro
     'if(!guard?.has||guard.has("child")||guard.has("worker")||guard.has("fs.write"))throw Error("PERMISSION_INVALID");',
     'const token=randomBytes(48).toString("base64url");',
     'const server=createLocalMcpHttpServer({root:process.cwd(),controlToken:token,engineeringEnabled:true});',
-    'await new Promise((resolve,reject)=>{server.once("error",reject);server.listen(0,"127.0.0.1",resolve);});',
-    'try {',
+    'let denied=false;',
+    'try{await new Promise((resolve,reject)=>{server.once("error",reject);server.listen(0,"127.0.0.1",resolve);});}',
+    'catch(error){if(error?.code!=="ERR_ACCESS_DENIED"||error?.permission!=="Net")throw error;denied=true;}',
+    'if(denied){console.log(JSON.stringify({transport:"DENIED_BY_NODE",releaseAuthorized:false}));}',
+    'else{try {',
     ' const address=server.address();',
     ' if(address.address!=="127.0.0.1"||address.port<1)throw Error("NOT_LOOPBACK");',
     ' const url="http://127.0.0.1:"+address.port+"/mcp";',
@@ -333,7 +336,7 @@ test("#3303 permission-restricted native child challenges disposable HTTP contro
     ' const allowed=list=>Array.isArray(list)&&list.some(t=>t.name==="factory_run_named_test");',
     ' if(!Array.isArray(guest)||!Array.isArray(forged)||!Array.isArray(owner)||allowed(guest)||allowed(forged)||!allowed(owner))throw Error("AUTH_BOUNDARY_FAILED");',
     ' console.log(JSON.stringify({transport:"LOOPBACK",credential:"DISPOSABLE",guestDenied:true,forgeryDenied:true,ownerAccepted:true,releaseAuthorized:false}));',
-    '} finally {await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}',
+    '} finally {await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}}',
   ].join("\n");
   const result=spawnSync(process.execPath,[
     "--no-warnings","--permission",
@@ -344,8 +347,14 @@ test("#3303 permission-restricted native child challenges disposable HTTP contro
       ["PATH","Path","SystemRoot","WINDIR","PATHEXT","ComSpec","TEMP","TMP"].includes(key)))});
   assert.equal(result.error,undefined);
   assert.equal(result.status,0,result.stderr);
-  assert.deepEqual(JSON.parse(result.stdout.trim()),{
-    transport:"LOOPBACK",credential:"DISPOSABLE",
-    guestDenied:true,forgeryDenied:true,ownerAccepted:true,releaseAuthorized:false,
-  });
+  const observed=JSON.parse(result.stdout.trim());
+  if(observed.transport==="DENIED_BY_NODE"){
+    assert.ok(Number(process.versions.node.split(".")[0])>=25);
+    assert.deepEqual(observed,{transport:"DENIED_BY_NODE",releaseAuthorized:false});
+  }else{
+    assert.deepEqual(observed,{
+      transport:"LOOPBACK",credential:"DISPOSABLE",
+      guestDenied:true,forgeryDenied:true,ownerAccepted:true,releaseAuthorized:false,
+    });
+  }
 });

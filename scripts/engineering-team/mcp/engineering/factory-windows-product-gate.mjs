@@ -131,7 +131,7 @@ export async function observeFactoryWindowsProductGate({
   }catch{return blocked("PRODUCT_GATE_EVIDENCE_UNVERIFIED",a.expectedHead);}
   return Object.freeze({
     state:"TEST_PASSED",code:"PRODUCT_GATE_OBSERVED_NOT_RELEASED",
-    sourceHead:a.expectedHead,candidateHead:a.candidateHead,
+    requestId:a.requestId,sourceHead:a.expectedHead,candidateHead:a.candidateHead,
     candidatePrNumber:a.candidatePrNumber,sourceRequestId:a.sourceRequestId,
     proofIds:["windows-factory-acceptance"],evidenceDigest:digest,
     ownerMachineObserved:true,independentVerification:false,

@@ -580,6 +580,8 @@ function safeControlReceipt(raw,requestId) {
       raw.checkpointCount<=250?raw.checkpointCount:null,
     evidenceDigest:["PRODUCT_UAT_EVIDENCE_ATTESTED","PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(raw.code)&&raw.state==="TEST_PASSED"&&
       /^[a-f0-9]{64}$/.test(raw.evidenceDigest||"")?raw.evidenceDigest:null,
+    verifierSourceDigest:["PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(raw.code)&&raw.state==="TEST_PASSED"&&
+      /^[a-f0-9]{64}$/.test(raw.verifierSourceDigest||"")?raw.verifierSourceDigest:null,
     projectIdentityDigest:raw.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"&&raw.state==="TEST_PASSED"&&
       /^[a-f0-9]{64}$/.test(raw.projectIdentityDigest||"")?raw.projectIdentityDigest:null,
     issueCount:Number.isSafeInteger(raw.issueCount)&&raw.issueCount>=0&&raw.issueCount<=80
@@ -794,6 +796,7 @@ export async function factoryControlAction(name,args,{
             checkpointCount:result.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"?result.checkpointCount:null,
             evidenceDigest:["PRODUCT_UAT_EVIDENCE_ATTESTED","PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(result.code)?result.evidenceDigest:null,
             ownerMachineObserved:["PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(result.code)&&result.ownerMachineObserved===true,
+            verifierSourceDigest:["PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(result.code)?result.verifierSourceDigest:null,
             projectIdentityDigest:result.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"?result.projectIdentityDigest:null};
         }finally{await unlink(lockFile).catch(()=>{});}
       }

@@ -12426,7 +12426,7 @@
       },
       {
         "target": "tests/issue-3142-factory-worker-pool.test.mjs",
-        "targetDigest": "c62318ef3c3090f94ecc8cad4d9c26ba5893a08a8ca816122a451ba7f42724fc",
+        "targetDigest": "c52ddf2f4e47491be4c5d66499a3964bf236214e9d70f2b340e6cb6bd1d659d7",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12444,7 +12444,7 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Owner-approved narrow one-issue (#3142) pilot exception recorded in GitHub issue #3142 comment 6510212423; exact-edition source/test change still requires scoped approval and Windows evidence. Disposable unit fixtures validate strict single work-order, source head, two grant IDs, expiry under 1 hour, one request, private regular-file path (no symlink/junction), negative issue and consent cases, existing STOP and nonreplayable claims. Local owner-authored JSON consent is NOT an independent F00 registrar signature or WHITE-PAPER-V3 W8/W9 ADMIT; test does not prove owner signature, credential provision, installed Windows worker, autonomous source edit, paid model invocation, published PR, native Windows Product Gate or merge. Manual owner exact-head approval and independent GitHub CI plus owner-Windows acceptance remain mandatory; no auto merge or backlog authorization. Five worker slots share a single claim implementation; each slot is independently identified but no replica is commissioned by this test. #3142 owner-pilot additional negative fixture checks current-head supervisor RUNNING observation without worker release, cross-source or STOP/PAUSE success. Neither this fixture nor the returned draft PR verifies an independently qualified F00 reviewer, owner Windows Product Gate, live dispatcher or merge.",
+        "limits": "Owner-approved narrow one-issue (#3142) pilot exception recorded in GitHub issue #3142 comment 6510212423; exact-edition source/test change still requires scoped approval and Windows evidence. Disposable unit fixtures validate strict single work-order, source head, two grant IDs, expiry under 1 hour, one request, private regular-file path (no symlink/junction), negative issue and consent cases, existing STOP and nonreplayable claims. Local owner-authored JSON consent is NOT an independent F00 registrar signature or WHITE-PAPER-V3 W8/W9 ADMIT; test does not prove owner signature, credential provision, installed Windows worker, autonomous source edit, paid model invocation, published PR, native Windows Product Gate or merge. Manual owner exact-head approval and independent GitHub CI plus owner-Windows acceptance remain mandatory; no auto merge or backlog authorization. Five worker slots share a single claim implementation; each slot is independently identified but no replica is commissioned by this test. #3142 owner-pilot additional negative fixture checks current-head supervisor RUNNING observation without worker release, cross-source or STOP/PAUSE success. Neither this fixture nor the returned draft PR verifies an independently qualified F00 reviewer, owner Windows Product Gate, live dispatcher or merge. PR #3357 exact-edition preproduction review CANDIDATE: revised fixture explicitly rejects current-head RUNNING supervisor with pauseAcknowledged=true, plus PAUSED/STOP_REQUESTED/wrong-head; `pilotSupervisorObservedOnExactHead` remains read-only and grants neither coding nor merge. Actual current-head owner-Windows engineering diagnostics passed, but these are not an F00 signed W8/W9 ADMIT or real product release. Catalogue edition proposal is author-prepared and requires exact-head human or qualified independent review before any merge.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-pool.mjs",
@@ -12452,7 +12452,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
-            "digest": "11f015ceffd44a8e900e8326caf76831a603ccb4053ddb2debef74e9ca21f6af"
+            "digest": "d98c761e63da7b29e0875692cc6d21a36a1904bb709c6eeb57e4fe0c691537d2"
           }
         ]
       },
@@ -12628,7 +12628,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
-            "digest": "11f015ceffd44a8e900e8326caf76831a603ccb4053ddb2debef74e9ca21f6af"
+            "digest": "d98c761e63da7b29e0875692cc6d21a36a1904bb709c6eeb57e4fe0c691537d2"
           },
           {
             "path": "scripts/engineering-team/windows/workers/Install-PlotPickleFactoryWorkers.ps1",

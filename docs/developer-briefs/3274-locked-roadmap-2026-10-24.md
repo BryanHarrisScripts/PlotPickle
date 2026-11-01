@@ -4,6 +4,21 @@
 **Master issue:** [#3274](https://github.com/BryanHarrisScripts/PlotPickle/issues/3274). This is the living coordination and source-of-truth *priority register*, not a twelfth implementation team or a new subsystem.  
 **Architecture reference:** [README.md](../../README.md), especially **"Roadmap: three Factories and one Semantic Story Coordinator"**, **"Give agents meaningful freedom, not just more buttons"**, and **"Build truth into every action"**. Read [#3203 design](3203-intent-centred-hollywood-operating-system.md) and the [storage governance brief](3241-complete-storage-governance-design.md) alongside it.
 
+## Current owner priority — October 31, 2026
+
+The October 24 campaign list below remains as historical context. For the **next Factory milestones**, use this simpler owner-approved order:
+
+1. **Complete one real Worker 1 engineering cycle** (#3142 / #3110): a scoped local-model source edit, commit, tests, source-specific review, real Windows acceptance, required green CI, approved merge and durable result. A suitably authorized human-supervised bootstrap may be used for this first cycle. Do not count a draft PR or a test fixture as completion.
+2. **Build Elara's Agent Workspace** (#3355) immediately afterward: durable Human–Elara–agent communication, one delegated subtask, a real answer, shared mission evidence and continuity across reconnects.
+3. **Prove wider autonomy**, including two distinct unattended issue-to-merge cycles, before expanding to Workers 2–3 or claiming generalized automatic merging.
+4. **Make the full suite accessible to any installer** (#3358 / #3268): one PlotPickle installer, optional self-development, one Service Manager and user-owned local features, without manual certificates or access to the original maintainer's credentials.
+
+**F00/AEGIS:** Retain the existing independent-review and cryptographic implementation, but do not require a dedicated F00 Windows service, registrar enrollment or an owner-created publisher certificate for the *first* human-supervised Worker 1 cycle, Elara's workspace or ordinary user-local development. Use strong signing/independent commissioning when a specific trusted-distribution or high-assurance release policy actually requires it. Reuse existing code; do not build a parallel verifier or installer.
+
+**Still required:** source/test truth cannot be self-approved by the coding agent, current protected CI rules must pass, STOP/PAUSE and no-replay persist, owner or duly delegated release authority is respected, and applicable real-device verification cannot be replaced by fixtures. This document sets priority and proposed simplification; it is **not** an authorization to disable W8/W9 test-truth gates or merge without approval.
+
+---
+
 ## Locked priority and issue ownership
 
 | Priority | Outcome | Existing issue(s) | Status / first release gate |

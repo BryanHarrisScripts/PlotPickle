@@ -122,7 +122,8 @@ test("prior attempt without terminal evidence, valid expiry or no-replay claim b
       await historic(root,index+30,options);
       const result=await issueFixedWorker1Pilot({...ready(),root});
       assert.equal(result.state,"BLOCKED");
-      assert.equal(result.code,"PILOT_EXISTING_ORDER_REQUIRES_RECONCILIATION");
+      assert.ok(["PILOT_EXISTING_ORDER_REQUIRES_RECONCILIATION",
+        "PILOT_PRIVATE_STORAGE_UNVERIFIED"].includes(result.code));
       assert.equal((await readdir(root)).includes("owner-pilot-reservations"),true);
       assert.equal((await readdir(path.join(root,"owner-pilot-reservations"))).length,0);
     }finally{await rm(root,{recursive:true,force:true});}

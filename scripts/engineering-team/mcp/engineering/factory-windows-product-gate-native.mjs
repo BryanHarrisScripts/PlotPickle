@@ -77,8 +77,10 @@ export async function probeFactoryWindowsCandidate({
   if(!snapshot)return unproven();
   const encoded=Buffer.from(JSON.stringify(snapshot)).toString("base64url");
   if(encoded.length>8192)return unproven();
-  // Node Permission Model denies OS process spawning, network and all writes.
-  // Only reviewed trusted child and the previously attested stage are readable.
+  // Node permission controls deny child processes and filesystem writes,
+  // but do not enforce network isolation. The fixed child uses a disposable
+  // loopback listener; no owner credentials are placed in its environment.
+  // This is a guarded regression, NOT adversarial sandbox certification.
   const result=await execute({
     program:nodePath,cwd:stage,timeoutMs:45000,
     argv:["--no-warnings","--permission",

@@ -184,3 +184,68 @@ export function evaluateFactoryWindowsProductEvidence({
     {state:"UNPROVEN",code:"PRODUCT_GATE_EVIDENCE_UNVERIFIED",
       releaseAuthorized:false,independentVerification:false});
 }
+
+/**
+ * Read-only second-phase verifier. A verified observation is NOT a merge
+ * authorization and is not a separately credentialed F00 reviewer.
+ */
+export async function verifyFactoryWindowsProductGateReceipt({
+  selection,root,repoRoot,platform=process.platform,
+  verifyHead=readFactoryVerificationHead,inspectPr=inspectFactoryCandidatePr,
+  readControlReceipt,fs={lstat,readFile},
+}={}){
+  const a=selection;
+  if(!validateFactoryProductGateSelection(a))return blocked("PRODUCT_GATE_SELECTION_INVALID");
+  if(platform!=="win32")return blocked("WINDOWS_ONLY");
+  if(typeof root!=="string"||!path.isAbsolute(root)||
+    typeof repoRoot!=="string"||!path.isAbsolute(repoRoot)||
+    typeof readControlReceipt!=="function")return blocked("PRODUCT_GATE_EVIDENCE_UNVERIFIED");
+  let head,receipt,identity;
+  try{
+    [head,receipt]=await Promise.all([
+      verifyHead({repoRoot}),readControlReceipt(a.sourceRequestId),
+    ]);
+  }catch{return blocked("PRODUCT_GATE_EVIDENCE_UNVERIFIED");}
+  if(head!==a.expectedHead||receipt?.state!=="TEST_PASSED"||
+    receipt?.code!=="PRODUCT_GATE_OBSERVED_NOT_RELEASED"||
+    receipt.requestId!==a.sourceRequestId||
+    receipt.candidateHead!==a.candidateHead||
+    receipt.candidatePrNumber!==a.candidatePrNumber||
+    receipt.sourceHead!==a.expectedHead)
+    return blocked("PRODUCT_GATE_EVIDENCE_UNVERIFIED",a.expectedHead);
+  try{identity=await inspectPr({prNumber:a.candidatePrNumber,
+    candidateHead:a.candidateHead,expectedHead:a.expectedHead,
+    repoRoot,platform,verifyHead});}
+  catch{return blocked("PRODUCT_GATE_CANDIDATE_UNVERIFIED",a.expectedHead);}
+  if(identity?.state!=="TEST_PASSED"||identity.code!=="CANDIDATE_HEAD_VERIFIED")
+    return blocked("PRODUCT_GATE_CANDIDATE_UNVERIFIED",a.expectedHead);
+  let bytes;
+  try{
+    const filename=path.join(root,"mcp-control-requests",
+      a.sourceRequestId+"-evidence.json");
+    const stat=await fs.lstat(filename);
+    if(!stat.isFile()||stat.isSymbolicLink()||stat.size<100||stat.size>8192)
+      return blocked("PRODUCT_GATE_EVIDENCE_UNVERIFIED",a.expectedHead);
+    bytes=await fs.readFile(filename);
+    if(bytes.length!==stat.size)return blocked("PRODUCT_GATE_EVIDENCE_UNVERIFIED",a.expectedHead);
+  }catch{return blocked("PRODUCT_GATE_EVIDENCE_UNVERIFIED",a.expectedHead);}
+  const checked=evaluateFactoryWindowsProductEvidence({
+    evidenceBytes:bytes,receipt,expectedHead:a.expectedHead,
+    candidateHead:a.candidateHead,candidatePrNumber:a.candidatePrNumber,
+    stageRequestId:receipt.sourceRequestId,
+    requestedProofs:["windows-factory-acceptance"],
+  });
+  try{if(checked.state!=="OBSERVATION_VERIFIED"||
+    await verifyHead({repoRoot})!==a.expectedHead)
+    return blocked("PRODUCT_GATE_EVIDENCE_UNVERIFIED",a.expectedHead);}
+  catch{return blocked("PRODUCT_GATE_EVIDENCE_UNVERIFIED",a.expectedHead);}
+  return Object.freeze({
+    state:"TEST_PASSED",code:"PRODUCT_GATE_EVIDENCE_MATCHED",
+    requestId:a.requestId,sourceRequestId:a.sourceRequestId,
+    sourceHead:a.expectedHead,candidateHead:a.candidateHead,
+    candidatePrNumber:a.candidatePrNumber,evidenceDigest:receipt.evidenceDigest,
+    proofIds:["windows-factory-acceptance"],ownerMachineObserved:true,
+    independentVerification:false,releaseAuthorized:false,
+    automaticMergeEnabled:false,replayAuthorized:false,modelInvoked:false,
+  });
+}

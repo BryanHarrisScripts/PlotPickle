@@ -453,7 +453,7 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "PRODUCT_GATE_HOST_UNVERIFIED","PRODUCT_GATE_HOST_CHANGED",
   "PRODUCT_GATE_CANDIDATE_UNVERIFIED","PRODUCT_GATE_NATIVE_PROBE_UNAVAILABLE",
   "PRODUCT_GATE_NATIVE_PROBE_UNVERIFIED","PRODUCT_GATE_EVIDENCE_UNVERIFIED",
-  "PRODUCT_GATE_OBSERVED_NOT_RELEASED"]);
+  "PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_TRUTH_UNVERIFIED"]);
 export function controlTokenMatches(presented,configured) {
   if(typeof configured!=="string"||!CONTROL_TOKEN.test(configured)||
      typeof presented!=="string"||!CONTROL_TOKEN.test(presented))return false;
@@ -676,14 +676,33 @@ export async function factoryControlAction(name,args,{
               stageReceipt:await factoryControlReceipt({root,requestId:args.stageRequestId}),
               verifyHead:ops.testHead})
             :args.suite==="factory-windows-product-gate"
-            ?await ops.productGate({
-              selection:{requestId:args.requestId,expectedHead:args.expectedHead,
-                candidatePrNumber:args.candidatePrNumber,candidateHead:args.candidateHead,
-                sourceRequestId:args.sourceRequestId},
-              root,repoRoot:ENGINEERING_REPO_ROOT,
-              stageReceipt:await factoryControlReceipt({root,requestId:args.sourceRequestId}),
-              verifyHead:ops.testHead,inspectPr:ops.inspectPr,
-            })
+            ?await (async()=>{
+              const stageReceipt=await factoryControlReceipt({
+                root,requestId:args.sourceRequestId,
+              });
+              const admission=await ops.engineering({
+                selection:{
+                  requestId:args.requestId,expectedHead:args.expectedHead,
+                  stageRequestId:args.sourceRequestId,
+                  candidatePrNumber:args.candidatePrNumber,
+                  candidateHead:args.candidateHead,
+                  mode:"node-script",target:"scripts/verification-test-truth.mjs",
+                  scriptArgs:["--base-ref",args.expectedHead],
+                },root,repoRoot:ENGINEERING_REPO_ROOT,
+                stageReceipt,verifyHead:ops.testHead,
+              });
+              if(admission?.state!=="TEST_PASSED"||
+                 admission.code!=="ENGINEERING_TASK_PASSED")
+                return {state:"BLOCKED",code:"PRODUCT_GATE_TRUTH_UNVERIFIED",
+                  sourceHead:args.expectedHead};
+              return await ops.productGate({
+                selection:{requestId:args.requestId,expectedHead:args.expectedHead,
+                  candidatePrNumber:args.candidatePrNumber,candidateHead:args.candidateHead,
+                  sourceRequestId:args.sourceRequestId},
+                root,repoRoot:ENGINEERING_REPO_ROOT,stageReceipt,
+                verifyHead:ops.testHead,inspectPr:ops.inspectPr,
+              });
+            })()
             :args.suite==="factory-gateway-acceptance"
             ?await (async()=>{
               // Candidate test source is untrusted until its approved-truth

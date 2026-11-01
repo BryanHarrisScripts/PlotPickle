@@ -57,23 +57,39 @@ async function main(){
      diagnostic.dispatcher?.processVerified!==false||
      diagnostic.workerFleet?.workerProcessVerified!==false||
      diagnostic.automaticMergeEnabled!==false)return fail();
-  // Exercise the actual candidate status serialization, not a copied mock.
-  let status;
-  try{status=await candidate.factoryStatus({
-    root:path.join(stage,".artifacts","3303-product-gate-disposable"),
-    verifyHead:async()=>mainSha,readWorkerOperations:async()=>diagnostic,
-  });}catch{return fail();}
+  // Exercise the actual candidate MCP authorization and status route. The
+  // physical snapshot was gathered by trusted MAIN, not by candidate code.
+  const request={jsonrpc:"2.0",id:1,method:"tools/call",
+    params:{name:"factory_status",arguments:{}}};
+  const fakeRoot=path.join(stage,".artifacts","3303-product-gate-disposable");
+  let status,guest;
+  try{
+    const authorized=await candidate.executeMcpRequest(request,{
+      root:fakeRoot,controlAuthenticated:true,
+      workerOperationsRead:async()=>diagnostic,
+      supervisorRead:async()=>snap.supervisor,
+      stageBudgetRead:async()=>({state:"UNKNOWN"}),
+      stageLockRead:async()=>({state:"ABSENT"}),
+    });
+    status=authorized?.result?.structuredContent;
+    guest=await candidate.executeMcpRequest({...request,id:2},{
+      root:fakeRoot,controlAuthenticated:false,
+    });
+  }catch{return fail();}
   if(status?.workerOperations?.state!=="OBSERVATION_ONLY"||
-     status.workerOperations.sourceHead!==mainSha)return fail();
-  // The candidate's unprivileged MCP boundary must still deny fixed tools.
-  let guest;
-  try{guest=await candidate.executeMcpRequest({
-    jsonrpc:"2.0",id:1,method:"tools/call",
+     status.workerOperations.sourceHead!==mainSha ||
+     status?.supervisor?.state!=="RUNNING" ||
+     guest?.result?.structuredContent?.workerOperations!==undefined)
+    return fail();
+  // Unauthenticated users may read public status, but may not invoke controls.
+  let guestMutation;
+  try{guestMutation=await candidate.executeMcpRequest({
+    jsonrpc:"2.0",id:3,method:"tools/call",
     params:{name:"factory_run_named_test",arguments:{
       requestId:"f".repeat(32),expectedHead:mainSha,suite:"factory-supervisor-migrate",
-    }}},{root:path.join(stage,".artifacts","3303-product-gate-disposable"),
-      controlAuthenticated:false});}catch{return fail();}
-  if(guest?.error?.code!==-32001)return fail();
+    }}},{root:fakeRoot,controlAuthenticated:false});}
+  catch{return fail();}
+  if(guestMutation?.error?.code!==-32001)return fail();
   // Never call migrate: the candidate MUST deny a RUNNING supervisor early.
   let called=false,migration;
   try{migration=await op.requestOwnerSupervisorMigration({

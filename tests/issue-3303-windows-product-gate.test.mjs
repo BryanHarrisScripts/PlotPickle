@@ -7,6 +7,7 @@ import {spawnSync} from "node:child_process";
 import {observeFactoryWindowsProductGate,evaluateFactoryWindowsProductEvidence,
   validateFactoryProductGateSelection,verifyFactoryWindowsProductGateReceipt} from "../scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs";
 import {handleRpc,MCP_CONTROL_TOOLS} from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
+import {resolveProofRoute,assessProductProof} from "../lib/verification/development/proof-routing.mjs";
 
 const MAIN="a".repeat(40),CANDIDATE="b".repeat(40);
 const STAGE="c".repeat(32),REQ="d".repeat(32);
@@ -181,4 +182,34 @@ test("#3303 real Node permission guardrail denies child, worker, and file writes
   assert.equal(result.status,0,result.stderr);
   const permissions=JSON.parse(result.stdout.trim());
   assert.deepEqual(permissions,{available:true,child:false,worker:false,write:false});
+});
+
+test("#3303 risk route is compositional and requires independent privileged evidence",async()=>{
+  const config=JSON.parse(await readFile(path.join(process.cwd(),
+    "config/development-verification-routing.json"),"utf8"));
+  const docs=resolveProofRoute({changedFiles:[
+    "docs/developer-briefs/3303-permanent-risk-routed-windows-product-gate.md"],
+    contract:config});
+  assert.equal(docs.productProofStatus,"NOT_REQUIRED");
+  const runtime=resolveProofRoute({changedFiles:[
+    "scripts/engineering-team/mcp/engineering/new-status-module.mjs"],
+    contract:config});
+  assert.ok(runtime.productProofs.includes("windows-factory-acceptance"));
+  const mixed=resolveProofRoute({changedFiles:[
+    "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+    "scripts/engineering-team/windows/workers/Install-PlotPickleFactoryWorkers.ps1"],
+    contract:config});
+  assert.deepEqual(new Set(mixed.productProofs),
+    new Set(["windows-factory-acceptance","windows-release-authority"]));
+  const ref="factory-gate:trusted-artifact",partial=[{
+    proofId:"windows-factory-acceptance",finding:"supports",
+    testedCommit:CANDIDATE,action:"Native owner Windows observation",
+    observed:"Verified",artifactRef:ref,
+  }];
+  const outcome=assessProductProof({route:mixed,evidence:partial,
+    testedCommit:CANDIDATE,verifiedArtifactRefs:[ref]});
+  assert.equal(outcome.status,"UNPROVEN");
+  assert.deepEqual(outcome.missing,["windows-release-authority"]);
+  assert.equal(assessProductProof({route:mixed,evidence:partial,
+    testedCommit:MAIN,verifiedArtifactRefs:[ref]}).status,"UNPROVEN");
 });

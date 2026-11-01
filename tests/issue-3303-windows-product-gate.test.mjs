@@ -310,3 +310,42 @@ test("#3303 real loopback MCP transport enforces synthetic-token authorization w
     await new Promise((resolve,reject)=>server.close(err=>err?reject(err):resolve()));
   }
 }));
+
+test("#3303 permission-restricted native child challenges disposable HTTP control token",()=>{
+  // This runs under the real Node permission model, not injected RPC callbacks.
+  // It does not contact the owner tunnel or exercise release/merge operations.
+  const script=[
+    'import {randomBytes} from "node:crypto";',
+    'import {createLocalMcpHttpServer} from "./scripts/engineering-team/mcp/factory-readonly-server.mjs";',
+    'const guard=process.permission;',
+    'if(!guard?.has||guard.has("child")||guard.has("worker")||guard.has("fs.write"))throw Error("PERMISSION_INVALID");',
+    'const token=randomBytes(48).toString("base64url");',
+    'const server=createLocalMcpHttpServer({root:process.cwd(),controlToken:token,engineeringEnabled:true});',
+    'await new Promise((resolve,reject)=>{server.once("error",reject);server.listen(0,"127.0.0.1",resolve);});',
+    'try {',
+    ' const address=server.address();',
+    ' if(address.address!=="127.0.0.1"||address.port<1)throw Error("NOT_LOOPBACK");',
+    ' const url="http://127.0.0.1:"+address.port+"/mcp";',
+    ' const query=async(headers={})=>{const response=await fetch(url,{method:"POST",signal:AbortSignal.timeout(4000),headers:{"content-type":"application/json",accept:"application/json, text/event-stream",...headers},body:JSON.stringify({jsonrpc:"2.0",id:3,method:"tools/list"})});if(response.status!==200)throw Error("HTTP_UNVERIFIED");return (await response.json())?.result?.tools;};',
+    ' const guest=await query();',
+    ' const forged=await query({"x-plotpickle-factory-control-token":randomBytes(48).toString("base64url")});',
+    ' const owner=await query({"x-plotpickle-factory-control-token":token});',
+    ' const allowed=list=>Array.isArray(list)&&list.some(t=>t.name==="factory_run_named_test");',
+    ' if(!Array.isArray(guest)||!Array.isArray(forged)||!Array.isArray(owner)||allowed(guest)||allowed(forged)||!allowed(owner))throw Error("AUTH_BOUNDARY_FAILED");',
+    ' console.log(JSON.stringify({transport:"LOOPBACK",credential:"DISPOSABLE",guestDenied:true,forgeryDenied:true,ownerAccepted:true,releaseAuthorized:false}));',
+    '} finally {await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}',
+  ].join("\n");
+  const result=spawnSync(process.execPath,[
+    "--no-warnings","--permission",
+    "--allow-fs-read="+process.cwd(),
+    "--input-type=module","--eval",script,
+  ],{cwd:process.cwd(),windowsHide:true,encoding:"utf8",timeout:20000,
+    env:Object.fromEntries(Object.entries(process.env).filter(([key])=>
+      ["PATH","Path","SystemRoot","WINDIR","PATHEXT","ComSpec","TEMP","TMP"].includes(key)))});
+  assert.equal(result.error,undefined);
+  assert.equal(result.status,0,result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout.trim()),{
+    transport:"LOOPBACK",credential:"DISPOSABLE",
+    guestDenied:true,forgeryDenied:true,ownerAccepted:true,releaseAuthorized:false,
+  });
+});

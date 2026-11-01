@@ -3,6 +3,8 @@ Date: 2026-10-29
 Status: **Owner-directed proposed policy, not active release authorization**
 Owner direction: **prove a working PlotPickle product and two complete human-supervised engineering cycles before investing further in automated Lane A credentials and autonomous merge infrastructure.**
 
+> **Updated owner priority (October 31, 2026):** The immediate target is **one complete Worker 1 issue-to-verified-merge cycle**, followed by **Elara's Agent Workspace #3355**, *before* completing the second unattended cycle or commissioning Workers 2–3. The longer two-cycle requirements below still apply to a later claim of **fully unattended Factory autonomy**, not entry into the Agent Workspace. Dedicated F00/AEGIS service identity, registrar and publisher certification are **not a prerequisite** for a human-supervised first cycle; the actual protected truth-admission, required CI and real Windows gates must nevertheless be satisfied without a silent waiver. Existing F00 code remains available for high-assurance release. See master roadmap #3274 and installer contract #3358. This is clarification of the roadmap, not an active grant or a change to CI.
+
 ## Scope and objective
 
 Use the existing single authenticated Factory MCP tunnel, Windows supervisor, GitHub application and scoped PR worktrees to prove two **real engineering** cycles: authorized issue -> source change -> focused tests -> owner Windows evidence -> GitHub PR and required CI -> Human review -> Human-approved merge -> next issue. A source edit or test run alone is not one completed cycle.

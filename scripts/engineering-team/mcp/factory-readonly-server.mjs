@@ -954,7 +954,8 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
       tool.name==="factory_run_named_test" && !engineeringEnabled
         ? {...tool,inputSchema:{...tool.inputSchema,properties:{...tool.inputSchema.properties,
           suite:{...tool.inputSchema.properties.suite,enum:tool.inputSchema.properties.suite.enum.filter(
-            suite=>suite!=="factory-gateway-acceptance")}}}}
+            suite=>!["factory-gateway-acceptance",
+              "factory-windows-product-gate"].includes(suite))}}}}
         : tool),...MCP_CONVERSATION_TOOLS,...MCP_STORAGE_TOOLS,...MCP_WINDOWS_DIAGNOSTICS_TOOLS,
       ...(engineeringEnabled?MCP_ENGINEERING_TOOLS:[])]:MCP_TOOLS}};
     case "tools/call": {
@@ -982,10 +983,10 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
       const isEngineering=name==="factory_engineering_run";
       // Executing candidate PR code requires the existing explicit owner opt-in,
       // even when exposed as a fixed named suite rather than a generic runner.
-      const isGatewayAcceptance=name==="factory_run_named_test"&&
-        args.suite==="factory-gateway-acceptance";
+      const candidateExecutingSuite=name==="factory_run_named_test"&&
+        ["factory-gateway-acceptance","factory-windows-product-gate"].includes(args.suite);
       const isControl=MCP_CONTROL_TOOLS.some(x=>x.name===name) || isEngineering;
-      if((isEngineering||isGatewayAcceptance)&&!engineeringEnabled)
+      if((isEngineering||candidateExecutingSuite)&&!engineeringEnabled)
         return {error:{code:-32601,message:"Unknown tool"}};
       if(isControl&&!controlAuthenticated)return {error:{code:-32001,message:"Factory control authorization required"}};
       if(isControl&&!validControlArgs(name,args))return {error:invalidParams()};

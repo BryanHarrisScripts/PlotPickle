@@ -82,7 +82,7 @@ test('reconciliation permits only two fixed #3142 coding source targets',()=>{
   for(const target of [host,pool]){
     assert.equal(recoveryTargetAllowed(target),true);
     assert.equal(onlyUnstagedTarget('M '+target,target),true);
-    assert.equal(onlyUnstagedTarget('M '+target+'\\nM another.mjs',target),false);
+    assert.equal(onlyUnstagedTarget('M '+target+'\nM another.mjs',target),false);
   }
   for(const target of [
     '../worker-pool.mjs','scripts/engineering-team/gateway/worker-pool/other.mjs',

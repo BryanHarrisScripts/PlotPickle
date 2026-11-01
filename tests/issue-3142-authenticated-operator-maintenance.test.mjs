@@ -137,3 +137,34 @@ test("#3142 no new public or authenticated MCP tool name",()=>{
  assert.equal(named.inputSchema.properties.suite.enum.includes("factory-supervisor-migrate"),true);
  assert.equal(MCP_CONTROL_TOOLS.some(x=>x.name==="execute-powershell"),false);
 });
+
+test("#3142 fixed pilot control rejects guest and duplicate request without merge privilege",async()=>{
+ const root=await mkdtemp(path.join(os.tmpdir(),"pp-pilot-control-"));
+ try{
+  const args={requestId:"f".repeat(32),expectedHead:HEAD,suite:"factory-worker1-pilot-issue"};
+  let calls=0;
+  const invoke=(selection,authorized)=>handleRpc({jsonrpc:"2.0",id:9,method:"tools/call",
+    params:{name:"factory_run_named_test",arguments:selection}},{
+     root,controlAuthenticated:authorized,controlOps:{
+      testHead:async()=>HEAD,
+      pilotIssuer:async({expectedHead})=>{
+       assert.equal(expectedHead,HEAD);
+       calls++;
+       return {state:"TEST_PASSED",code:"WORKER1_PILOT_GRANTED_NOT_DISPATCHED",
+        sourceHead:HEAD,modelInvoked:false,automaticMergeEnabled:false};
+      },
+     }});
+  assert.equal((await invoke(args,false)).error.code,-32001);
+  assert.equal((await invoke({...args,issueNumber:123},true)).error.code,-32602);
+  assert.equal(calls,0);
+  const result=(await invoke(args,true)).result.structuredContent;
+  assert.equal(result.state,"TEST_PASSED");
+  assert.equal(result.code,"WORKER1_PILOT_GRANTED_NOT_DISPATCHED");
+  assert.equal(result.independentVerification,false);
+  assert.equal(result.releaseAuthorized,false);
+  assert.equal(result.replayAuthorized,false);
+  assert.equal(calls,1);
+  assert.equal((await invoke(args,true)).result.structuredContent.state,"DUPLICATE_OR_UNVERIFIABLE_REQUEST");
+  assert.equal(calls,1);
+ }finally{await rm(root,{recursive:true,force:true});}
+});

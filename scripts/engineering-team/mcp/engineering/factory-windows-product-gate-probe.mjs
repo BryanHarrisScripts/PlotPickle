@@ -8,11 +8,70 @@
  * No network, child process, file write or owner token is granted.
  */
 import path from "node:path";
+import {randomBytes} from "node:crypto";
 import {pathToFileURL} from "node:url";
 
 const SHA=/^[a-f0-9]{40}$/u;
 const names=["PlotPickleCodingDispatcher","PlotPickleCodingWorker1","PlotPickleCodingWorker2"];
 const fail=()=>{process.stdout.write(JSON.stringify({state:"UNPROVEN"})+"\n");process.exitCode=2;};
+
+/**
+ * Physically challenge the candidate's loopback MCP HTTP listener with a
+ * disposable 384-bit token. This is a bounded behavioral test, not the owner
+ * tunnel's credential or an independent signing/release authority.
+ */
+async function challengeIsolatedLoopback(candidate,stage){
+  if(typeof candidate.createLocalMcpHttpServer!=="function")return false;
+  const token=randomBytes(48).toString("base64url");
+  const root=path.join(stage,".artifacts","3303-product-gate-disposable");
+  const server=candidate.createLocalMcpHttpServer({
+    root,controlToken:token,engineeringEnabled:true,
+  });
+  await new Promise((resolve,reject)=>{
+    server.once("error",reject);
+    server.listen(0,"127.0.0.1",resolve);
+  });
+  try {
+    const addr=server.address();
+    if(addr?.address!=="127.0.0.1"||!Number.isInteger(addr.port)||
+       addr.port<1)return false;
+    const url="http://127.0.0.1:"+addr.port+"/mcp";
+    const call=async(headers={})=>{
+      const response=await fetch(url,{
+        method:"POST",signal:AbortSignal.timeout(4000),
+        headers:{"content-type":"application/json",
+          accept:"application/json, text/event-stream",...headers},
+        body:JSON.stringify({jsonrpc:"2.0",id:1,method:"tools/list"}),
+      });
+      if(response.status!==200)return null;
+      const payload=await response.json();
+      return payload?.result?.tools;
+    };
+    const guest=await call();
+    const forged=await call({
+      "x-plotpickle-factory-control-token":randomBytes(48).toString("base64url"),
+    });
+    const owner=await call({"x-plotpickle-factory-control-token":token});
+    const suite="factory_run_named_test";
+    if(!Array.isArray(guest)||!Array.isArray(forged)||
+       !Array.isArray(owner)||
+       guest.some(t=>t.name===suite)||forged.some(t=>t.name===suite)||
+       !owner.some(t=>t.name===suite))return false;
+    const forbidden=await fetch(url,{
+      method:"POST",signal:AbortSignal.timeout(4000),
+      headers:{"content-type":"application/json",
+        accept:"application/json, text/event-stream",
+        origin:"https://external.invalid"},
+      body:JSON.stringify({jsonrpc:"2.0",id:2,method:"tools/list"}),
+    });
+    if(forbidden.status!==403)return false;
+    return true;
+  }finally {
+    await new Promise((resolve,reject)=>
+      server.close(error=>error?reject(error):resolve()));
+  }
+}
+
 async function main(){
   if(process.platform!=="win32"||!process.permission?.has||process.permission.has("child")||
      process.permission.has("worker")||process.permission.has("fs.write"))
@@ -98,6 +157,8 @@ async function main(){
   });}catch{return fail();}
   if(called||migration?.state!=="BLOCKED"||
      migration.code!=="SUPERVISOR_MIGRATION_OFFLINE_REQUIRED")return fail();
+  // No synthetic status callback may substitute for real HTTP authentication.
+  if(!await challengeIsolatedLoopback(candidate,stage))return fail();
   process.stdout.write(JSON.stringify({
     state:"OBSERVED",source:"OWNER_WINDOWS_NATIVE",candidateHead:candidateSha,
     authStatusVerified:true,guestDenied:true,migrationDeniedWhileRunning:true,

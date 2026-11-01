@@ -31,7 +31,7 @@ export async function readFactoryGateVerifierDigest(){
 const knownProofs=new Set(["windows-factory-acceptance"]);
 const jsonBytes=value=>Buffer.from(JSON.stringify(value)+"\n","utf8");
 // This first fixed probe only covers the #3362 diagnostics/migration edition.
- // Later Factory change types require their own trusted, source-reviewed probe.
+// Later Factory change types require their own trusted, source-reviewed probe.
 const DIAGNOSTICS_PROBE_FILES=new Set([
   "config/verification/test-catalog.json",
   "scripts/engineering-team/mcp/engineering/factory-operator-maintenance.mjs",
@@ -54,9 +54,10 @@ export async function attestFactoryDiagnosticsScope({
     ],{cwd:stage,windowsHide:true,encoding:"utf8",
       timeout:30000,maxBuffer:8192});
     const raw=String(result.stdout||"");
-    if(raw.length>4096||raw.includes("\\0")||raw.includes("\\r")||
-      !raw.endsWith("\\n"))return false;
-    return admissibleFactoryDiagnosticsDiff(raw.trimEnd().split("\\n"));
+    const normalized=raw.replaceAll("\r\n","\n");
+    if(raw.length>4096||normalized.includes("\0")||normalized.includes("\r")||
+      !normalized.endsWith("\n"))return false;
+    return admissibleFactoryDiagnosticsDiff(normalized.trimEnd().split("\n"));
   }catch{return false;}
 }
 const cleanStage=async({stage,candidateHead,run=exec,fs={lstat,realpath}})=>{

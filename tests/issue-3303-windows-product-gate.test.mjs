@@ -67,10 +67,13 @@ test("#3303 trusted witness evidence is immutable, exact-bound and independently
   assert.equal(r.independentVerification,false);
   const bytes=await readFile(path.join(root,"mcp-control-requests",REQ+"-evidence.json"));
   const input={receipt:r,evidenceBytes:bytes,expectedHead:MAIN,candidateHead:CANDIDATE,
-    candidatePrNumber:3362,stageRequestId:STAGE};
+    candidatePrNumber:3362,stageRequestId:STAGE,
+    verifierSourceDigest:r.verifierSourceDigest};
   assert.equal(evaluateFactoryWindowsProductEvidence(input).state,"OBSERVATION_VERIFIED");
   assert.equal(evaluateFactoryWindowsProductEvidence(input).releaseAuthorized,false);
   assert.equal(evaluateFactoryWindowsProductEvidence({...input,candidateHead:MAIN}).state,"UNPROVEN");
+  assert.equal(evaluateFactoryWindowsProductEvidence({...input,
+    verifierSourceDigest:"f".repeat(64)}).state,"UNPROVEN");
   assert.equal(evaluateFactoryWindowsProductEvidence({...input,stageRequestId:REQ}).state,"UNPROVEN");
   assert.equal(evaluateFactoryWindowsProductEvidence({...input,
     requestedProofs:["windows-release-authority"]}).state,"UNPROVEN");
@@ -134,6 +137,7 @@ test("#3303 second-phase readback rechecks current PR and evidence; cannot grant
   assert.equal(accepted.code,"PRODUCT_GATE_EVIDENCE_MATCHED");
   assert.equal(accepted.independentVerification,false);
   assert.equal(accepted.releaseAuthorized,false);
+  assert.equal(accepted.verifierSourceDigest,first.verifierSourceDigest);
   assert.equal((await verifyFactoryWindowsProductGateReceipt({...verify,
     readControlReceipt:async()=>null})).state,"BLOCKED");
   assert.equal((await verifyFactoryWindowsProductGateReceipt({...verify,

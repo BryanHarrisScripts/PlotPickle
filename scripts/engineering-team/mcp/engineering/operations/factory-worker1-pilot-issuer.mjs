@@ -78,8 +78,7 @@ export async function priorOwnerOrdersTerminal({root,entries,expectedHead,at}={}
      !Number.isSafeInteger(at)||!Array.isArray(entries)||
      entries.length<1||entries.length>20||
      new Set(entries).size!==entries.length)return false;
-  try{
-    for(const filename of entries){
+  for(const filename of entries){
       if(!/^[a-f0-9]{32}\.json$/.test(filename))return false;
       const work=await historicalRecord(root,"owner-work-orders",filename);
       if(work.requestId+".json"!==filename||
@@ -120,8 +119,7 @@ export async function priorOwnerOrdersTerminal({root,entries,expectedHead,at}={}
            receipt.replayAuthorized!==false)return false;
       }else return false;
     }
-    return true;
-  }catch{return false;}
+  return true;
 }
 
 /** Creates exactly one fixed #3142 order. Never issues merge permission. */

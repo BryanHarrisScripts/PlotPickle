@@ -34,6 +34,61 @@ async function oneFile(directory,name,value){
   try { await f.writeFile(JSON.stringify(value)+"\n");await f.sync(); }
   finally { await f.close(); }
 }
+/**
+ * Historical pilot orders are retained, never cleared or retried. A prior
+ * #3142 order can coexist with ONE new head-bound pilot only after every
+ * old order is independently proven claimed, expired and on another head.
+ * Missing, unknown or malformed evidence blocks the entire new issuance.
+ */
+async function privateRecord(file){
+  const stat=await lstat(file);
+  if(!stat.isFile()||stat.isSymbolicLink()||stat.size<2||stat.size>4096)
+    throw Error("PILOT_HISTORY_RECORD_UNVERIFIED");
+  const value=JSON.parse(await readFile(file,"utf8"));
+  if(!value||typeof value!=="object"||Array.isArray(value))
+    throw Error("PILOT_HISTORY_RECORD_UNVERIFIED");
+  return value;
+}
+async function priorOrdersSafelyClaimed({dirs,root,expectedHead,at}){
+  const names=await readdir(dirs.orders);
+  if(names.length>32)return false;
+  if(names.length===0)return true;
+  const claims=path.join(root,"factory-worker-claims");
+  const stat=await lstat(claims);
+  if(!stat.isDirectory()||stat.isSymbolicLink())return false;
+  for(const name of names){
+    if(!/^[a-f0-9]{32}\.json$/.test(name))return false;
+    const order=await privateRecord(path.join(dirs.orders,name));
+    if(!validateOwnerWorkOrder(order,order.sourceHead)||
+       order.issueNumber!==ISSUE||order.assignedWorker!=="coding-worker-1"||
+       order.requestId+".json"!==name||order.sourceHead===expectedHead)
+      return false;
+    const [grant,publishing,exception,claim]=await Promise.all([
+      privateRecord(path.join(dirs.coding,order.grantId+".json")),
+      privateRecord(path.join(dirs.publication,order.publicationId+".json")),
+      privateRecord(path.join(dirs.exceptions,name)),
+      privateRecord(path.join(claims,name)),
+    ]);
+    const expired=record=>Number.isSafeInteger(record?.expiresAt)&&
+      record.expiresAt<=at&&record.maxRequests===1;
+    if(grant.grantId!==order.grantId||grant.issueNumber!==ISSUE||
+       grant.sourceHead!==order.sourceHead||!expired(grant)||
+       publishing.publicationId!==order.publicationId||
+       publishing.grantId!==order.grantId||
+       publishing.issueNumber!==ISSUE||publishing.sourceHead!==order.sourceHead||
+       !expired(publishing)||
+       exception.requestId!==order.requestId||
+       exception.grantId!==order.grantId||
+       exception.publicationId!==order.publicationId||
+       exception.issueNumber!==ISSUE||exception.sourceHead!==order.sourceHead||
+       !expired(exception)||
+       claim.requestId!==order.requestId||claim.issueNumber!==ISSUE||
+       claim.sourceHead!==order.sourceHead||
+       claim.workerId!=="coding-worker-1"||claim.state!=="RESERVED_NO_REPLAY")
+      return false;
+  }
+  return true;
+}
 async function readTarget(root){
   const pathname=path.join(root,...TARGET.split("/"));
   const stat=await lstat(pathname);
@@ -77,10 +132,10 @@ export async function issueFixedWorker1Pilot({
       publication:await ownerDirectory(root,"owner-publication-grants"),
       exceptions:await ownerDirectory(root,"owner-pilot-exceptions"),
     };
-    // Never admit over an existing owner-issued work order, even if invalid.
-    // Historical legacy queue is separate and remains blocked/nonreplayable.
-    const existing=await readdir(dirs.orders);
-    if(existing.length!==0)return denied("PILOT_EXISTING_ORDER_REQUIRES_RECONCILIATION");
+    // Retain all historical work/claim/grant files. Only previously claimed
+    // and expired #3142 orders from OTHER source heads may coexist.
+    if(!await priorOrdersSafelyClaimed({dirs,root,expectedHead,at}))
+      return denied("PILOT_EXISTING_ORDER_REQUIRES_RECONCILIATION");
     if((await readdir(dirs.reserve)).length!==0)
       return denied("PILOT_ALREADY_RESERVED_NO_REPLAY");
   }catch{return denied("PILOT_PRIVATE_STORAGE_UNVERIFIED");}

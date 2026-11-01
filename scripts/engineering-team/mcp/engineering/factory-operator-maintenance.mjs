@@ -22,7 +22,6 @@ const STATES=new Set(["Ready","Disabled","Running","Queued","Unknown"]);
 const REVIEWERS=new Set(["NOT_INSTALLED","SCM_PRESENT_NOT_QUALIFIED"]);
 const WORKER_STATES=new Set(["RELEASE_GATED","BLOCKED","READY","PARKED"]);
 const DISPATCH_STATES=new Set(["BLOCKED","ONLINE_OBSERVED"]);
-const safe=(value,allowed,alternative)=>allowed.has(value)?value:alternative;
 const blocked=code=>Object.freeze({state:"BLOCKED",code,processVerified:false,
   modelInvoked:false,replayAuthorized:false,automaticMergeEnabled:false});
 
@@ -69,7 +68,7 @@ export async function inspectOwnerWorkerOperations({
       processVerified:false}),
     workerFleet:Object.freeze({state:worker.state,
       pilotSupervisorObservedOnExactHead:worker.pilotSupervisorObservedOnExactHead===true,
-      onlineCodingWorkers:0,independentVerification:false,automaticMergeEnabled:false}),
+      onlineCodingWorkers:null,workerProcessVerified:false,independentVerification:false,automaticMergeEnabled:false}),
     modelInvoked:false,replayAuthorized:false,automaticMergeEnabled:false});
 }
 

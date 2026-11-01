@@ -87,9 +87,20 @@ export default function FactorySupervisorPanel() {
       <div className={styles.heading}>
         <div>
           <p className={styles.eyebrow}>OPERATIONS / SOFTWARE FACTORY</p>
-          <h3>Windows Supervisor</h3>
+          <h3>Factory Quality &amp; Operations</h3>
         </div>
         <button type="button" disabled={busy} onClick={() => void refresh()}>Refresh status</button>
+      </div>
+      <div className={styles.overview} aria-label="Three existing operational responsibilities" data-factory-operations="unified">
+        <p><strong>Software Factory</strong><span>Work Queue → Coding → Build &amp; Test</span></p>
+        <p><strong>Quality, Release &amp; Operations</strong><span>Review → Validate → Approve → Release</span></p>
+        <p><strong>Service Manager</strong><span>Background service ownership, health and recovery. Installation not established by this panel.</span></p>
+      </div>
+      <div className={styles.securityControls} aria-label="Four shared security controls" data-factory-security-controls="four-existing">
+        <div><strong>Access &amp; Runtime</strong><span>{status ? "Authenticated local supervisor status available; worker identity not independently proven." : "Local supervisor status unavailable."}</span></div>
+        <div><strong>Validation</strong><span>Independent review and Windows Product Gate not verified here.</span></div>
+        <div><strong>Evidence &amp; Safety</strong><span>{status ? `Supervisor: ${LABEL[status.state]}. STOP requires separate process-cleanup evidence.` : "Evidence unavailable; STOP state not independently proven."}</span></div>
+        <div><strong>Release Control</strong><span>{status?.automaticMergeEnabled === false ? "Automatic merging disabled; exact-head approval still required." : "Release and merge authority not verified."}</span></div>
       </div>
       <p className={styles.state} role="status" data-factory-supervisor-state={status?.state || "UNAVAILABLE"}>
         {status ? LABEL[status.state] : "Supervisor status unavailable"}

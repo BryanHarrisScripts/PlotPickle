@@ -52,7 +52,7 @@ async function readTarget(root){
  * pending separate review; no historical file is deleted or rewritten.
  */
 async function historicalRecord(root,folder,name){
-  if(!/^[a-f0-9]{32}(?:\\.result)?\\.json$/.test(name))
+  if(!/^[a-f0-9]{32}(?:\.result)?\.json$/.test(name))
     throw Error("HISTORICAL_RECORD_NAME_INVALID");
   const parent=path.join(root,folder);
   const ps=await lstat(parent);
@@ -64,7 +64,7 @@ async function historicalRecord(root,folder,name){
   return JSON.parse(await readFile(file,"utf8"));
 }
 async function historicalAbsent(root,folder,name){
-  if(!/^[a-f0-9]{32}(?:\\.result)?\\.json$/.test(name))return false;
+  if(!/^[a-f0-9]{32}(?:\.result)?\.json$/.test(name))return false;
   try{
     const parent=path.join(root,folder);
     const stat=await lstat(parent);
@@ -80,7 +80,7 @@ export async function priorOwnerOrdersTerminal({root,entries,expectedHead,at}={}
      new Set(entries).size!==entries.length)return false;
   try{
     for(const filename of entries){
-      if(!/^[a-f0-9]{32}\\.json$/.test(filename))return false;
+      if(!/^[a-f0-9]{32}\.json$/.test(filename))return false;
       const work=await historicalRecord(root,"owner-work-orders",filename);
       if(work.requestId+".json"!==filename||
          !validateOwnerWorkOrder(work,work.sourceHead)||

@@ -12783,7 +12783,7 @@
       },
       {
         "target": "tests/issue-3303-windows-product-gate.test.mjs",
-        "targetDigest": "c7b0790f883d3972f8fe8b976ef4b4126c086eebce85c641df6cd101a4a3480c",
+        "targetDigest": "849ff76f7331c23044db7abf8a4df2cc563fb55a97d51d09e5a66b1a2572f427",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],

@@ -129,3 +129,37 @@ test("prior attempt without terminal evidence, valid expiry or no-replay claim b
     }finally{await rm(root,{recursive:true,force:true});}
   }
 });
+
+test("exact terminal release of first #3142 pilot permits one distinct second request only",async()=>{
+  const root=await mkdtemp(path.join(os.tmpdir(),"pp3142-terminal-second-"));
+  try{
+    await historic(root,61,{kind:"BLOCKED"});
+    const requestId=String(61).padStart(32,"0");
+    const grantId=String(71).padStart(32,"0");
+    await mkdir(path.join(root,"owner-pilot-reservations"),{recursive:true});
+    await writeFile(path.join(root,"owner-pilot-reservations","issue-3142.json"),
+      JSON.stringify({schemaVersion:1,issueNumber:3142,requestId,
+        sourceHead:"c".repeat(40),state:"GRANT_WRITES_RESERVED_NO_REPLAY",
+        at:1799999000000})+"\n");
+    const receipt={schemaVersion:1,kind:"coding-resource-release",grantId,
+      sourceHead:"c".repeat(40),state:"RECONCILED_SYNTAX_REJECTED_NO_COMMIT",
+      phase:"CHECK_STAGE_SYNTAX",replayAuthorized:false,publicationAuthorized:false};
+    await writeFile(path.join(root,"coding-attempts",grantId+".result.json"),
+      JSON.stringify({state:"BLOCKED",code:"CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE",
+        phase:"CHECK_STAGE_SYNTAX",replayAuthorized:false})+"\n");
+    assert.equal((await issueFixedWorker1Pilot({...ready(),root})).state,"BLOCKED",
+      "missing terminal release witness must deny");
+    const witness=path.join(root,"coding-attempts",grantId+".released.json");
+    await writeFile(witness,JSON.stringify({...receipt,publicationAuthorized:true})+"\n");
+    assert.equal((await issueFixedWorker1Pilot({...ready(),root})).state,"BLOCKED",
+      "a release claiming publication authority must deny");
+    await writeFile(witness,JSON.stringify(receipt)+"\n");
+    const result=await issueFixedWorker1Pilot({...ready(),root});
+    assert.equal(result.code,"WORKER1_PILOT_GRANTED_NOT_DISPATCHED");
+    assert.deepEqual((await readdir(path.join(root,"owner-pilot-reservations"))).sort(),
+      ["issue-3142.json","issue-3142-terminal-recovery.json"].sort());
+    assert.equal((await issueFixedWorker1Pilot({...ready(),root})).state,"BLOCKED",
+      "no third pilot even after a terminal failure");
+    assert.equal((await readdir(path.join(root,"owner-work-orders"))).length,2);
+  }finally{await rm(root,{recursive:true,force:true});}
+});

@@ -14,6 +14,7 @@ import process from "node:process";
 import {promisify} from "node:util";
 import {readFactoryVerificationHead,inspectFactoryCandidatePr} from "../factory-named-tests.mjs";
 import {supervisorStatus} from "../../windows/supervisor/unattended-supervisor.mjs";
+import {probeFactoryWindowsCandidate} from "./factory-windows-product-gate-native.mjs";
 
 const exec=promisify(execFile);
 const SHA=/^[a-f0-9]{40}$/u, ID=/^[a-f0-9]{32}$/u;
@@ -56,7 +57,7 @@ export async function observeFactoryWindowsProductGate({
   platform=process.platform,verifyHead=readFactoryVerificationHead,
   inspectPr=inspectFactoryCandidatePr,readSupervisor=supervisorStatus,
   attestStage=cleanStage,
-  nativeProbe=async()=>({state:"UNPROVEN",code:"PRODUCT_GATE_NATIVE_PROBE_UNAVAILABLE"}),
+  nativeProbe=probeFactoryWindowsCandidate,
   fs={writeFile,readFile},now=Date.now,
 }={}){
   const a=selection;

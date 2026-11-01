@@ -249,3 +249,64 @@ test("#3303 native probe scope refuses unrelated or silently expanded PR diffs",
     run:async()=>{throw Error("UNTRUSTED_GIT");},
   }),false);
 });
+
+test("#3303 real loopback MCP transport enforces synthetic-token authorization without owner credentials",()=>sandbox(async root=>{
+  // Integration regression only: this disposable localhost listener is not
+  // the independently qualified owner tunnel, and cannot authorize a merge.
+  const {randomBytes}=await import("node:crypto");
+  const {createLocalMcpHttpServer}=await import(
+    "../scripts/engineering-team/mcp/factory-readonly-server.mjs");
+  const token=randomBytes(48).toString("base64url");
+  const server=createLocalMcpHttpServer({
+    root,controlToken:token,engineeringEnabled:true,
+  });
+  await new Promise((resolve,reject)=>{
+    server.once("error",reject);
+    server.listen(0,"127.0.0.1",resolve);
+  });
+  try{
+    const address=server.address();
+    assert.equal(address.address,"127.0.0.1");
+    assert.ok(address.port>0);
+    const endpoint="http://127.0.0.1:"+address.port+"/mcp";
+    const invoke=async(payload,headers={})=>{
+      const response=await fetch(endpoint,{method:"POST",signal:AbortSignal.timeout(8000),
+        headers:{"content-type":"application/json",
+          accept:"application/json, text/event-stream",...headers},
+        body:JSON.stringify({jsonrpc:"2.0",id:7,...payload})});
+      return {status:response.status,body:await response.json()};
+    };
+    const guest=await invoke({method:"tools/list"});
+    const forged=await invoke({method:"tools/list"},
+      {"x-plotpickle-factory-control-token":randomBytes(48).toString("base64url")});
+    const owner=await invoke({method:"tools/list"},
+      {"x-plotpickle-factory-control-token":token});
+    assert.equal(guest.status,200);
+    assert.equal(forged.status,200);
+    assert.equal(owner.status,200);
+    const suite="factory_run_named_test";
+    assert.equal(guest.body.result.tools.some(x=>x.name===suite),false);
+    assert.equal(forged.body.result.tools.some(x=>x.name===suite),false);
+    assert.equal(owner.body.result.tools.some(x=>x.name===suite),true);
+    const call={method:"tools/call",params:{name:suite,arguments:{
+      requestId:"f".repeat(32),expectedHead:MAIN,
+      suite:"factory-windows-product-gate",candidatePrNumber:3362,
+      candidateHead:CANDIDATE,sourceRequestId:STAGE,
+      arbitraryCommand:"NEVER_RUN",
+    }}};
+    assert.equal((await invoke(call)).body.error.code,-32001);
+    assert.equal((await invoke(call,
+      {"x-plotpickle-factory-control-token":token})).body.error.code,-32602);
+    const wrongOrigin=await fetch(endpoint,{method:"POST",signal:AbortSignal.timeout(8000),
+      headers:{"content-type":"application/json",
+        accept:"application/json, text/event-stream",
+        origin:"https://not-the-owner.example"},
+      body:JSON.stringify({jsonrpc:"2.0",id:8,method:"tools/list"})});
+    assert.equal(wrongOrigin.status,403);
+    const wrongMethod=await fetch(endpoint,{method:"GET",signal:AbortSignal.timeout(8000),
+      headers:{accept:"application/json, text/event-stream"}});
+    assert.equal(wrongMethod.status,405);
+  }finally{
+    await new Promise((resolve,reject)=>server.close(err=>err?reject(err):resolve()));
+  }
+}));

@@ -199,7 +199,8 @@
         "scripts/engineering-team/windows/supervisor/**",
         "scripts/engineering-team/gateway/authorized-coding-once.mjs",
         "scripts/engineering-team/gateway/authorized-pr-publish-once.mjs",
-        "scripts/engineering-team/gateway/publication/**"
+        "scripts/engineering-team/gateway/publication/**",
+        "scripts/engineering-team/**"
       ],
       "proofs": [
         "focused-regression",
@@ -217,7 +218,8 @@
         "scripts/engineering-team/windows/supervisor/**",
         "scripts/engineering-team/gateway/authorized-coding-once.mjs",
         "scripts/engineering-team/gateway/authorized-pr-publish-once.mjs",
-        "scripts/engineering-team/gateway/publication/**"
+        "scripts/engineering-team/gateway/publication/**",
+        "scripts/engineering-team/windows/workers/**"
       ],
       "proofs": [
         "windows-release-authority"

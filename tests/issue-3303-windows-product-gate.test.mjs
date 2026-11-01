@@ -87,7 +87,9 @@ test("#3303 guest and forged control arguments never execute Product Gate",()=>s
   const call=(args,authorized)=>handleRpc({jsonrpc:"2.0",id:99,method:"tools/call",
     params:{name:"factory_run_named_test",arguments:args}},
     {root,controlAuthenticated:authorized,controlOps:{
-      testHead:async()=>MAIN,productGate:async()=>{calls++;
+      testHead:async()=>MAIN,
+      engineering:async()=>({state:"TEST_PASSED",code:"ENGINEERING_TASK_PASSED"}),
+      productGate:async()=>{calls++;
         return {state:"BLOCKED",code:"PRODUCT_GATE_NATIVE_PROBE_UNVERIFIED"};}
     }});
   const args={...selection,suite:"factory-windows-product-gate"};
@@ -102,3 +104,19 @@ test("#3303 guest and forged control arguments never execute Product Gate",()=>s
     "DUPLICATE_OR_UNVERIFIABLE_REQUEST");
   assert.equal(calls,1);
 }));
+
+test("#3303 trusted native probe source is restricted and never elevates a fixture",async()=>{
+  const {probeFactoryWindowsCandidate,collectFactoryWindowsNativeSnapshot}=
+    await import("../scripts/engineering-team/mcp/engineering/factory-windows-product-gate-native.mjs");
+  assert.equal((await probeFactoryWindowsCandidate({
+    stage:"/tmp/stage",expectedHead:MAIN,candidateHead:CANDIDATE,platform:"linux"})).state,
+    "UNPROVEN");
+  const response=await probeFactoryWindowsCandidate({
+    stage:path.resolve(os.tmpdir()),expectedHead:MAIN,candidateHead:CANDIDATE,
+    platform:"win32",collect:async()=>({sourceHead:MAIN,candidateHead:CANDIDATE}),
+    execute:async()=>({exitCode:1,stopVerified:true,timedOut:false}),
+  });
+  assert.equal(response.state,"UNPROVEN");
+  assert.equal((await collectFactoryWindowsNativeSnapshot({
+    expectedHead:MAIN,candidateHead:CANDIDATE,platform:"linux"})),null);
+});

@@ -4,7 +4,7 @@ import {mkdtemp,mkdir,readFile,rm} from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {observeFactoryWindowsProductGate,evaluateFactoryWindowsProductEvidence,
-  validateFactoryProductGateSelection} from "../scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs";
+  validateFactoryProductGateSelection,verifyFactoryWindowsProductGateReceipt} from "../scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs";
 import {handleRpc,MCP_CONTROL_TOOLS} from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
 
 const MAIN="a".repeat(40),CANDIDATE="b".repeat(40);
@@ -120,3 +120,23 @@ test("#3303 trusted native probe source is restricted and never elevates a fixtu
   assert.equal((await collectFactoryWindowsNativeSnapshot({
     expectedHead:MAIN,candidateHead:CANDIDATE,platform:"linux"})),null);
 });
+
+test("#3303 second-phase readback rechecks current PR and evidence; cannot grant release",()=>sandbox(async root=>{
+  const first=await observeFactoryWindowsProductGate({...options(root),
+    nativeProbe:async()=>observed()});
+  assert.equal(first.code,"PRODUCT_GATE_OBSERVED_NOT_RELEASED");
+  const verify={...options(root),selection:{...selection,
+    requestId:"e".repeat(32),sourceRequestId:REQ},
+    readControlReceipt:async id=>id===REQ?first:null};
+  const accepted=await verifyFactoryWindowsProductGateReceipt(verify);
+  assert.equal(accepted.state,"TEST_PASSED");
+  assert.equal(accepted.code,"PRODUCT_GATE_EVIDENCE_MATCHED");
+  assert.equal(accepted.independentVerification,false);
+  assert.equal(accepted.releaseAuthorized,false);
+  assert.equal((await verifyFactoryWindowsProductGateReceipt({...verify,
+    readControlReceipt:async()=>null})).state,"BLOCKED");
+  assert.equal((await verifyFactoryWindowsProductGateReceipt({...verify,
+    verifyHead:async()=>CANDIDATE})).code,"PRODUCT_GATE_EVIDENCE_UNVERIFIED");
+  assert.equal((await verifyFactoryWindowsProductGateReceipt({...verify,
+    inspectPr:async()=>({state:"BLOCKED"})})).code,"PRODUCT_GATE_CANDIDATE_UNVERIFIED");
+}));

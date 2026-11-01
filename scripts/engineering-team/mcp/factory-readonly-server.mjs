@@ -10,6 +10,7 @@ import { gatewayAppSource, privateGatewayRoot } from "../gateway/gateway-host.mj
 import { conversationMcpAction, validConversationArgs } from "../gateway/conversation-service.mjs";
 import { timingSafeEqual } from "node:crypto";
 import { requestIndependentSupervisorStart } from "./engineering/factory-supervisor-start.mjs";
+import { inspectOwnerWorkerOperations, requestOwnerSupervisorMigration } from "./engineering/operations/factory-operator-maintenance.mjs";
 import { observeFactoryWindowsProductGate, verifyFactoryWindowsProductGateReceipt } from "./engineering/factory-windows-product-gate.mjs";
 import { existsSync } from "node:fs";
 import { lstat, mkdir, readFile, writeFile, unlink } from "node:fs/promises";
@@ -224,7 +225,7 @@ export function sanitizeStageLockObservation(raw) {
     stagingAuthorized:false,cleanupAuthorized:false,processOwnershipVerified:false});
 }
 
-export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,verifyHead=readFactoryVerificationHead,readSupervisor=null,readStageBudget=null,readStageLock=null}={}) {
+export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,verifyHead=readFactoryVerificationHead,readSupervisor=null,readStageBudget=null,readStageLock=null,readWorkerOperations=null}={}) {
   let raw;
   try { raw=await readFactoryStatus({root,now}); }
   catch { return {state:"UNKNOWN",enabled:null,reason:"PRIVATE_STATE_UNREADABLE",
@@ -250,6 +251,12 @@ export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,veri
     let supervisor=null;
     try {supervisor=await readSupervisor();}catch {supervisor=null;}
     result.supervisor=sanitizeSupervisorObservation(supervisor,now());
+  }
+  if(typeof readWorkerOperations==="function") {
+    let operations=null;
+    try { operations=await readWorkerOperations(); } catch { operations=null; }
+    result.workerOperations=operations?.state==="OBSERVATION_ONLY" ? operations :
+      {state:"UNVERIFIED",sourceHead:null,modelInvoked:false,automaticMergeEnabled:false};
   }
   if(typeof readStageBudget==="function") {
     let stageBudget=null;
@@ -426,6 +433,9 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "SYNC_FETCH_UNVERIFIED","SYNC_SOURCE_CHANGED","SYNC_NOT_FAST_FORWARD",
   "SYNC_MERGE_UNVERIFIED","SYNC_OUTCOME_UNVERIFIED",
   "SOURCE_SYNCED","SOURCE_ALREADY_CURRENT",
+  "SUPERVISOR_HEAD_MIGRATED_NOT_RUNNING","SUPERVISOR_MIGRATION_UNVERIFIED",
+  "SUPERVISOR_MIGRATION_OFFLINE_REQUIRED","SUPERVISOR_MIGRATION_SOURCE_UNVERIFIED",
+  "SUPERVISOR_MIGRATION_STATUS_UNVERIFIED",
   "PRODUCT_UAT_SELECTION_INVALID","PRODUCT_UAT_PRIVATE_ROOT_BLOCKED",
   "PRODUCT_UAT_STAGE_UNVERIFIED","PRODUCT_UAT_SOURCE_CHANGED",
   "PRODUCT_UAT_STOP_UNVERIFIED","PRODUCT_UAT_TIMEOUT","PRODUCT_UAT_FAILED",
@@ -465,6 +475,7 @@ const APP_CONTROL_SUITES=Object.freeze(["plotpickle-app-start","plotpickle-app-s
 const allowedFactoryControlSuites=()=>[...allowedFactoryTestNames(),...APP_CONTROL_SUITES,
   "factory-pr-head","factory-pr-stage","factory-sync-main",
   "factory-story-uat","factory-story-verify","factory-supervisor-start",
+  "factory-supervisor-migrate",
   "factory-gateway-acceptance","factory-windows-product-gate","factory-windows-product-gate-verify"];
 export const MCP_CONTROL_TOOLS=Object.freeze([
   {name:"factory_run_dependency_preflight",title:"Run Windows Factory dependency preflight",
@@ -481,7 +492,7 @@ export const MCP_CONTROL_TOOLS=Object.freeze([
       issues:{type:"array",items:{type:"integer",minimum:1,maximum:9999999},minItems:1,maxItems:5,uniqueItems:true}},
       required:["requestId","expectedHead","issues"],additionalProperties:false}},
   {name:"factory_run_named_test",title:"Run allowlisted Factory test or candidate identity check",
-    description:"Authenticated allowlisted Windows tests, staged headless gateway acceptance, app control, or owner-authorized supervisor Start. No legacy Pi dispatcher, shell, arbitrary program, or merge.",
+    description:"Authenticated fixed Windows tests, app control and owner-authorized supervisor Start or guarded head migration. No shell, legacy Pi dispatcher or merge.",
     inputSchema:{type:"object",properties:{
       requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
       expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
@@ -538,7 +549,8 @@ function validControlArgs(name,args) {
     return keys.length===3 && (APP_CONTROL_SUITES.includes(args.suite) ||
       allowedFactoryTestNames().includes(args.suite) ||
       args.suite==="factory-sync-main"||args.suite==="factory-story-uat"||
-      args.suite==="factory-supervisor-start");
+      args.suite==="factory-supervisor-start"||
+      args.suite==="factory-supervisor-migrate");
   }
   return name==="factory_admit_issues"&&keys.length===3&&
     Array.isArray(args.issues)&&args.issues.length>=1&&args.issues.length<=5&&
@@ -611,6 +623,7 @@ export async function factoryControlAction(name,args,{
     storyUat:runFactoryStoryUat,storyVerify:runFactoryStoryEvidenceVerify,
     appControl:controlPlotpickleOwnerApp,
     supervisorStart:requestIndependentSupervisorStart,
+    supervisorMigrate:requestOwnerSupervisorMigration,
     productGate:observeFactoryWindowsProductGate,
     productGateVerify:verifyFactoryWindowsProductGateReceipt,
     engineering:runStagedEngineeringTask,
@@ -761,6 +774,8 @@ export async function factoryControlAction(name,args,{
                   }:{})})
               :args.suite==="factory-supervisor-start"
                 ?await ops.supervisorStart({expectedHead:args.expectedHead,verifyHead:ops.testHead})
+              :args.suite==="factory-supervisor-migrate"
+                ?await ops.supervisorMigrate({expectedHead:args.expectedHead,verifyHead:ops.testHead})
               :args.suite==="factory-sync-main"
                 ?await ops.syncMain({expectedHead:args.expectedHead,root,
                   inspect:ops.inspectSyncSource})
@@ -942,6 +957,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
   engineeringEnabled=false,gatewayRoot=privateGatewayRoot(),gatewaySource=conversationSource,
   storageInspect=inspectFactoryStorage,supervisorRead=supervisorStatus,
   stageBudgetRead=assessCandidateStageCount,stageLockRead=observeCandidateStageLock,
+  workerOperationsRead=inspectOwnerWorkerOperations,
   hostDiagnosticsRead=inspectOwnerWindowsHost}={}) {
   if(!request || request.jsonrpc!=="2.0" || typeof request.method!=="string")
     return {error:{code:-32600,message:"Invalid JSON-RPC request"}};
@@ -1009,6 +1025,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
         readStageBudget:controlAuthenticated
           ?()=>stageBudgetRead({base:path.join(root,"chat-candidate-stages")}):null,
         readStageLock:controlAuthenticated?()=>stageLockRead({root}):null,
+        readWorkerOperations:controlAuthenticated?workerOperationsRead:null,
       });
       else if(name==="factory_observer")value=await factoryObserver({root,now,readSupervisor:controlAuthenticated?supervisorRead:null});
       else if(name==="factory_evidence"){

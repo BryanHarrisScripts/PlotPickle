@@ -93,7 +93,7 @@ async function main(){
   let candidate,op;
   try{
     op=await import(pathToFileURL(path.join(stage,
-      "scripts/engineering-team/mcp/engineering/factory-operator-maintenance.mjs")).href);
+      "scripts/engineering-team/mcp/engineering/operations/factory-operator-maintenance.mjs")).href);
     candidate=await import(pathToFileURL(path.join(stage,
       "scripts/engineering-team/mcp/factory-readonly-server.mjs")).href);
   }catch{return fail();}

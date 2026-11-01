@@ -220,7 +220,7 @@ test("#3303 risk route is compositional and requires independent privileged evid
 test("#3303 native probe scope refuses unrelated or silently expanded PR diffs",async()=>{
   const supported=[
     "config/verification/test-catalog.json",
-    "scripts/engineering-team/mcp/engineering/factory-operator-maintenance.mjs",
+    "scripts/engineering-team/mcp/engineering/operations/factory-operator-maintenance.mjs",
     "scripts/engineering-team/mcp/factory-readonly-server.mjs",
     "tests/issue-3142-authenticated-operator-maintenance.test.mjs",
   ];

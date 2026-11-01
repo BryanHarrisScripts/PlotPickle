@@ -10,6 +10,7 @@ import {createHash} from "node:crypto";
 import {execFile} from "node:child_process";
 import {lstat,realpath,readFile,writeFile} from "node:fs/promises";
 import path from "node:path";
+import {fileURLToPath} from "node:url";
 import process from "node:process";
 import {promisify} from "node:util";
 import {readFactoryVerificationHead,inspectFactoryCandidatePr} from "../factory-named-tests.mjs";
@@ -23,6 +24,10 @@ const blocked=(code,sourceHead=null)=>Object.freeze({
   independentVerification:false,ownerMachineObserved:false,modelInvoked:false,
 });
 const sha256=value=>createHash("sha256").update(value).digest("hex");
+const VERIFIER_SOURCE_PATH=fileURLToPath(import.meta.url);
+export async function readFactoryGateVerifierDigest(){
+  return sha256(await readFile(VERIFIER_SOURCE_PATH));
+}
 const knownProofs=new Set(["windows-factory-acceptance"]);
 const jsonBytes=value=>Buffer.from(JSON.stringify(value)+"\n","utf8");
 const cleanStage=async({stage,candidateHead,run=exec,fs={lstat,realpath}})=>{
@@ -88,6 +93,11 @@ export async function observeFactoryWindowsProductGate({
   try{stageReady=await attestStage({stage,candidateHead:a.candidateHead});}
   catch{return blocked("PRODUCT_GATE_STAGE_UNVERIFIED",a.expectedHead);}
   if(!stageReady)return blocked("PRODUCT_GATE_STAGE_UNVERIFIED",a.expectedHead);
+  // Bind the verifier edition before executing candidate code. This is not
+  // an F00 signature; source authority still comes from clean trusted MAIN.
+  let verifierSourceDigest;
+  try{verifierSourceDigest=await readFactoryGateVerifierDigest();}
+  catch{return blocked("PRODUCT_GATE_EVIDENCE_UNVERIFIED",a.expectedHead);}
   // The trusted probe receives a fixed selection, never a caller command.
   // It must observe actual candidate behavior on Windows, not a mock test.
   let observation;
@@ -115,6 +125,7 @@ export async function observeFactoryWindowsProductGate({
     return blocked("PRODUCT_GATE_HOST_CHANGED",a.expectedHead);
   const evidence=Object.freeze({
     schemaVersion:1,requestId:a.requestId,sourceHead:a.expectedHead,
+    verifierSourceHead:a.expectedHead,verifierSourceDigest,
     candidateHead:a.candidateHead,candidatePrNumber:a.candidatePrNumber,
     stageRequestId:a.sourceRequestId,source:"OWNER_WINDOWS_NATIVE",
     proofIds:["windows-factory-acceptance"],
@@ -137,6 +148,7 @@ export async function observeFactoryWindowsProductGate({
     requestId:a.requestId,sourceHead:a.expectedHead,candidateHead:a.candidateHead,
     candidatePrNumber:a.candidatePrNumber,sourceRequestId:a.sourceRequestId,
     proofIds:["windows-factory-acceptance"],evidenceDigest:digest,
+    verifierSourceDigest,
     ownerMachineObserved:true,independentVerification:false,
     modelInvoked:false,replayAuthorized:false,automaticMergeEnabled:false,
   });
@@ -146,9 +158,11 @@ export async function observeFactoryWindowsProductGate({
 export function evaluateFactoryWindowsProductEvidence({
   evidenceBytes,receipt,expectedHead,candidateHead,candidatePrNumber,
   requestedProofs=["windows-factory-acceptance"],stageRequestId,
+  verifierSourceDigest,
 }={}){
   if(!Buffer.isBuffer(evidenceBytes)||evidenceBytes.length<100||evidenceBytes.length>8192||
     !SHA.test(expectedHead||"")||!SHA.test(candidateHead||"")||
+    !/^[a-f0-9]{64}$/.test(verifierSourceDigest||"")||
     !ID.test(stageRequestId||"")||
     !Array.isArray(requestedProofs)||requestedProofs.length===0||
     requestedProofs.some(p=>!knownProofs.has(p)))
@@ -168,6 +182,9 @@ export function evaluateFactoryWindowsProductEvidence({
     artifact.stageRequestId===stageRequestId&&
     artifact.requestId===receipt.requestId&&
     artifact.schemaVersion===1&&
+    artifact.verifierSourceHead===expectedHead&&
+    artifact.verifierSourceDigest===verifierSourceDigest&&
+    receipt.verifierSourceDigest===verifierSourceDigest&&
     artifact.source==="OWNER_WINDOWS_NATIVE"&&
     artifact.action==="AUTHENTICATED_FACTORY_STATUS_AND_RUNNING_MIGRATION_DENIAL"&&
     artifact.authStatusVerified===true&&artifact.guestDenied===true&&
@@ -231,11 +248,14 @@ export async function verifyFactoryWindowsProductGateReceipt({
     bytes=await fs.readFile(filename);
     if(bytes.length!==stat.size)return blocked("PRODUCT_GATE_EVIDENCE_UNVERIFIED",a.expectedHead);
   }catch{return blocked("PRODUCT_GATE_EVIDENCE_UNVERIFIED",a.expectedHead);}
+  let verifierSourceDigest;
+  try{verifierSourceDigest=await readFactoryGateVerifierDigest();}
+  catch{return blocked("PRODUCT_GATE_EVIDENCE_UNVERIFIED",a.expectedHead);}
   const checked=evaluateFactoryWindowsProductEvidence({
     evidenceBytes:bytes,receipt,expectedHead:a.expectedHead,
     candidateHead:a.candidateHead,candidatePrNumber:a.candidatePrNumber,
     stageRequestId:receipt.sourceRequestId,
-    requestedProofs:["windows-factory-acceptance"],
+    verifierSourceDigest,requestedProofs:["windows-factory-acceptance"],
   });
   try{if(checked.state!=="OBSERVATION_VERIFIED"||
     await verifyHead({repoRoot})!==a.expectedHead)
@@ -246,6 +266,7 @@ export async function verifyFactoryWindowsProductGateReceipt({
     requestId:a.requestId,sourceRequestId:a.sourceRequestId,
     sourceHead:a.expectedHead,candidateHead:a.candidateHead,
     candidatePrNumber:a.candidatePrNumber,evidenceDigest:receipt.evidenceDigest,
+    verifierSourceDigest,
     proofIds:["windows-factory-acceptance"],ownerMachineObserved:true,
     independentVerification:false,releaseAuthorized:false,
     automaticMergeEnabled:false,replayAuthorized:false,modelInvoked:false,

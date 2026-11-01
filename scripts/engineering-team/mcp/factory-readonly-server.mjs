@@ -11,6 +11,7 @@ import { conversationMcpAction, validConversationArgs } from "../gateway/convers
 import { timingSafeEqual } from "node:crypto";
 import { requestIndependentSupervisorStart } from "./engineering/factory-supervisor-start.mjs";
 import { inspectOwnerWorkerOperations, requestOwnerSupervisorMigration } from "./engineering/operations/factory-operator-maintenance.mjs";
+import { issueFixedWorker1Pilot } from "./engineering/operations/factory-worker1-pilot-issuer.mjs";
 import { observeFactoryWindowsProductGate, verifyFactoryWindowsProductGateReceipt } from "./engineering/factory-windows-product-gate.mjs";
 import { existsSync } from "node:fs";
 import { lstat, mkdir, readFile, writeFile, unlink } from "node:fs/promises";
@@ -436,6 +437,12 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "SUPERVISOR_HEAD_MIGRATED_NOT_RUNNING","SUPERVISOR_MIGRATION_UNVERIFIED",
   "SUPERVISOR_MIGRATION_OFFLINE_REQUIRED","SUPERVISOR_MIGRATION_SOURCE_UNVERIFIED",
   "SUPERVISOR_MIGRATION_STATUS_UNVERIFIED",
+  "WORKER1_PILOT_GRANTED_NOT_DISPATCHED","PILOT_SOURCE_UNVERIFIED",
+  "PILOT_DISPATCHER_NOT_ONLINE","PILOT_STOP_PAUSE_OR_SUPERVISOR_UNVERIFIED",
+  "PILOT_READINESS_UNVERIFIED","PILOT_PRIVATE_STORAGE_UNVERIFIED",
+  "PILOT_EXISTING_ORDER_REQUIRES_RECONCILIATION","PILOT_ALREADY_RESERVED_NO_REPLAY",
+  "PILOT_ID_UNVERIFIED","PILOT_GRANT_VALIDATION_FAILED",
+  "PILOT_READINESS_CHANGED","PILOT_PARTIAL_GRANTS_RECONCILE_NO_REPLAY",
   "PRODUCT_UAT_SELECTION_INVALID","PRODUCT_UAT_PRIVATE_ROOT_BLOCKED",
   "PRODUCT_UAT_STAGE_UNVERIFIED","PRODUCT_UAT_SOURCE_CHANGED",
   "PRODUCT_UAT_STOP_UNVERIFIED","PRODUCT_UAT_TIMEOUT","PRODUCT_UAT_FAILED",
@@ -475,7 +482,7 @@ const APP_CONTROL_SUITES=Object.freeze(["plotpickle-app-start","plotpickle-app-s
 const allowedFactoryControlSuites=()=>[...allowedFactoryTestNames(),...APP_CONTROL_SUITES,
   "factory-pr-head","factory-pr-stage","factory-sync-main",
   "factory-story-uat","factory-story-verify","factory-supervisor-start",
-  "factory-supervisor-migrate",
+  "factory-supervisor-migrate","factory-worker1-pilot-issue",
   "factory-gateway-acceptance","factory-windows-product-gate","factory-windows-product-gate-verify"];
 export const MCP_CONTROL_TOOLS=Object.freeze([
   {name:"factory_run_dependency_preflight",title:"Run Windows Factory dependency preflight",
@@ -492,7 +499,7 @@ export const MCP_CONTROL_TOOLS=Object.freeze([
       issues:{type:"array",items:{type:"integer",minimum:1,maximum:9999999},minItems:1,maxItems:5,uniqueItems:true}},
       required:["requestId","expectedHead","issues"],additionalProperties:false}},
   {name:"factory_run_named_test",title:"Run allowlisted Factory test or candidate identity check",
-    description:"Authenticated fixed Windows tests, app control and owner-authorized supervisor Start or guarded head migration. No shell, legacy Pi dispatcher or merge.",
+    description:"Authenticated fixed Windows tests, app control, supervisor Start/migration and one fixed #3142 Worker1 pilot grant. No shell, old Pi dispatcher or merge.",
     inputSchema:{type:"object",properties:{
       requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
       expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
@@ -550,7 +557,8 @@ function validControlArgs(name,args) {
       allowedFactoryTestNames().includes(args.suite) ||
       args.suite==="factory-sync-main"||args.suite==="factory-story-uat"||
       args.suite==="factory-supervisor-start"||
-      args.suite==="factory-supervisor-migrate");
+      args.suite==="factory-supervisor-migrate"||
+      args.suite==="factory-worker1-pilot-issue");
   }
   return name==="factory_admit_issues"&&keys.length===3&&
     Array.isArray(args.issues)&&args.issues.length>=1&&args.issues.length<=5&&
@@ -624,6 +632,7 @@ export async function factoryControlAction(name,args,{
     appControl:controlPlotpickleOwnerApp,
     supervisorStart:requestIndependentSupervisorStart,
     supervisorMigrate:requestOwnerSupervisorMigration,
+    pilotIssuer:issueFixedWorker1Pilot,
     productGate:observeFactoryWindowsProductGate,
     productGateVerify:verifyFactoryWindowsProductGateReceipt,
     engineering:runStagedEngineeringTask,
@@ -776,6 +785,8 @@ export async function factoryControlAction(name,args,{
                 ?await ops.supervisorStart({expectedHead:args.expectedHead,verifyHead:ops.testHead})
               :args.suite==="factory-supervisor-migrate"
                 ?await ops.supervisorMigrate({expectedHead:args.expectedHead,verifyHead:ops.testHead})
+              :args.suite==="factory-worker1-pilot-issue"
+                ?await ops.pilotIssuer({expectedHead:args.expectedHead,verifyHead:ops.testHead})
               :args.suite==="factory-sync-main"
                 ?await ops.syncMain({expectedHead:args.expectedHead,root,
                   inspect:ops.inspectSyncSource})

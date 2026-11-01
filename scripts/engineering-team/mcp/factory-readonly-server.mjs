@@ -454,7 +454,7 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "PRODUCT_GATE_CANDIDATE_UNVERIFIED","PRODUCT_GATE_NATIVE_PROBE_UNAVAILABLE",
   "PRODUCT_GATE_NATIVE_PROBE_UNVERIFIED","PRODUCT_GATE_EVIDENCE_UNVERIFIED",
   "PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_TRUTH_UNVERIFIED",
-  "PRODUCT_GATE_EVIDENCE_MATCHED"]);
+  "PRODUCT_GATE_EVIDENCE_MATCHED","PRODUCT_GATE_SCOPE_UNSUPPORTED"]);
 export function controlTokenMatches(presented,configured) {
   if(typeof configured!=="string"||!CONTROL_TOKEN.test(configured)||
      typeof presented!=="string"||!CONTROL_TOKEN.test(presented))return false;

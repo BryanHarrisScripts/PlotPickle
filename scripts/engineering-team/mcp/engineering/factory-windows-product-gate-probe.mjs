@@ -5,7 +5,9 @@
  *
  * The physical Windows snapshot is collected by the trusted PARENT, never by
  * candidate code. Candidate code can only classify this bounded snapshot.
- * No network, child process, file write or owner token is granted.
+ * No child process, file write or owner token is granted. A disposable
+ * ephemeral 127.0.0.1 listener is used for actual HTTP authentication proof;
+ * Node's permission guard alone does not restrict other network destinations.
  */
 import path from "node:path";
 import {randomBytes} from "node:crypto";

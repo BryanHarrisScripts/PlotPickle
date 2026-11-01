@@ -542,7 +542,8 @@ function validControlArgs(name,args) {
     return keys.length===3 && (APP_CONTROL_SUITES.includes(args.suite) ||
       allowedFactoryTestNames().includes(args.suite) ||
       args.suite==="factory-sync-main"||args.suite==="factory-story-uat"||
-      args.suite==="factory-supervisor-start");
+      args.suite==="factory-supervisor-start"||
+      args.suite==="factory-supervisor-migrate");
   }
   return name==="factory_admit_issues"&&keys.length===3&&
     Array.isArray(args.issues)&&args.issues.length>=1&&args.issues.length<=5&&

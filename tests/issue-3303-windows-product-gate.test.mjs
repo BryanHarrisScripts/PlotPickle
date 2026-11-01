@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {mkdtemp,mkdir,readFile,rm} from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import {spawnSync} from "node:child_process";
 import {observeFactoryWindowsProductGate,evaluateFactoryWindowsProductEvidence,
   validateFactoryProductGateSelection,verifyFactoryWindowsProductGateReceipt} from "../scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs";
 import {handleRpc,MCP_CONTROL_TOOLS} from "../scripts/engineering-team/mcp/factory-readonly-server.mjs";
@@ -162,4 +163,18 @@ test("#3303 candidate-executing suite requires the existing owner engineering op
       ...selection,suite:"factory-windows-product-gate",
     }}},{controlAuthenticated:true,engineeringEnabled:false});
   assert.equal(forbidden.error.code,-32601);
+});
+
+test("#3303 real Node permission guardrail denies child, worker, and file writes",()=>{
+  const command=[
+    "const p=process.permission;",
+    "console.log(JSON.stringify({available:!!p,child:p?.has('child'),",
+    "worker:p?.has('worker'),write:p?.has('fs.write')}));",
+  ].join("");
+  const result=spawnSync(process.execPath,["--no-warnings","--permission",
+    "--eval",command],{windowsHide:true,encoding:"utf8",timeout:15000});
+  assert.equal(result.error,undefined);
+  assert.equal(result.status,0,result.stderr);
+  const permissions=JSON.parse(result.stdout.trim());
+  assert.deepEqual(permissions,{available:true,child:false,worker:false,write:false});
 });

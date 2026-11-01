@@ -24,3 +24,14 @@
 .panel button:disabled { cursor: not-allowed; opacity: .55; }
 .panel button:focus-visible { outline: 2px solid var(--pp-skin-focus); outline-offset: 2px; }
 .note { margin: 0; max-width: 75ch; font-size: 12px; line-height: 1.5; color: var(--pp-skin-ink-soft); }
+
+/* #3360: read-only projection of existing operations, not additional controls. */
+.overview, .securityControls { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.overview p, .securityControls > div {
+  display: flex; flex-direction: column; gap: 4px; margin: 0;
+  padding: 12px; border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-0);
+  font-size: 12px; line-height: 1.45;
+}
+.overview strong, .securityControls strong { font-size: 13px; color: var(--pp-skin-ink); }
+.overview span, .securityControls span { color: var(--pp-skin-ink-soft); }

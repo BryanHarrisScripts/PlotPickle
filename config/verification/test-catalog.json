@@ -12928,7 +12928,7 @@
       },
       {
         "target": "tests/issue-3355-elara-agent-workspace.test.mjs",
-        "targetDigest": "29a953fec62a917d33735307698f43ee65902d488360107a840f933ea4265e88",
+        "targetDigest": "d49d935f86cd501713e2f393e81fe147f86496912f253fdee7b7953b1d1b5abe",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],

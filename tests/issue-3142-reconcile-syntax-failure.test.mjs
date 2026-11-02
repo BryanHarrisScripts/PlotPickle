@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, link, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { claimCodingOwnership, reconcileSyntaxRejectedOwnership } from '../scripts/engineering-team/gateway/receipts/atomic-coding-ownership.mjs';
+import { claimCodingOwnership, reconcileSyntaxRejectedOwnership, reconcileModelEditRejectedOwnership } from '../scripts/engineering-team/gateway/receipts/atomic-coding-ownership.mjs';
 import { inspectFailedSyntaxClaim, onlyUnstagedTarget, recoveryTargetAllowed } from '../scripts/engineering-team/gateway/worker-pool/reconcile-failed-syntax-once.mjs';
 
 const GRANT='1'.repeat(32), NEXT='2'.repeat(32), HEAD='a'.repeat(40);
@@ -59,6 +59,56 @@ test('only CHECK_STAGE_SYNTAX exact blocked result is eligible', async()=>{
     assert.equal(outcome.state,'BLOCKED');
     assert.throws(()=>claimCodingOwnership(receipts,NEXT,Date.now()));
   },'REQUEST_MODEL');
+});
+
+test('VALIDATE_MODEL_EDIT no-write reconciliation is terminal, nonpublishable and single-use', async()=>{
+  await fixture(async ({receipts,nonce})=>{
+    const grant={grantId:GRANT,sourceHead:HEAD,
+      consent:'RECONCILE_ONE_REJECTED_MODEL_EDIT_NO_REPLAY',
+      stageAndRemoteVerified:true};
+    assert.equal(reconcileSyntaxRejectedOwnership(receipts,{
+      grantId:GRANT,sourceHead:HEAD,consent:CONSENT,
+      stageAndRemoteVerified:true}).state,'BLOCKED',
+      'syntax gate may not accept a different failed phase');
+    assert.equal(reconcileModelEditRejectedOwnership(receipts,{
+      ...grant,stageAndRemoteVerified:false}).state,'BLOCKED');
+    assert.equal(reconcileModelEditRejectedOwnership(receipts,{
+      ...grant,consent:CONSENT}).state,'BLOCKED');
+    assert.throws(()=>claimCodingOwnership(receipts,NEXT,Date.now()),
+      'unverified release must retain the original owner');
+    const outcome=reconcileModelEditRejectedOwnership(receipts,grant);
+    assert.equal(outcome.state,'RECONCILED_MODEL_EDIT_REJECTED_NO_WRITE');
+    assert.equal(outcome.retryOriginalAuthorized,false);
+    assert.equal(outcome.publicationAuthorized,false);
+    const witness=JSON.parse(await readFile(path.join(receipts,GRANT+'.released.json'),'utf8'));
+    assert.equal(witness.kind,'coding-resource-release');
+    assert.equal(witness.ownershipNonce,nonce);
+    assert.equal(witness.phase,'VALIDATE_MODEL_EDIT');
+    assert.equal(witness.state,'RECONCILED_MODEL_EDIT_REJECTED_NO_WRITE');
+    assert.equal(witness.localCommit,undefined);
+    assert.equal(witness.branch,undefined);
+    assert.equal(witness.replayAuthorized,false);
+    assert.equal(witness.publicationAuthorized,false);
+    assert.equal(reconcileModelEditRejectedOwnership(receipts,grant).state,'BLOCKED',
+      'consumed grant must not release again');
+    const next=claimCodingOwnership(receipts,NEXT,Date.now());
+    assert.equal(next.owned(),true);
+    assert.equal(next.release(),true);
+    next.close();
+  },'VALIDATE_MODEL_EDIT');
+});
+
+test('model edit recovery refuses unrelated or ambiguous phases', async()=>{
+  for(const phase of ['CHECK_STAGE_SYNTAX','REQUEST_MODEL','WRITE_STAGE_EDIT']){
+    await fixture(async ({receipts})=>{
+      const r=reconcileModelEditRejectedOwnership(receipts,{
+        grantId:GRANT,sourceHead:HEAD,
+        consent:'RECONCILE_ONE_REJECTED_MODEL_EDIT_NO_REPLAY',
+        stageAndRemoteVerified:true});
+      assert.equal(r.state,'BLOCKED',phase);
+      assert.throws(()=>claimCodingOwnership(receipts,NEXT,Date.now()));
+    },phase);
+  }
 });
 
 test('owner CLI inspection remains inert and Windows-only', async()=>{

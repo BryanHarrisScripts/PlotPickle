@@ -224,3 +224,113 @@ test("#3203 candidate Reports remains visibly marked PR TEST and never impersona
   assert.equal(mod.plotpickleLaunchIdentity({...env,PLOTPICKLE_STARTUP_CONTRACT:"spoofed"}).channel,
     "UNVERIFIED");
 });
+
+
+test("#3004 headless Shot 01 reads canonical Mini-Block evidence and actual candidate Save/Lock markers",async()=>{
+  const {api,project,context}=await setup();
+  const request={
+    capability:"storyboard-shot.observe",profileId:fixtureProfile,
+    projectId:fixtureId,projectRevision:7,providerPolicy:"LOCAL_READ_ONLY",
+    actNumber:1,sequenceNumber:1,blockNumber:1,miniBlockNumber:1,shotNumber:1,
+  };
+  const original=JSON.stringify(project);
+  const empty=api.observeStoryboardShot(request,context);
+  assert.equal(empty.state,"OBSERVED");
+  assert.equal(empty.shotStatus,"EMPTY");
+  assert.equal(empty.sourceEvidence.scope,"MINI_BLOCK");
+  assert.equal(empty.sourceEvidence.shotSpecificMappingVerified,false);
+  assert.deepEqual(empty.sourceEvidence.passageIds,["passage-1"]);
+  assert.equal(empty.candidateCount,0);
+  assert.equal(empty.mediaBytesVerified,false);
+  assert.deepEqual(JSON.stringify(project),original);
+  const scope="storyboard-anchor:block:block-01:mini-1";
+  const target="storyboard-target:block:block-01";
+  const artifact={
+    id:"real-shot-01-candidate",assetUrl:"/api/local-ai/assets/storyboard-shot-01.webp",
+    prompt:"Frame evidence: SHOT_PROMPT_FOR_AUTHENTICATED_OWNER",
+    createdAt:"2026-11-02T12:00:00.000Z",provider:"local",model:"ComfyUI",
+    frameNumber:1,workflow:"storyboard-frame-webp-v2",reviewState:"draft",
+    sourceDecisionKeys:[target,scope,"storyboard-position:1"],
+  };
+  const withArtifact={...project,build:{...project.build,foundations:{
+    ...project.build.foundations,visualArtifacts:[artifact],acceptedVisualArtifactIds:[],
+  }}};
+  const candidate=api.observeStoryboardShot(request,{...context,activeProject:withArtifact});
+  assert.equal(candidate.shotStatus,"CANDIDATE");
+  assert.equal(candidate.candidateCount,1);
+  assert.equal(candidate.candidates[0].prompt,artifact.prompt);
+  assert.equal(candidate.candidates[0].savedMarkerPresent,false);
+  assert.equal(candidate.candidates[0].locked,false);
+  assert.equal(candidate.candidates[0].mediaBytesVerified,false);
+  assert.equal(candidate.modelCalled,false);
+  const saved={...artifact,sourceDecisionKeys:[...artifact.sourceDecisionKeys,"storyboard-local-save:v1"]};
+  const withSaved={...withArtifact,build:{...withArtifact.build,foundations:{
+    ...withArtifact.build.foundations,visualArtifacts:[saved],
+  }}};
+  assert.equal(api.observeStoryboardShot(request,{...context,activeProject:withSaved}).shotStatus,"SAVED");
+  const accepted={...saved,reviewState:"accepted"};
+  const withLocked={...withSaved,build:{...withSaved.build,foundations:{
+    ...withSaved.build.foundations,visualArtifacts:[accepted],acceptedVisualArtifactIds:[accepted.id],
+  }}};
+  const locked=api.observeStoryboardShot(request,{...context,activeProject:withLocked});
+  assert.equal(locked.shotStatus,"LOCKED");
+  assert.equal(locked.candidates[0].locked,true);
+  assert.equal(locked.mediaBytesVerified,false,"a PPF pointer does not verify image bytes");
+  assert.equal(locked.independentVerification,false);
+  assert.doesNotMatch(JSON.stringify(locked), /PRIVATE_SOURCE_NEVER_EXPOSE_3203|SECRET_TITLE_DO_NOT_RENDER|private\.fountain/);
+  assert.deepEqual(JSON.stringify(project),original);
+});
+
+test("#3004 Shot observation denies cross-profile, stale story, wrong coordinate and never invents image proof",async()=>{
+  const {api,project,context}=await setup();
+  const base={capability:"storyboard-shot.observe",profileId:fixtureProfile,
+    projectId:fixtureId,projectRevision:7,providerPolicy:"LOCAL_READ_ONLY",
+    actNumber:1,sequenceNumber:1,blockNumber:1,miniBlockNumber:1,shotNumber:1};
+  for(const [request,ctx,code] of [
+    [{...base,profileId:"other_profile"},context,"PROFILE_NOT_BOUND"],
+    [base,{...context,activeProfileId:null},"PROFILE_NOT_BOUND"],
+    [{...base,projectId:"different_story"},context,"PROJECT_NOT_BOUND"],
+    [base,{...context,activeProject:null},"PROJECT_NOT_BOUND"],
+    [{...base,projectRevision:6},context,"STALE_PROJECT_REVISION"],
+    [{...base,actNumber:2},context,"INVALID_COORDINATE"],
+    [{...base,sequenceNumber:2},context,"INVALID_COORDINATE"],
+    [{...base,miniBlockNumber:5},context,"INVALID_COORDINATE"],
+    [{...base,shotNumber:26},context,"INVALID_COORDINATE"],
+    [{...base,providerPolicy:"CLOUD"},context,"POLICY_NOT_ADMITTED"],
+    [base,{...context,activeProject:{...project,structure:{
+      ...project.structure,blocks:[],
+    }}},"STRUCTURE_NOT_FOUND"],
+  ]){
+    const result=api.observeStoryboardShot(request,ctx);
+    assert.equal(result.state,"BLOCKED",code);
+    assert.equal(result.code,code);
+    assert.equal(result.candidateCount,0);
+    assert.equal(result.mediaBytesVerified,false);
+    assert.equal(result.paidGenerationPermitted,false);
+  }
+  const untrusted={...project,build:{...project.build,foundations:{
+    ...project.build.foundations,visualArtifacts:[{
+      id:"test-unsafe",assetUrl:"/api/local-ai/assets/../../secret",
+      createdAt:"2026-11-02T00:00:00.000Z",prompt:"X",provider:"local",model:"test",
+      workflow:"storyboard-frame-webp-v2",frameNumber:1,reviewState:"accepted",
+      sourceDecisionKeys:["storyboard-target:block:block-01",
+        "storyboard-anchor:block:block-01:mini-1","storyboard-local-save:v1"],
+    }],acceptedVisualArtifactIds:["test-unsafe"],
+  }}};
+  const result=api.observeStoryboardShot(base,{...context,activeProject:untrusted});
+  assert.equal(result.state,"OBSERVED");
+  assert.equal(result.candidates[0].assetUrl,null);
+  assert.equal(result.candidates[0].locked,false);
+  assert.equal(result.shotStatus,"CANDIDATE");
+});
+
+test("#3004 authenticated profile-private endpoint uses exact active PPF, not GUI or independent store",async()=>{
+  const {readFile}=await import("node:fs/promises");
+  const source=await readFile(new URL("../app/api/auth/profile-private/route.ts",import.meta.url),"utf8");
+  assert.match(source,/await authorized\(request\)/);
+  assert.match(source,/query\.get\("storyboardShot"\) === "1"/);
+  assert.match(source,/privateStorage\.loadActiveProject\(authContext\)/);
+  assert.match(source,/activeProfileId: authContext\.profileId/);
+  assert.match(source,/observeStoryboardShot\(/);
+  assert.doesNotMatch(source,/storyboardShot[\s\S]{0,1500}(?:saveProject\(|fetch\("\/api\/local-ai\/generate|modelEdit\()/);
+});

@@ -4267,7 +4267,8 @@
           "tests/issue-3142-ollama-coding-provider.test.mjs",
           "tests/issue-3303-windows-product-gate.test.mjs",
           "tests/issue-3142-authenticated-operator-maintenance.test.mjs",
-          "tests/issue-3142-worker1-pilot-issuer.test.mjs"
+          "tests/issue-3142-worker1-pilot-issuer.test.mjs",
+          "tests/issue-3110-worker1-one-shot-authorization.test.mjs"
         ]
       },
       "cost": "fast",
@@ -7329,11 +7330,11 @@
           },
           {
             "path": "package.json",
-            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
+            "digest": "db82aff04d04a03db8cdd8ef8341d5a4558a08734cba61322bd37f3718f1e358"
           },
           {
             "path": "package-lock.json",
-            "digest": "a2ac09ac85f32b9452bd36fcd8d499846b5f72f327be026da4d8a5d04a08b6c4"
+            "digest": "6288ed32ada81d99fef0a49e03bf8db970670d3ac61498db5c1e5b44e4a3e174"
           }
         ]
       },
@@ -7501,7 +7502,7 @@
           },
           {
             "path": "package.json",
-            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
+            "digest": "db82aff04d04a03db8cdd8ef8341d5a4558a08734cba61322bd37f3718f1e358"
           },
           {
             "path": "tests/support/story-project-repository-fixture.mjs",
@@ -7541,7 +7542,7 @@
           },
           {
             "path": "package.json",
-            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
+            "digest": "db82aff04d04a03db8cdd8ef8341d5a4558a08734cba61322bd37f3718f1e358"
           },
           {
             "path": "tests/support/story-project-repository-fixture.mjs",
@@ -7621,7 +7622,7 @@
           },
           {
             "path": "package.json",
-            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
+            "digest": "db82aff04d04a03db8cdd8ef8341d5a4558a08734cba61322bd37f3718f1e358"
           }
         ]
       },
@@ -7721,7 +7722,7 @@
           },
           {
             "path": "package.json",
-            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
+            "digest": "db82aff04d04a03db8cdd8ef8341d5a4558a08734cba61322bd37f3718f1e358"
           },
           {
             "path": "tests/phase-f-collaboration-release.test.mjs",
@@ -7785,7 +7786,7 @@
           },
           {
             "path": "package.json",
-            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
+            "digest": "db82aff04d04a03db8cdd8ef8341d5a4558a08734cba61322bd37f3718f1e358"
           },
           {
             "path": "tests/phase-f-collaboration-release.test.mjs",
@@ -8999,7 +9000,7 @@
           },
           {
             "path": "app/sage-settings-workspace.tsx",
-            "digest": "206e791087002500caece14bcf9c62ae2ce7a7885377b7e60aa3496ec4c48fa3"
+            "digest": "4557a22399b770a5f6fe344a718fbbaf2bed85bad79cc35c6ccaf27a15366fb8"
           },
           {
             "path": "app/local-voice-settings.tsx",
@@ -9566,11 +9567,11 @@
           },
           {
             "path": "package.json",
-            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
+            "digest": "db82aff04d04a03db8cdd8ef8341d5a4558a08734cba61322bd37f3718f1e358"
           },
           {
             "path": "package-lock.json",
-            "digest": "a2ac09ac85f32b9452bd36fcd8d499846b5f72f327be026da4d8a5d04a08b6c4"
+            "digest": "6288ed32ada81d99fef0a49e03bf8db970670d3ac61498db5c1e5b44e4a3e174"
           }
         ]
       },
@@ -9698,7 +9699,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "00516971a5995cca146c01a50b6d50b406efd33f054b614c93ce9dae118cc9fe"
+            "digest": "a2291ba57368f47b1dc0c5e84c010981cfbc5c28ae0c05d005cf6a22d0af29bc"
           }
         ]
       },
@@ -10003,7 +10004,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -10071,7 +10072,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
@@ -10119,7 +10120,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
@@ -10227,7 +10228,7 @@
       },
       {
         "target": "tests/issue-3203-read-only-project-observation.test.mjs",
-        "targetDigest": "1c7a5b22089b7a57579decac3dd945898494b97c376f3da501b88d117799372b",
+        "targetDigest": "9e0611b03f85484e319e7b67339d884e97e009d1088a871f5ba888f0005af925",
         "catalogueIds": [
           "story-canon.intent-read-only-project-status-3203"
         ],
@@ -10249,7 +10250,7 @@
         "inputs": [
           {
             "path": "modules/intent/model/observe-project-status.ts",
-            "digest": "7318d8c2e5c56082a7fdf89563e0aeae5319149c1cd5641c2eda66fe26ed4bb2"
+            "digest": "e1f34e1404dbc2ab274cc01137e40aea363b6c9da960e4cf7c7f363a8df41b52"
           },
           {
             "path": "modules/plan/projections/canonical-project-outline.ts",
@@ -10374,7 +10375,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
@@ -10434,7 +10435,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
@@ -10494,7 +10495,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
@@ -10588,7 +10589,7 @@
           },
           {
             "path": "package.json",
-            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
+            "digest": "db82aff04d04a03db8cdd8ef8341d5a4558a08734cba61322bd37f3718f1e358"
           }
         ]
       },
@@ -10730,7 +10731,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -11540,7 +11541,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
@@ -11584,7 +11585,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/Upgrade-PlotPickleTunnelCatalog.ps1",
@@ -11648,7 +11649,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
@@ -11831,7 +11832,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -12558,7 +12559,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
@@ -12602,7 +12603,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
-            "digest": "d98c761e63da7b29e0875692cc6d21a36a1904bb709c6eeb57e4fe0c691537d2"
+            "digest": "a20f58c6219ea7b6ee53ce299cbeda0cd7b46fcd3214a2ced9e28346983ec6da"
           }
         ]
       },
@@ -12778,7 +12779,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
-            "digest": "d98c761e63da7b29e0875692cc6d21a36a1904bb709c6eeb57e4fe0c691537d2"
+            "digest": "a20f58c6219ea7b6ee53ce299cbeda0cd7b46fcd3214a2ced9e28346983ec6da"
           },
           {
             "path": "scripts/engineering-team/windows/workers/Install-PlotPickleFactoryWorkers.ps1",
@@ -12795,7 +12796,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
@@ -12844,7 +12845,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/operations/factory-operator-maintenance.mjs",
@@ -12852,7 +12853,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
-            "digest": "d98c761e63da7b29e0875692cc6d21a36a1904bb709c6eeb57e4fe0c691537d2"
+            "digest": "a20f58c6219ea7b6ee53ce299cbeda0cd7b46fcd3214a2ced9e28346983ec6da"
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/dispatcher/native-dispatcher.mjs",
@@ -12868,7 +12869,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
-            "digest": "a3d0b02c451635ab600c8e2a044e811cc0af6f75b021c8a2977c2e23c93912a7"
+            "digest": "c7979cad66be58bfe4ee8eeddd3da220a37703742173f5ae43a20b3ae9fd03d2"
           }
         ],
         "truthRefs": [
@@ -12896,11 +12897,11 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
-            "digest": "a3d0b02c451635ab600c8e2a044e811cc0af6f75b021c8a2977c2e23c93912a7"
+            "digest": "c7979cad66be58bfe4ee8eeddd3da220a37703742173f5ae43a20b3ae9fd03d2"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-pool.mjs",
@@ -12994,11 +12995,11 @@
           },
           {
             "path": "app/_components/collab/collab-entry-workspace.tsx",
-            "digest": "91795d3ada9a5f1d312a32547263ee220fdfc316306a4cde1b9eb47e079c6647"
+            "digest": "a08fe89ab059db60e5549cf4a62e5d735b86583357e8e3ab0e063dc918b140af"
           },
           {
             "path": "app/_components/collab/collab-entry-workspace.module.css",
-            "digest": "ec59bd34775c72da20297ae3f20d166b338000f3355e2870be54aa2dced79ca3"
+            "digest": "ab39d4a412592316301b1a22b6185efa4320e568f6e4f6f5189a18c1452e0690"
           },
           {
             "path": "app/_components/settings/tunnel/two-way-conversation-panel.tsx",
@@ -13011,6 +13012,42 @@
           {
             "path": "app/api/factory/conversation/route.ts",
             "digest": "bb28cd8537985647f06de1278bf57f3447751b021a88d7a75a3f2a7569d05bec"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3110-worker1-one-shot-authorization.test.mjs",
+        "targetDigest": "f22b3d37ece3bec49f402cc8f1bbc3319d7b640a0f6990e3af75cd6d7f5f7b1e",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "AUTHOR-PROPOSED #3110 fixed first-Worker-1 grant. Disposable unit fixture checks exact owner-scoped source, three distinct IDs, STOP/wrong-head/dispatcher failure, immutable no-replay marker, prior terminal evidence and denial of unauthorized MCP arguments. Does not verify real owner Windows execution, separate semantic approval, F00 qualification, local-model edit, Product Gate, accepted PR or merge. Requires separate source/test review before release.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
+            "digest": "c7979cad66be58bfe4ee8eeddd3da220a37703742173f5ae43a20b3ae9fd03d2"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
+            "digest": "a20f58c6219ea7b6ee53ce299cbeda0cd7b46fcd3214a2ced9e28346983ec6da"
           }
         ]
       }

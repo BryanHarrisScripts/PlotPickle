@@ -4940,7 +4940,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-3259-conversation-mcp.test.mjs",
-          "tests/issue-3259-outbound-openai-once.test.mjs"
+          "tests/issue-3259-outbound-openai-once.test.mjs",
+          "tests/issue-3355-durable-mission-store.test.mjs"
         ]
       },
       "cost": "fast",
@@ -12924,6 +12925,34 @@
           "static-source"
         ],
         "limits": "Owner-authorized fixed pilot for #3142 ONLY. Source-bound one-use authorization records and no-replay marker tested under disposable filesystem; no live Windows worker, no external F00, no Product Gate, no model call, no PR or auto merge proven. Author-proposed exact source/test W8/W9 binding requires independent assessment."
+      },
+      {
+        "target": "tests/issue-3355-durable-mission-store.test.mjs",
+        "targetDigest": "beeeef1fead3586696344ac15f4e80aa2560201034225c7e08e98bfd1e516c0b",
+        "catalogueIds": [
+          "agent.conversation-mcp-3259"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Author-proposed issue-3355 immutable mission DRAFT file unit tests on disposable local private storage. Tests source binding, profile scope isolation via injected host authorization, content integrity, expiry, no-dispatch, no-release and symlink refusal; no live Human profile, real Windows Product Gate, provider delegation, approval or merged-code authority is established. Requires qualified independent source/test semantic review before release.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/agent-mission-store.mjs",
+            "digest": "dfe8823b24f2baedcfba6e09b0e60ad261e8ce544a13af67a16410b7a86a90d1"
+          }
+        ]
       }
     ]
   }

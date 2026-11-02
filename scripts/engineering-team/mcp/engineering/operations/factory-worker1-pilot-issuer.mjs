@@ -254,3 +254,123 @@ export async function issueFixedWorker1Pilot({
     sourceHead:expectedHead,modelInvoked:false,workerProcessVerified:false,
     replayAuthorized:false,automaticMergeEnabled:false});
 }
+
+/**
+ * #3110: one owner-supervised Worker 1 commissioning job, not a general
+ * issue-text-to-model API. The previous #3142 tickets are never retried.
+ * This exact issue, target, focused test and objective are pinned in trusted
+ * installed MAIN. No F00 signature, test admission or merge is granted.
+ */
+async function prior3110HistorySettled(root,entries,expectedHead,at){
+  if(entries.length===0)return true;
+  if(!await priorOwnerOrdersTerminal({root,entries,expectedHead,at}))return false;
+  // A rejected model proposal is not, by itself, proof of no write.
+  // Require an independently recorded terminal release witness for EVERY
+  // blocked older coding attempt before another model can be admitted.
+  for(const filename of entries){
+    try{
+      const work=await historicalRecord(root,"owner-work-orders",filename);
+      const coding=await historicalRecord(root,"coding-attempts",work.grantId+".result.json");
+      if(coding.state!=="BLOCKED")continue;
+      const p=path.join(root,"coding-attempts",work.grantId+".released.json");
+      const st=await lstat(p);
+      if(!st.isFile()||st.isSymbolicLink()||st.size<2||st.size>4096)return false;
+      const released=JSON.parse(await readFile(p,"utf8"));
+      if(released.schemaVersion!==1||released.kind!=="coding-resource-release"||
+         released.grantId!==work.grantId||released.sourceHead!==work.sourceHead||
+         !["RECONCILED_SYNTAX_REJECTED_NO_COMMIT",
+           "RECONCILED_MODEL_EDIT_REJECTED_NO_WRITE"].includes(released.state)||
+         released.replayAuthorized!==false||released.publicationAuthorized!==false)
+        return false;
+    }catch{return false;}
+  }
+  return true;
+}
+
+export async function issueOne3110Worker1Ticket({
+  expectedHead,platform=process.platform,repoRoot=ROOT,
+  verifyHead=readFactoryVerificationHead,root=privateGatewayRoot(),
+  operatorReady=ownerOneShotAllowed,dispatcherRead=readDispatcher,
+  now=Date.now,id=()=>randomBytes(16).toString("hex"),
+  targetDigest=readTarget,
+}={}){
+  if(platform!=="win32")return denied("WORKER1_WINDOWS_ONLY");
+  if(!SHA.test(expectedHead||""))return denied("WORKER1_SOURCE_UNVERIFIED");
+  let head,dispatcher,digest,at;
+  try{
+    [head,dispatcher,digest]=await Promise.all([
+      verifyHead({repoRoot}),dispatcherRead(),targetDigest(repoRoot)]);
+    at=now();
+    if(head!==expectedHead||!Number.isSafeInteger(at)||
+       !/^[a-f0-9]{64}$/.test(digest))
+      return denied("WORKER1_SOURCE_UNVERIFIED");
+    if(dispatcher?.state!=="ONLINE_OBSERVED")
+      return denied("WORKER1_DISPATCHER_NOT_ONLINE");
+    if(await operatorReady(expectedHead)!==true)
+      return denied("WORKER1_STOP_PAUSE_OR_SOURCE_UNVERIFIED");
+  }catch{return denied("WORKER1_READINESS_UNVERIFIED");}
+
+  let dirs;
+  try{
+    dirs={
+      reserve:await ownerDirectory(root,"owner-pilot-reservations"),
+      orders:await ownerDirectory(root,"owner-work-orders"),
+      coding:await ownerDirectory(root,"owner-coding-grants"),
+      publication:await ownerDirectory(root,"owner-publication-grants"),
+      exceptions:await ownerDirectory(root,"owner-pilot-exceptions"),
+    };
+    const prior=await readdir(dirs.orders);
+    if(!await prior3110HistorySettled(root,prior,expectedHead,at))
+      return denied("WORKER1_PRIOR_ATTEMPT_UNVERIFIED_NO_REPLAY");
+    const reservations=await readdir(dirs.reserve);
+    if(reservations.some(n=>!["issue-3142.json",
+      "issue-3142-terminal-recovery.json"].includes(n)))
+      return denied("WORKER1_ONCE_ALREADY_RESERVED");
+  }catch{return denied("WORKER1_STORAGE_UNVERIFIED");}
+
+  const requestId=id(),grantId=id(),publicationId=id();
+  if(![requestId,grantId,publicationId].every(n=>/^[a-f0-9]{32}$/.test(n))||
+     new Set([requestId,grantId,publicationId]).size!==3)
+    return denied("WORKER1_IDS_UNVERIFIED");
+  const expiresAt=at+45*60*1000;
+  const order={schemaVersion:1,kind:"owner-authorized-factory-job",
+    requestId,grantId,publicationId,issueNumber:3110,
+    sourceHead:expectedHead,assignedWorker:"coding-worker-1",
+    consent:"ONE_OWNER_AUTHORIZED_JOB_NO_REPLAY"};
+  const coding={schemaVersion:1,kind:"engineering-edit-once",grantId,
+    issueNumber:3110,sourceHead:expectedHead,targetPath:TARGET,
+    targetDigest:digest,focusedTest:TEST,
+    objective:"Fix the owner work-order validator to reject requestId equal to grantId or publicationId, in addition to the existing grantId/publicationId inequality. Change only that one existing JavaScript validation expression. Preserve other checks and behavior.",
+    model:"qwen2.5-coder:7b",maxOutputTokens:1200,expiresAt,maxRequests:1,
+    consent:"AUTHORIZE_ONE_ENGINEERING_SOURCE_EDIT"};
+  const publication={schemaVersion:1,kind:"draft-pr-publish-approved-coding-once",
+    publicationId,grantId,issueNumber:3110,sourceHead:expectedHead,
+    localCommit:null,branch:`engineering/3110-${grantId}`,
+    targetPath:TARGET,expiresAt,maxRequests:1,
+    consent:"AUTHORIZE_ONE_DRAFT_PR_FROM_ONE_APPROVED_CODING_EDIT"};
+  const exception={schemaVersion:1,kind:"owner-one-shot-exception",
+    issueNumber:3110,sourceHead:expectedHead,requestId,grantId,publicationId,
+    expiresAt,maxRequests:1,consent:"AUTHORIZE_ONE_3110_SUPERVISED_DRAFT_NO_F00"};
+  if(!validateOwnerWorkOrder(order,expectedHead)||
+     !validateCodingGrant(coding,{channel:"main",head:expectedHead},at))
+    return denied("WORKER1_GRANTS_UNVERIFIED");
+  try{
+    if(await verifyHead({repoRoot})!==expectedHead||
+       await operatorReady(expectedHead)!==true||
+       (await dispatcherRead())?.state!=="ONLINE_OBSERVED")
+      return denied("WORKER1_READINESS_CHANGED");
+    // Write-once reservation FIRST; preserve partial failure for Human review.
+    await oneFile(dirs.reserve,"issue-3110.json",{
+      schemaVersion:1,issueNumber:3110,requestId,sourceHead:expectedHead,
+      state:"GRANT_WRITES_RESERVED_NO_REPLAY",at});
+    await oneFile(dirs.coding,grantId+".json",coding);
+    await oneFile(dirs.publication,publicationId+".json",publication);
+    await oneFile(dirs.exceptions,requestId+".json",exception);
+    // Dispatcher sees the ticket only after both grants and owner exception.
+    await oneFile(dirs.orders,requestId+".json",order);
+  }catch{return denied("WORKER1_PARTIAL_GRANTS_RECONCILE_NO_REPLAY");}
+  return Object.freeze({state:"TEST_PASSED",
+    code:"WORKER1_3110_GRANTED_NOT_DISPATCHED",sourceHead:expectedHead,
+    modelInvoked:false,workerProcessVerified:false,replayAuthorized:false,
+    automaticMergeEnabled:false});
+}

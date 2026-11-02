@@ -13,6 +13,7 @@ import LocalRuntimePanel from "./local-runtime-panel";
 import LocalVoiceSettings from "./local-voice-settings";
 import MediaRoutingPanel from "./media-routing-panel";
 import AiComputeWorkspace from "./settings/compute/ai-compute-workspace";
+import SelfDevelopmentSetupPanel from "./settings/compute/self-development-setup-panel";
 import SettingsHelperDirectory from "./settings-helper-directory";
 import SettingsReadinessOverview from "./settings-readiness-overview";
 import styles from "./sage-settings-workspace.module.css";
@@ -28,6 +29,7 @@ type SettingsSection =
   | "sage-plan"
   | "local-compute"
   | "cloud-compute"
+  | "services"
   | "voice"
   | "comfyui"
   | "archive"
@@ -62,6 +64,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
       { id: "sage-plan", label: "Sage & PLAN Setup", detail: "Readiness, model selection and tests for local writing AI" },
       { id: "local-compute", label: "Local Compute", detail: "Writing, images and video on this computer" },
       { id: "cloud-compute", label: "Cloud Compute", detail: "Writing, images and video through connected online services" },
+      { id: "services", label: "Services & Self-development", detail: "Optional Software Factory preparation and existing service status" },
       { id: "voice", label: "Local Dictation", detail: "Verify or repair startup-managed whisper.cpp speech-to-text" },
       { id: "comfyui", label: "ComfyUI Setup", detail: "Install, connect and verify the local media engine" },
     ],
@@ -100,6 +103,8 @@ const LEGACY_TARGETS: Record<string, SettingsSection> = {
   [LEGACY_HELP_DESTINATION.id]: "help",
   "settings-local-compute": "local-compute",
   "settings-cloud-compute": "cloud-compute",
+  "settings-services": "services",
+  "settings-self-development": "services",
   "settings-voice": "voice",
   "settings-models": "local-compute",
   "settings-sage": "sage-plan",
@@ -206,6 +211,8 @@ export default function SageSettingsWorkspace() {
         return <section id="settings-local-compute"><AiComputeWorkspace mode="local" /></section>;
       case "cloud-compute":
         return <section id="settings-cloud-compute"><AiComputeWorkspace mode="cloud" /></section>;
+      case "services":
+        return <section id="settings-services"><SelfDevelopmentSetupPanel /></section>;
       case "voice":
         return <section id="settings-voice"><SectionIntro eyebrow="Settings · Local" title="Local Dictation." detail="Verify or repair the startup-managed CPU-only whisper.cpp runtime and base.en speech model. Microphone audio stays temporary and local; transcripts enter ordinary PlotPickle text fields." /><LocalVoiceSettings /></section>;
       case "comfyui":
@@ -238,6 +245,7 @@ export default function SageSettingsWorkspace() {
                 <Link href="/?workspace=plan">Return to PLAN</Link>
                 <button type="button" onClick={() => navigateSection("local-compute")}>Configure Local Compute</button>
                 <button type="button" onClick={() => navigateSection("cloud-compute")}>Configure Cloud Compute</button>
+                <button type="button" onClick={() => navigateSection("services")}>Optional Self-development</button>
                 <button type="button" onClick={() => navigateSection("comfyui")}>Set up ComfyUI</button>
               </div>
             </section>

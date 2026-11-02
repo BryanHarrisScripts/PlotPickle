@@ -12995,11 +12995,11 @@
           },
           {
             "path": "app/_components/collab/collab-entry-workspace.tsx",
-            "digest": "91795d3ada9a5f1d312a32547263ee220fdfc316306a4cde1b9eb47e079c6647"
+            "digest": "a08fe89ab059db60e5549cf4a62e5d735b86583357e8e3ab0e063dc918b140af"
           },
           {
             "path": "app/_components/collab/collab-entry-workspace.module.css",
-            "digest": "ec59bd34775c72da20297ae3f20d166b338000f3355e2870be54aa2dced79ca3"
+            "digest": "ab39d4a412592316301b1a22b6185efa4320e568f6e4f6f5189a18c1452e0690"
           },
           {
             "path": "app/_components/settings/tunnel/two-way-conversation-panel.tsx",

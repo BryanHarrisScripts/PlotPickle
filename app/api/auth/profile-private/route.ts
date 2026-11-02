@@ -5,6 +5,7 @@ import {readServerAfterglowSources,prepareServerAfterglowMaster}
 import {AfterglowSaveVerificationError} from "../../../../modules/library/master/afterglow-technical-reconciliation.mjs";
 import type { ProfileProjectSummary } from "../../../../core/storage/profile-private/profile-private-storage";
 import { normalizeLibraryProject } from "../../../../core/storage/library-project";
+import {observeStoryboardShot} from "../../../../modules/intent/model/observe-project-status";
 import { normalizeAfterglowReviewDraft } from "../../../../modules/library/master/afterglow-review-draft.mjs";
 import { toPublicAuthError } from "../../../../core/auth/plotpickle-auth";
 import { toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
@@ -69,7 +70,33 @@ async function authorized(request: Request, mutation = false) {
 export async function GET(request: Request) {
   try {
     const { runtimeState, authContext } = await authorized(request);
-    if (new URL(request.url).searchParams.get("afterglowReviewDraft") === "1") {
+    const query = new URL(request.url).searchParams;
+    if (query.get("storyboardShot") === "1") {
+      // Read the encrypted active Library PPF under the SAME Human session.
+      // No project auto-selection, no provider call, no approval or mutation.
+      const current = await runtimeState.privateStorage.loadActiveProject(authContext);
+      const parseIndex = (name: string) => {
+        const value = query.get(name);
+        return value && /^(0|[1-9][0-9]{0,8})$/.test(value) ? Number(value) : -1;
+      };
+      const observation = observeStoryboardShot({
+        capability: "storyboard-shot.observe",
+        profileId: authContext.profileId,
+        projectId: query.get("projectId") ?? "",
+        projectRevision: parseIndex("revision"),
+        providerPolicy: "LOCAL_READ_ONLY",
+        actNumber: parseIndex("act"),
+        sequenceNumber: parseIndex("sequence"),
+        blockNumber: parseIndex("block"),
+        miniBlockNumber: parseIndex("mini"),
+        shotNumber: parseIndex("shot"),
+      }, {
+        activeProfileId: authContext.profileId,
+        activeProject: current ? normalizeLibraryProject(current) : null,
+      });
+      return response(observation, observation.state === "BLOCKED" ? 409 : 200);
+    }
+    if (query.get("afterglowReviewDraft") === "1") {
       const draft = await runtimeState.privateStorage.readPrivateJson(authContext, {
         domain: "cache", objectId: "afterglow-review-draft",
       });

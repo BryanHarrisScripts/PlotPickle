@@ -2317,6 +2317,8 @@
         "app/settings/compute/cloud-model-catalog-panel.tsx",
         "app/settings/compute/local-model-catalog-panel.tsx",
         "app/settings/compute/ai-compute-workspace.tsx",
+        "app/settings/compute/self-development-setup-panel.module.css",
+        "app/settings/compute/self-development-setup-panel.tsx",
         "app/specialist-labs.tsx",
         "app/treatment-editor.tsx",
         "app/use-cast-identity-queue.ts",

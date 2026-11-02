@@ -1,0 +1,20 @@
+.stack {
+  display: grid;
+  gap: var(--pp-skin-space-4, 16px);
+  min-width: 0;
+}
+.intro, .preparation {
+  display: grid;
+  gap: 12px;
+  padding: var(--pp-skin-space-4, 16px);
+  background: var(--pp-skin-surface-1);
+  border: var(--pp-skin-border-thin, 1px) solid var(--pp-skin-line);
+  color: var(--pp-skin-ink);
+}
+.intro h2, .preparation h3 { margin: 0; color: var(--pp-skin-accent-bright); }
+.intro p, .preparation p { margin: 0; line-height: 1.55; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; color: var(--pp-skin-ink-soft); }
+.status { display: grid; gap: 6px; padding: 12px; border: 1px solid var(--pp-skin-line); }
+.status span, .note { color: var(--pp-skin-ink-soft); font-size: 13px; }
+.disabledAction { justify-self: start; max-width: 100%; min-height: 44px; padding: 8px 14px; cursor: not-allowed; opacity: .65; border: 1px solid var(--pp-skin-line); background: var(--pp-skin-surface-0); color: var(--pp-skin-ink); }
+.preparation ul { display: grid; gap: 8px; margin: 0; padding-left: 22px; line-height: 1.55; }

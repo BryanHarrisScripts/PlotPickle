@@ -125,8 +125,9 @@ test('unexpected local model identity is permanently fail-closed without fallbac
 // immutable, unique, checked against source, and passed to the same validator.
 test('commissioning local proposal remains anchored and rejects ambiguous or incomplete edits',()=>{
   const sourceText=`export function validateOwnerWorkOrder(work) {
-    return ID.test(work.publicationId || '') && work.grantId !== work.publicationId &&
-      Boolean(work.requestId);
+    return Boolean(
+    ID.test(work.publicationId || '') && work.grantId !== work.publicationId &&
+      Boolean(work.requestId));
   }
 `;
   const scope={issueNumber:3110,

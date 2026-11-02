@@ -54,6 +54,14 @@ export async function inspectRejectedModelEdit({
        order.grantId!==grantId||order.assignedWorker!=='coding-worker-1'||
        !/^[a-f0-9]{40}$/.test(order.sourceHead||''))
       return deny('ORIGINAL_ORDER_UNVERIFIED');
+    // Only the owner-issued second recovery ticket is eligible; never turn
+    // this into a general historical-claim release endpoint.
+    const marker=await safeJson(path.join(root,'owner-pilot-reservations',
+      'issue-3142-terminal-recovery.json'));
+    if(marker.schemaVersion!==1||marker.issueNumber!==3142||
+       marker.state!=='GRANT_WRITES_RESERVED_NO_REPLAY'||
+       marker.requestId!==requestId||marker.sourceHead!==order.sourceHead)
+      return deny('SECOND_PILOT_MARKER_UNVERIFIED');
     // The failed pilot was source-bound to an older MAIN; the recovery
     // implementation itself must be reviewed and merged before owner use.
     if(!await exec('git',['merge-base','--is-ancestor',

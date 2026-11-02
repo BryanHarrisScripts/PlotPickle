@@ -12928,7 +12928,7 @@
       },
       {
         "target": "tests/issue-3355-elara-agent-workspace.test.mjs",
-        "targetDigest": "f74666cc41d4c9e0cb8ae0c0bf85498dfd973d238816a8b00dfee7ac21eb36dd",
+        "targetDigest": "29a953fec62a917d33735307698f43ee65902d488360107a840f933ea4265e88",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],
@@ -12945,7 +12945,7 @@
         "scopes": [
           "static-source"
         ],
-        "limits": "Author-proposed exact-source inspection for the #3355 Collab Agent Workspace first slice. Checks integration with existing profile-authenticated supervisor and durable conversation endpoints, source-head equality, no false worker/delegation/merge status and responsive layout. Does NOT execute the UI in a real browser, authorize a specialist task, verify independent Human review, prove persistent mission state, certify actual Windows Product Gate or create merge authority. Requires separately qualified semantic review of test truth before release.",
+        "limits": "Author-proposed exact-source inspection for the #3355 Collab Agent Workspace first slice. Checks integration with existing profile-authenticated supervisor and durable conversation endpoints, source-head equality, no false worker/delegation/merge status and responsive layout. Does NOT execute the UI in a real browser, authorize a specialist task, verify independent Human review, prove persistent mission state, certify actual Windows Product Gate or create merge authority. Requires separately qualified semantic review of test truth before release. A false-positive static assertion was narrowed to actual browser storage API calls (not the historical localStorage wording in explanatory prose).",
         "inputs": [
           {
             "path": "app/page.tsx",

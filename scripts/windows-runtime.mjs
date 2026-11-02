@@ -487,6 +487,44 @@ function prepare() {
   }
 }
 
+/**
+ * Read-only Factory-protected startup: never move/delete junctions, install,
+ * repair, alter package manifests, or mark a shared runtime ready. The only
+ * output is the launcher's per-invocation temporary .cmd environment file.
+ */
+function prepareProtected() {
+  const info = runtimeInfo();
+  if (!commandArgument) throw new Error("protected prepare requires a .cmd output path");
+  if (!entryExists(info.appModules) || !runtimeReady(info.runtimeModules)) {
+    throw new Error("FACTORY_PROTECTED_RUNTIME_NOT_READY");
+  }
+  const stat = lstatSync(info.appModules);
+  const resolved = realPathOrNull(info.appModules);
+  if (!stat.isSymbolicLink() || !resolved || !samePath(resolved, info.runtimeModules)) {
+    throw new Error("FACTORY_PROTECTED_RUNTIME_LINK_UNVERIFIED");
+  }
+  const manifest = JSON.parse(readFileSync(packageFile, "utf8"));
+  const values = {
+    PLOTPICKLE_HOME: info.home,
+    PLOTPICKLE_LOCK_HASH: info.hash,
+    PLOTPICKLE_RUNTIME_FINGERPRINT: info.fingerprint,
+    PLOTPICKLE_RUNTIME_PLATFORM: process.platform,
+    PLOTPICKLE_RUNTIME_ARCH: process.arch,
+    PLOTPICKLE_NATIVE_BINDING: nativeBindingStatus(info.runtimeModules).packageName,
+    PLOTPICKLE_RUNTIME_DIR: info.runtimeDir,
+    PLOTPICKLE_RUNTIME_MODULES: info.runtimeModules,
+    PLOTPICKLE_NPM_CACHE: info.npmCache,
+    PLOTPICKLE_RUNTIME_REUSED: "1",
+    PLOTPICKLE_RUNTIME_MIGRATED: "0",
+    PLOTPICKLE_FACTORY_PROTECTED: "1",
+    PLOTPICKLE_VERSION: String(manifest.version ?? "unknown"),
+  };
+  const cmd = Object.entries(values).map(([key,value]) =>
+    `set "${key}=${String(value).replaceAll("%", "%%")}"`).join("\r\n");
+  writeFileSync(commandArgument, cmd + "\r\n", "utf8");
+  console.log("Factory-protected launch: existing matching runtime reused without mutation.");
+}
+
 function markReady() {
   const info = runtimeInfo();
   if (!verifyModules(info.runtimeModules)) {
@@ -545,6 +583,7 @@ function describe() {
 
 try {
   if (command === "prepare") prepare();
+  else if (command === "prepare-protected") prepareProtected();
   else if (command === "mark-ready") markReady();
   else if (command === "reset-current") resetCurrent();
   else if (command === "verify-runtime") {

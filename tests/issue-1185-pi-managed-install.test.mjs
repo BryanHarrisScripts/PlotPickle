@@ -250,7 +250,8 @@ test("#1185 Full Verification stage 5, stage 6, and nested Pi quality review sta
   }
   assert.match(preflight, /PLOTPICKLE_PI_COMMAND = pi\.command/u);
   assert.match(preflight, /env: \{ PLOTPICKLE_PI_COMMAND: pi\.command \}/u);
-  assert.match(review, /command: pi\.command/u);
+  assert.match(review, /runManagedPiReadOnly/u);
+  assert.doesNotMatch(review, /command: pi\.command/u);
 });
 
 test("#3291 managed readiness probes unbundled Pi through Node, never the embedded-Undici npm shim", async () => {

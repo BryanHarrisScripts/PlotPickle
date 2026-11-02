@@ -140,6 +140,24 @@ async function storeFolder(root, name) {
   return folder;
 }
 
+// Read paths must not create private directories or follow junctions.
+async function observedFolder(root, name) {
+  if (typeof root !== "string" || !path.isAbsolute(root))
+    throw Error("GATEWAY_PRIVATE_STORAGE_UNVERIFIED");
+  const target = path.join(root, name);
+  for (const dir of [root, target]) {
+    let info;
+    try { info = await lstat(dir); }
+    catch (error) {
+      if (error?.code === "ENOENT") return null;
+      throw error;
+    }
+    if (!info.isDirectory() || info.isSymbolicLink())
+      throw Error("GATEWAY_PRIVATE_STORAGE_UNVERIFIED");
+  }
+  return target;
+}
+
 async function privateRecord(filename) {
   try {
     const stat = await lstat(filename);
@@ -249,7 +267,8 @@ export async function readGatewayReceipt({
   if (typeof questionId !== "string" || !ID.test(questionId))
     return { state: "INVALID_SELECTION" };
   try {
-    const questions = await storeFolder(root, "questions");
+    const questions = await observedFolder(root, "questions");
+    if (!questions) return { state: "NOT_FOUND" };
     const q = await privateRecord(path.join(questions, questionId + ".json"));
     if (q.state === "MISSING") return { state: "NOT_FOUND" };
     if (q.state !== "FOUND") return { state: "UNVERIFIABLE" };
@@ -257,8 +276,10 @@ export async function readGatewayReceipt({
     if (question.kind !== "question" ||
         !authorized(authorization, question, "receipt.read", now))
       return { state: "DENIED" };
-    const answers = await storeFolder(root, "answers");
-    const a = await privateRecord(path.join(answers, questionId + ".json"));
+    const answers = await observedFolder(root, "answers");
+    const a = answers
+      ? await privateRecord(path.join(answers, questionId + ".json"))
+      : { state: "MISSING" };
     if (a.state === "UNVERIFIABLE") return { state: "UNVERIFIABLE" };
     if (a.state === "MISSING")
       return { state: question.expiresAt <= now ? "EXPIRED_UNANSWERED" : "PENDING",

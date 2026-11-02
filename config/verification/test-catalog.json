@@ -127,7 +127,8 @@
           "tests/issue-3227-discover-matrix-journal.test.mjs",
           "tests/issue-2444-dashboard-review-fold.test.mjs",
           "tests/issue-2454-dashboard-screening-rough-cut.test.mjs",
-          "tests/issue-2587-dashboard-shortcut-remap.test.mjs"
+          "tests/issue-2587-dashboard-shortcut-remap.test.mjs",
+          "tests/issue-3355-elara-agent-workspace.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1336,7 +1337,8 @@
           "tests/issue-3302-lane-a-service-identity-policy.test.mjs",
           "tests/issue-3302-lane-a-signed-registrar-policy.test.mjs",
           "tests/issue-3302-independent-catalogue-preflight.test.mjs",
-          "tests/issue-3302-independent-qa-claim.test.mjs"
+          "tests/issue-3302-independent-qa-claim.test.mjs",
+          "tests/issue-3302-cross-factory-math-review.test.mjs"
         ]
       },
       "cost": "fast",
@@ -2165,7 +2167,8 @@
           "tests/issue-2698-runtime-shutdown.test.mjs",
           "tests/issue-2698-launcher-probe.test.mjs",
           "tests/issue-2698-media-retention.test.mjs",
-          "tests/issue-3268-unified-service-inventory.test.mjs"
+          "tests/issue-3268-unified-service-inventory.test.mjs",
+          "tests/issue-3268-factory-safe-startup.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4252,7 +4255,20 @@
           "tests/issue-3159-pi-headless-inference.test.mjs",
           "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
           "tests/issue-3278-storage-mcp.test.mjs",
-          "tests/issue-3303-headless-gateway-acceptance.test.mjs"
+          "tests/issue-3303-headless-gateway-acceptance.test.mjs",
+          "tests/issue-3142-authorized-coding-once.test.mjs",
+          "tests/issue-3142-authorized-publish-once.test.mjs",
+          "tests/issue-3142-authorized-pr-publish-once.test.mjs",
+          "tests/issue-3302-two-receipt-verifier.test.mjs",
+          "tests/issue-3142-owner-windows-acceptance-broker.test.mjs",
+          "tests/issue-3142-factory-worker-pool.test.mjs",
+          "tests/issue-3142-reconcile-syntax-failure.test.mjs",
+          "tests/issue-3142-native-dispatcher-live.test.mjs",
+          "tests/issue-3142-ollama-coding-provider.test.mjs",
+          "tests/issue-3303-windows-product-gate.test.mjs",
+          "tests/issue-3142-authenticated-operator-maintenance.test.mjs",
+          "tests/issue-3142-worker1-pilot-issuer.test.mjs",
+          "tests/issue-3110-worker1-one-shot-authorization.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4470,7 +4486,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-3142-supervisor-head-migration.test.mjs"
+          "tests/issue-3142-supervisor-head-migration.test.mjs",
+          "tests/issue-3142-authenticated-operator-maintenance.test.mjs"
         ]
       },
       "cost": "fast",
@@ -4925,7 +4942,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-3259-conversation-mcp.test.mjs",
-          "tests/issue-3259-outbound-openai-once.test.mjs"
+          "tests/issue-3259-outbound-openai-once.test.mjs",
+          "tests/issue-3355-durable-mission-store.test.mjs"
         ]
       },
       "cost": "fast",
@@ -7215,7 +7233,7 @@
         "inputs": [
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "97b3f8747958b699332cd66a96099c5aa44de7bdc410570f069fb7a4f8d1c7cc"
+            "digest": "efac807280ee9c0f2f6944f784f368bfbf820c5b76865452bcb0f531eb6ca4e1"
           }
         ]
       },
@@ -7778,7 +7796,7 @@
       },
       {
         "target": "tests/issue-1185-pi-managed-install.test.mjs",
-        "targetDigest": "fd48d65bac410802e01043242bccf1c983050cfa9c2fad8ecc8c5f0336a509f5",
+        "targetDigest": "812de67e133eba722358e26b2d55cb7a4ad0653f1861e28d129adffe25ad1a5c",
         "catalogueIds": [
           "agent.managed-pi-install-3067"
         ],
@@ -7796,7 +7814,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Existing managed-pin, private install/lock rejection, native MCP and DSDD source/fixture obligations preserved while moving current Pi family to1.3.0. Historical candidate contracts retain original versions. No actual provider, real story session or Windows product acceptance established by these tests. #3289 filesystem fixtures verify same-version stale dependency rejection, disabled-install preservation, repair/reuse, missing metadata and post-install rejection. No live owner upgrade or model inference established.",
+        "limits": "Existing managed-pin, private install/lock rejection, native MCP and DSDD source/fixture obligations preserved while moving current Pi family to1.3.0. Historical candidate contracts retain original versions. No actual provider, real story session or Windows product acceptance established by these tests. #3289 filesystem fixtures verify same-version stale dependency rejection, disabled-install preservation, repair/reuse, missing metadata and post-install rejection. No live owner upgrade or model inference established. #3291 managed code quality review migrates to reviewed unbundled helper; native Pi runtime acceptance still pending.",
         "inputs": [
           {
             "path": "scripts/pi-managed-install.mjs",
@@ -7864,7 +7882,7 @@
           },
           {
             "path": "scripts/run-pi-code-quality-review.mjs",
-            "digest": "de1d4153f8d260b30c6fcdb59a090da893adb1908abd7c152cc879a27287f137"
+            "digest": "de225e2564a6bd613b844440d43657ef9e7117a5bc41ad72529977f89c1613e3"
           }
         ]
       },
@@ -8049,7 +8067,7 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "97b3f8747958b699332cd66a96099c5aa44de7bdc410570f069fb7a4f8d1c7cc"
+            "digest": "efac807280ee9c0f2f6944f784f368bfbf820c5b76865452bcb0f531eb6ca4e1"
           }
         ]
       },
@@ -8761,7 +8779,7 @@
           },
           {
             "path": "GIT-PlotPickle.ps1",
-            "digest": "2d0d2634710eef713023194abfe6889ea5752040f0bd98bd111ca9fef72466ae"
+            "digest": "3e69586ffe959286530ebbfc7ca901085a71e69b6a5d49a4fb7799a05e28e68a"
           }
         ]
       },
@@ -8794,11 +8812,11 @@
           },
           {
             "path": "GIT-PlotPickle.ps1",
-            "digest": "2d0d2634710eef713023194abfe6889ea5752040f0bd98bd111ca9fef72466ae"
+            "digest": "3e69586ffe959286530ebbfc7ca901085a71e69b6a5d49a4fb7799a05e28e68a"
           },
           {
             "path": "Start-PlotPickle.bat",
-            "digest": "00d7cb4733411241606d4bbbed6863464aae016195c0ed14c143c4ac223fb61a"
+            "digest": "dd0b891cdad5c498aa092297673f5b61885735a09956dc919f0534e6a7c05491"
           }
         ]
       },
@@ -8826,7 +8844,7 @@
         "inputs": [
           {
             "path": "Start-PlotPickle.bat",
-            "digest": "00d7cb4733411241606d4bbbed6863464aae016195c0ed14c143c4ac223fb61a"
+            "digest": "dd0b891cdad5c498aa092297673f5b61885735a09956dc919f0534e6a7c05491"
           }
         ]
       },
@@ -8859,11 +8877,11 @@
           },
           {
             "path": "GIT-PlotPickle.ps1",
-            "digest": "2d0d2634710eef713023194abfe6889ea5752040f0bd98bd111ca9fef72466ae"
+            "digest": "3e69586ffe959286530ebbfc7ca901085a71e69b6a5d49a4fb7799a05e28e68a"
           },
           {
             "path": "Start-PlotPickle.bat",
-            "digest": "00d7cb4733411241606d4bbbed6863464aae016195c0ed14c143c4ac223fb61a"
+            "digest": "dd0b891cdad5c498aa092297673f5b61885735a09956dc919f0534e6a7c05491"
           }
         ]
       },
@@ -8990,7 +9008,7 @@
           },
           {
             "path": "Start-PlotPickle.bat",
-            "digest": "00d7cb4733411241606d4bbbed6863464aae016195c0ed14c143c4ac223fb61a"
+            "digest": "dd0b891cdad5c498aa092297673f5b61885735a09956dc919f0534e6a7c05491"
           },
           {
             "path": ".github/workflows/product-gate.yml",
@@ -9463,7 +9481,7 @@
       },
       {
         "target": "tests/issue-3110-windows-uat-control.test.mjs",
-        "targetDigest": "fc8a888b8f051f89a6f9df6be5eeb5c7d2ee7c878edb0b97352329fa33e0fcab",
+        "targetDigest": "c022976f0783ddada2a9341f25556d92059c31f25ac6afdcf8a4e44e2f67c21a",
         "catalogueIds": [
           "agent.windows-uat-local-control-3110"
         ],
@@ -9681,7 +9699,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "3982d15e84c7529b92ab9f5b851efd19a9311840b73a686f0e5698f6181b3e5d"
+            "digest": "00516971a5995cca146c01a50b6d50b406efd33f054b614c93ce9dae118cc9fe"
           }
         ]
       },
@@ -9979,14 +9997,14 @@
       },
       {
         "target": "tests/issue-3154-chatgpt-factory-mcp.test.mjs",
-        "targetDigest": "5e5563b8f57b11fd9a7fdebc273a53108f745c278a7e495afcd08e844a559ad6",
+        "targetDigest": "bd895237bc6d45265dab3f77693b13b90b8264816387849f736c7ad1638589c5",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2b9e01d8f2f031b1ffe764fea024ed564e551875ae8f44f9ea2b372e2e6943c1"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -9999,6 +10017,26 @@
           {
             "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
             "digest": "681dba56405951e7fa15df41fda4dce6b9e4c09f67396d4aeca5043fac607862"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-host-diagnostics.mjs",
+            "digest": "3b3b511f87ab2aebd0240a1fcb268445de316759a1d364df04bbbf5e42343970"
+          },
+          {
+            "path": "scripts/engineering-team/windows/supervisor/Read-PlotPickleSupervisorDiagnostics.ps1",
+            "digest": "2eb1b133166fa04db99496b019e71639a14688e9d62a2dcd94db09f900e1b317"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
+            "digest": "f06a45af461d557751f52ec8a63bc207f62f5bcd3d5e03aba12e29a7705a9a7d"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-native.mjs",
+            "digest": "56cc81816ab7a9a02ee792c47b066226e60389da7d223f8e38e22474aabd3ed0"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
+            "digest": "451f2b26b2d1f632030bf9b36647cecfa7155f04f6e44d3479a30bb17453729b"
           }
         ],
         "truthRefs": [
@@ -10015,7 +10053,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic private Factory receipts, deterministic observer and MCP HTTP/stdio tests; additionally verifies authenticated-only sanitized read-only canonical supervisor snapshot, forged/stale heartbeat and thrown-read denial. Symlink fixture is conditional on Windows privileges. No independent owner Windows task/PID/descendant ownership, authenticated Start, scheduled ChatGPT dispatch, source edit, Product UAT, replay or autonomous merge proof."
+        "limits": "Synthetic private Factory receipts, deterministic observer and MCP HTTP/stdio tests; additionally verifies authenticated-only sanitized read-only canonical supervisor snapshot, forged/stale heartbeat and thrown-read denial. Symlink fixture is conditional on Windows privileges. No independent owner Windows task/PID/descendant ownership, authenticated Start, scheduled ChatGPT dispatch, source edit, Product UAT, replay or autonomous merge proof. #3333 additional fixtures validate authenticated exact-head fixed diagnostics routing, sanitized task/lock/PID candidate and no arbitrary PowerShell arguments; do not imply real Windows process custody or repair permission. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release."
       },
       {
         "target": "tests/issue-3110-synthetic-qa-factory-monitor.test.mjs",
@@ -10034,7 +10072,19 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2b9e01d8f2f031b1ffe764fea024ed564e551875ae8f44f9ea2b372e2e6943c1"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
+            "digest": "f06a45af461d557751f52ec8a63bc207f62f5bcd3d5e03aba12e29a7705a9a7d"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-native.mjs",
+            "digest": "56cc81816ab7a9a02ee792c47b066226e60389da7d223f8e38e22474aabd3ed0"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
+            "digest": "451f2b26b2d1f632030bf9b36647cecfa7155f04f6e44d3479a30bb17453729b"
           }
         ],
         "truthRefs": [
@@ -10051,7 +10101,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic GitHub QA issue objects, injected factory snapshot, private temp-root monitor heartbeat and local MCP sanitization; no real Windows Scheduler, GitHub issue publication, ChatGPT-only engineer execution, production UAT or released Normal installation."
+        "limits": "Synthetic GitHub QA issue objects, injected factory snapshot, private temp-root monitor heartbeat and local MCP sanitization; no real Windows Scheduler, GitHub issue publication, ChatGPT-only engineer execution, production UAT or released Normal installation. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release."
       },
       {
         "target": "tests/issue-3110-factory-named-test-mcp.test.mjs",
@@ -10070,7 +10120,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2b9e01d8f2f031b1ffe764fea024ed564e551875ae8f44f9ea2b372e2e6943c1"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
@@ -10079,6 +10129,18 @@
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-supervisor-start.mjs",
             "digest": "df25e09441b099f6fd9f1c54f567cb5665face6253f954aa8e7b332afce76ce2"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
+            "digest": "f06a45af461d557751f52ec8a63bc207f62f5bcd3d5e03aba12e29a7705a9a7d"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-native.mjs",
+            "digest": "56cc81816ab7a9a02ee792c47b066226e60389da7d223f8e38e22474aabd3ed0"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
+            "digest": "451f2b26b2d1f632030bf9b36647cecfa7155f04f6e44d3479a30bb17453729b"
           }
         ],
         "truthRefs": [
@@ -10095,7 +10157,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Runtime synthetic exact pinned worktree stage, allowlisted Git-error classification, browser-denial on staging failure, and immutable authenticated MCP receipt scrub against private path injection. No on-owner Windows root-cause, actual browser run, STOP/tree proof, or authorized cleanup."
+        "limits": "Runtime synthetic exact pinned worktree stage, allowlisted Git-error classification, browser-denial on staging failure, and immutable authenticated MCP receipt scrub against private path injection. No on-owner Windows root-cause, actual browser run, STOP/tree proof, or authorized cleanup. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release."
       },
       {
         "target": "tests/issue-3159-pi-headless-inference.test.mjs",
@@ -10240,7 +10302,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Real pure Node HTTP Request/Response adapter and actual disposable local supervisor STOP-marker readback, plus source linkage to authenticated Settings. Native Windows fixture does NOT independently prove owner-host process stop, live browser click/CSRF parity, PID/descendant absence, reboot persistence, AI coding or merge.",
+        "limits": "Real pure Node HTTP Request/Response adapter and actual disposable local supervisor STOP-marker readback, plus source linkage to authenticated Settings. Native Windows fixture does NOT independently prove owner-host process stop, live browser click/CSRF parity, PID/descendant absence, reboot persistence, AI coding or merge. #3360 owner-directed four-group display CANDIDATE: existing authenticated supervisor panel now displays Software Factory, Quality/Release/Operations, and Service Manager responsibilities, with Access/Runtime, Validation, Evidence/Safety and Release Control projections. These are read-only labels over existing supervisor GET and actions, not F00 signed admission, runtime readiness, independent verification, service installation, Product Gate or merge. Existing STOP/PAUSE POST authorization and controls remain unchanged; review this exact source edition before merge.",
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/supervisor/supervisor-http.mjs",
@@ -10252,7 +10314,7 @@
           },
           {
             "path": "app/skin-v1/factory-supervisor-panel.tsx",
-            "digest": "d25dced5b1322ea39e0447f30f287ec35dc92c6e776f165519ea13283ad223d5"
+            "digest": "4656b7f3ed9188c4502c9d92c3ce5dd33fbdcc7f3f547a4ee9587ffdbfa23a45"
           },
           {
             "path": "app/skin-v1/settings-workspace-panel.tsx",
@@ -10260,7 +10322,7 @@
           },
           {
             "path": "build/local-profile-auth-gateway.ts",
-            "digest": "433665e344615e9cbc6b6f63351be2e1d6351909c903e809f83cfaef1d191cd4"
+            "digest": "63b2b94ca70a90b79ca25703f712d2793e432a349f4c4440af34fb69a8bf6020"
           },
           {
             "path": "core/auth/profile-experience/local-factory-request.ts",
@@ -10313,7 +10375,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2b9e01d8f2f031b1ffe764fea024ed564e551875ae8f44f9ea2b372e2e6943c1"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
@@ -10322,6 +10384,18 @@
           {
             "path": "scripts/full-verification-process.mjs",
             "digest": "837f1e7f1af9f4483286ef9da0a987820845f95bedc14256d7c1678968627d84"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
+            "digest": "f06a45af461d557751f52ec8a63bc207f62f5bcd3d5e03aba12e29a7705a9a7d"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-native.mjs",
+            "digest": "56cc81816ab7a9a02ee792c47b066226e60389da7d223f8e38e22474aabd3ed0"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
+            "digest": "451f2b26b2d1f632030bf9b36647cecfa7155f04f6e44d3479a30bb17453729b"
           }
         ],
         "truthRefs": [
@@ -10338,7 +10412,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Only fixture safety behavior of fixed clean-main local Windows Vite lifecycle and MCP caller authorization/receipts. No real owner Windows app startup or browser proof; no independent source-authorized merge."
+        "limits": "Only fixture safety behavior of fixed clean-main local Windows Vite lifecycle and MCP caller authorization/receipts. No real owner Windows app startup or browser proof; no independent source-authorized merge. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release."
       },
       {
         "target": "tests/issue-3222-verified-pr-launch.test.mjs",
@@ -10361,7 +10435,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2b9e01d8f2f031b1ffe764fea024ed564e551875ae8f44f9ea2b372e2e6943c1"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
@@ -10373,7 +10447,19 @@
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "97b3f8747958b699332cd66a96099c5aa44de7bdc410570f069fb7a4f8d1c7cc"
+            "digest": "efac807280ee9c0f2f6944f784f368bfbf820c5b76865452bcb0f531eb6ca4e1"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
+            "digest": "f06a45af461d557751f52ec8a63bc207f62f5bcd3d5e03aba12e29a7705a9a7d"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-native.mjs",
+            "digest": "56cc81816ab7a9a02ee792c47b066226e60389da7d223f8e38e22474aabd3ed0"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
+            "digest": "451f2b26b2d1f632030bf9b36647cecfa7155f04f6e44d3479a30bb17453729b"
           }
         ],
         "truthRefs": [
@@ -10390,7 +10476,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Fixture-controlled Git ancestry, exact stage receipts, unchanged package graph, Windows process ownership, on-page provenance and no arbitrary path/shell inputs. Real owner PR browser acceptance, authenticated saved project continuity, on-device managed STOP, and source merge require separate evidence."
+        "limits": "Fixture-controlled Git ancestry, exact stage receipts, unchanged package graph, Windows process ownership, on-page provenance and no arbitrary path/shell inputs. Real owner PR browser acceptance, authenticated saved project continuity, on-device managed STOP, and source merge require separate evidence. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release."
       },
       {
         "target": "tests/issue-3222-factory-concurrent-session.test.mjs",
@@ -10409,11 +10495,11 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2b9e01d8f2f031b1ffe764fea024ed564e551875ae8f44f9ea2b372e2e6943c1"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
-            "digest": "97b3f8747958b699332cd66a96099c5aa44de7bdc410570f069fb7a4f8d1c7cc"
+            "digest": "efac807280ee9c0f2f6944f784f368bfbf820c5b76865452bcb0f531eb6ca4e1"
           },
           {
             "path": "scripts/engineering-team/mcp/candidate/plotpickle-candidate-source.mjs",
@@ -10426,6 +10512,18 @@
           {
             "path": "scripts/run-webmcp-startup-uat.mjs",
             "digest": "241ba7675905a1edfd8064d04b9a77d9c44c9641f60b14999a8f3740f0a47659"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
+            "digest": "f06a45af461d557751f52ec8a63bc207f62f5bcd3d5e03aba12e29a7705a9a7d"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-native.mjs",
+            "digest": "56cc81816ab7a9a02ee792c47b066226e60389da7d223f8e38e22474aabd3ed0"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
+            "digest": "451f2b26b2d1f632030bf9b36647cecfa7155f04f6e44d3479a30bb17453729b"
           }
         ],
         "truthRefs": [
@@ -10442,7 +10540,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Only deterministic fixture assertions of loopback separation, synthetic storage metadata and owned Factory lifecycle. Not real owner Windows process/browser acceptance, kernel isolation, profile continuity or merge authorization."
+        "limits": "Only deterministic fixture assertions of loopback separation, synthetic storage metadata and owned Factory lifecycle. Not real owner Windows process/browser acceptance, kernel isolation, profile continuity or merge authorization. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release."
       },
       {
         "target": "tests/issue-118-consolidated-reports.test.mjs",
@@ -10611,7 +10709,7 @@
       },
       {
         "target": "tests/issue-3110-opt-in-engineering-mcp.test.mjs",
-        "targetDigest": "951e8a278073fbfa603e2b897a11712e5236f926c4a0f1760ccfba634ae2773d",
+        "targetDigest": "469497a0dddfab8e5b1930d267e01b0c58f12d54780affb4731fb15a23d256cd",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -10629,15 +10727,27 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Mocked staged Windows worktree and authenticated MCP behaviour; validates exact candidate identity, no main mutation, opt-in tool discovery, no inline shell, bounded PowerShell -File dispatch and failure receipts. Does NOT run native Windows PowerShell, prove OS sandboxing, perform Human browser UAT, spend, publish, or merge.",
+        "limits": "Mocked staged Windows worktree and authenticated MCP behaviour; validates exact candidate identity, no main mutation, opt-in tool discovery, no inline shell, bounded PowerShell -File dispatch and failure receipts. Does NOT run native Windows PowerShell, prove OS sandboxing, perform Human browser UAT, spend, publish, or merge. #3333 tool-inventory assertion permits one additional owner-authenticated read-only Windows diagnostic; public tool set and engineering opt-in remain unchanged. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release.",
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2b9e01d8f2f031b1ffe764fea024ed564e551875ae8f44f9ea2b372e2e6943c1"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
             "digest": "3e1bd50c1234a88098f6b2313fe00c9dd23a38e14551213e9d6daba175c3d626"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
+            "digest": "f06a45af461d557751f52ec8a63bc207f62f5bcd3d5e03aba12e29a7705a9a7d"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-native.mjs",
+            "digest": "56cc81816ab7a9a02ee792c47b066226e60389da7d223f8e38e22474aabd3ed0"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
+            "digest": "451f2b26b2d1f632030bf9b36647cecfa7155f04f6e44d3479a30bb17453729b"
           }
         ]
       },
@@ -10916,7 +11026,7 @@
       },
       {
         "target": "tests/issue-3254-settings-compute-tunnel-self-service.test.mjs",
-        "targetDigest": "c15364f98046bf7ab9d61cfee5a721c0fd55125d30775d22a64691ad77f41ead",
+        "targetDigest": "4ceb9638a7ab4821023d5d9e8df839710e7c1be34c0fbec56fe59ed15b4abfb8",
         "catalogueIds": [
           "agent.settings-compute-tunnel-3254"
         ],
@@ -10934,11 +11044,11 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Injected Windows HTTP/Request and disposable filesystem tests only. Does not prove native PowerShell window creation, remote authorization, ChatGPT plugin connection, paid providers, autonomous coding or merges; independent Windows GUI UAT remains outstanding.",
+        "limits": "Human-supervised revised exact-edition candidate for security PR #3336, new owner review required; owner approved preceding source/test edition at 9c0be362e4c6aa67c7e5029de8b062ca43c107b1, not this later head. Existing injected HTTP/Request and disposable filesystem checks plus opt-in real Windows native PowerShell canary with no tunnel port or credentials; revised source uses an encoded fixed PowerShell Start-Process waiting wrapper requesting -WindowStyle Normal while retaining parent ownership for STOP. Native canary proves child script marker and owned process-tree STOP only when its Windows execution PASS receipt exists; it does not prove the actual authenticated tunnel is restarted, a separate GUI console is observed by Human, remote authorization, external ChatGPT connection, autonomous coding or merge. Human GUI acceptance remains separate. Neither candidate digest nor Windows PASS constitutes independent F00/W8/W9 attestation.",
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs",
-            "digest": "130f2ea03effbbfc60adb18afdcdbd42a62fe08ad7757ee80dc87bb1d50855d2"
+            "digest": "691780b8b6ff67b4da7d282e830b1216db96e100f424061147414cf616e7336f"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/tunnel-http.mjs",
@@ -10950,7 +11060,7 @@
           },
           {
             "path": "build/local-profile-auth-gateway.ts",
-            "digest": "433665e344615e9cbc6b6f63351be2e1d6351909c903e809f83cfaef1d191cd4"
+            "digest": "63b2b94ca70a90b79ca25703f712d2793e432a349f4c4440af34fb69a8bf6020"
           },
           {
             "path": "app/skin-v1/tunnel-settings-panel.tsx",
@@ -11152,7 +11262,7 @@
       },
       {
         "target": "tests/issue-3259-bidirectional-gateway-p1.test.mjs",
-        "targetDigest": "9be4a0ce95535b0520e82b5b21fb2ede9b885391244562b65a84864535f37ce1",
+        "targetDigest": "5913a32d55105178197dd9adf39bb4adf58983b87df001517e58d63fb9045531",
         "catalogueIds": [
           "agent.bidirectional-gateway-p1-3259"
         ],
@@ -11170,11 +11280,11 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Disposable filesystem and injected host-auth unit tests only. Does not demonstrate authenticated live MCP, outbound dispatcher, paid AI, source modification, actual Windows processes, autonomous decisions or independent product acceptance.",
+        "limits": "Disposable filesystem and injected host-auth unit tests only. Does not demonstrate authenticated live MCP, outbound dispatcher, paid AI, source modification, actual Windows processes, autonomous decisions or independent product acceptance. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release. Preproduction hostile-record fixture now explicitly creates its own answers directory; source read-only missing-directory behavior remains unchanged. No real Windows acceptance implied.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/gateway-contract.mjs",
-            "digest": "a9370aee52db068a185dc61e117e884c347f1ce334d3333cd647eae0a17d88c4"
+            "digest": "78d77f810b6a78c1b41f7dbc44cf6aa377abff2b93cc94656d11c7bb279a3575"
           },
           {
             "path": "schema/gateway/message-envelope.v1.schema.json",
@@ -11317,11 +11427,11 @@
         "scopes": [
           "unit-fixture"
         ],
-        "limits": "Synthetic child handles, injected stop/probe/Git operations, local temporary launcher file and Request/Response fixtures. Does not prove native process-tree stop, exact running owner Windows launcher, remote auth, Factory startup, browser actions or a genuine external ChatGPT conversation. No model or tunnel is invoked.",
+        "limits": "Human-supervised proposed source-input digest for security PR #3336, owner review pending; no independent W8/W9 signer/approval inferred from candidate digest. Synthetic child handles, injected stop/probe/Git operations, local temporary launcher and Request/Response fixtures; no proof of direct native process-tree STOP, actual detached Windows console, exact running owner launcher, remote auth, Factory startup, browser interactions or external ChatGPT. No model or live tunnel invoked.",
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/tunnel/owner-tunnel-launch.mjs",
-            "digest": "130f2ea03effbbfc60adb18afdcdbd42a62fe08ad7757ee80dc87bb1d50855d2"
+            "digest": "691780b8b6ff67b4da7d282e830b1216db96e100f424061147414cf616e7336f"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/tunnel-http.mjs",
@@ -11393,7 +11503,7 @@
       },
       {
         "target": "tests/issue-3259-conversation-mcp.test.mjs",
-        "targetDigest": "47144c4a3c6b8803120174ccd63110a95dd207e9c68ddd7aba127abde66a9e85",
+        "targetDigest": "0b8c6130f91a58b10b47fb206f1d3aa762ee3e2fb69bb741b09de45f1c46eca0",
         "catalogueIds": [
           "agent.conversation-mcp-3259"
         ],
@@ -11411,11 +11521,11 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Disposable local HTTP MCP with synthetic token and host identity, temporary private records, temporary Git repository, and fresh Node process readback. Proves scoped local transport/authentication, immutable correlation/idempotency, expiry, source pinning, and recoverable readback within fixtures only. Does not prove owner GUI, external ChatGPT, provider/model identity or execution, unattended delivery, Windows owner restart/reconnect or independent product acceptance.",
+        "limits": "Disposable local HTTP MCP with synthetic token and host identity, temporary private records, temporary Git repository, and fresh Node process readback. Proves scoped local transport/authentication, immutable correlation/idempotency, expiry, source pinning, and recoverable readback within fixtures only. Does not prove owner GUI, external ChatGPT, provider/model identity or execution, unattended delivery, Windows owner restart/reconnect or independent product acceptance. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/gateway-contract.mjs",
-            "digest": "a9370aee52db068a185dc61e117e884c347f1ce334d3333cd647eae0a17d88c4"
+            "digest": "78d77f810b6a78c1b41f7dbc44cf6aa377abff2b93cc94656d11c7bb279a3575"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -11423,7 +11533,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/conversation-service.mjs",
-            "digest": "7291486d145d2645e5fae2b6c8f09c44f661a90b679602a02b028164642f8f57"
+            "digest": "32986e45f03a929c29b0e828bb963c08b872b620ae88090249c2137353188c14"
           },
           {
             "path": "scripts/engineering-team/gateway/conversation-http.mjs",
@@ -11431,13 +11541,25 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2b9e01d8f2f031b1ffe764fea024ed564e551875ae8f44f9ea2b372e2e6943c1"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
+            "digest": "f06a45af461d557751f52ec8a63bc207f62f5bcd3d5e03aba12e29a7705a9a7d"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-native.mjs",
+            "digest": "56cc81816ab7a9a02ee792c47b066226e60389da7d223f8e38e22474aabd3ed0"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
+            "digest": "451f2b26b2d1f632030bf9b36647cecfa7155f04f6e44d3479a30bb17453729b"
           }
         ]
       },
       {
         "target": "tests/issue-3278-storage-mcp.test.mjs",
-        "targetDigest": "16954f9128c34ecb1e97a751d2253893c5ea18cc6ce18dae5d492a0282c55b4a",
+        "targetDigest": "860813354c4fa592e909b1d88e6343bf7e7f864282c85ff8fe2c989d5992f4f7",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -11455,7 +11577,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "#3278 synthetic storage scanner state, exact main head, privacy projection, authenticated MCP list and guarded migration source assertions only. Not live owner Windows storage acceptance, Windows PowerShell 5.1 execution, authenticated launcher migration, browser UAT, cleanup permission or independent product proof.",
+        "limits": "#3278 synthetic storage scanner state, exact main head, privacy projection, authenticated MCP list and guarded migration source assertions only. Not live owner Windows storage acceptance, Windows PowerShell 5.1 execution, authenticated launcher migration, browser UAT, cleanup permission or independent product proof. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release.",
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/storage/factory-storage-inventory.mjs",
@@ -11463,7 +11585,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2b9e01d8f2f031b1ffe764fea024ed564e551875ae8f44f9ea2b372e2e6943c1"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/Upgrade-PlotPickleTunnelCatalog.ps1",
@@ -11471,15 +11593,27 @@
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/Assert-PlotPickleMcpCatalog.ps1",
-            "digest": "b64319dd4a3358f3ecb9ad6e5ca1ddcb1651cb4993869eafc556352e9316eda1"
+            "digest": "81b5a2dcdf9d86ee0e74b1a29aaf829bf7be0c236559bd013950f1ceae85c3b6"
           },
           {
             "path": "config/mcp/factory-tool-catalog.json",
-            "digest": "bbf739b2b0c80f77ff351849536058206a3be88440fb03e7946cb286f3c54e66"
+            "digest": "dfb452f33f826463f0cbe92b498fae08beedc33804407654450ab22745a6a21e"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/Test-PlotPickleTunnelCatalog.ps1",
-            "digest": "bfba02b88cf74e89e072aaab13ac30be8b02af1e5ccc4b13349839bb5d4bbfdd"
+            "digest": "05464dc0b20b4c224a1f140ae93d3c5cb2be30a94d76a9e14f4bc5717fabab74"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
+            "digest": "f06a45af461d557751f52ec8a63bc207f62f5bcd3d5e03aba12e29a7705a9a7d"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-native.mjs",
+            "digest": "56cc81816ab7a9a02ee792c47b066226e60389da7d223f8e38e22474aabd3ed0"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
+            "digest": "451f2b26b2d1f632030bf9b36647cecfa7155f04f6e44d3479a30bb17453729b"
           }
         ]
       },
@@ -11503,7 +11637,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic bounded selected operational-root scanning, sibling selection, symlink denial, redaction and source exact-head checks; does not establish actual owner disk growth, cleanup authority, physical reclaimable bytes or Windows filesystem acceptance.",
+        "limits": "Synthetic bounded selected operational-root scanning, sibling selection, symlink denial, redaction and source exact-head checks; does not establish actual owner disk growth, cleanup authority, physical reclaimable bytes or Windows filesystem acceptance. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release.",
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/storage/factory-storage-profile.mjs",
@@ -11515,7 +11649,19 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2b9e01d8f2f031b1ffe764fea024ed564e551875ae8f44f9ea2b372e2e6943c1"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
+            "digest": "f06a45af461d557751f52ec8a63bc207f62f5bcd3d5e03aba12e29a7705a9a7d"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-native.mjs",
+            "digest": "56cc81816ab7a9a02ee792c47b066226e60389da7d223f8e38e22474aabd3ed0"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
+            "digest": "451f2b26b2d1f632030bf9b36647cecfa7155f04f6e44d3479a30bb17453729b"
           }
         ]
       },
@@ -11607,7 +11753,7 @@
       },
       {
         "target": "tests/issue-3291-pi-unbundled-cli.test.mjs",
-        "targetDigest": "e1a89920b3a900e4ea1efaad7c8ee99452f567c0f881c686841e396247410d29",
+        "targetDigest": "8653e471cdc47dadcab8f73427c65b6571c5742b3b854c3c4024233de81e51bb",
         "catalogueIds": [
           "agent.managed-pi-install-3067"
         ],
@@ -11625,17 +11771,25 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Isolated published-bin versus unbundled entry selection, missing-entry fail-closed and non-Windows symlink boundary only. Does not demonstrate a real installed Pi CLI, patched Undici behavior, nested subagents, Windows host acceptance or live Dependabot alert closure.",
+        "limits": "Isolated published-bin versus unbundled entry selection, missing-entry fail-closed and non-Windows symlink boundary only. Does not demonstrate a real installed Pi CLI, patched Undici behavior, nested subagents, Windows host acceptance or live Dependabot alert closure. #3291 static regression ensures both managed Pi review call sites use unbundled direct Node launcher, no pi.cmd. Not native Windows product acceptance or overall security closeout.",
         "inputs": [
           {
             "path": "Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs",
             "digest": "a0ce94a6a775fed575797bbaddf94af6c614a3833983f461aed1c066aa065a02"
+          },
+          {
+            "path": "scripts/run-pi-code-quality-review.mjs",
+            "digest": "de225e2564a6bd613b844440d43657ef9e7117a5bc41ad72529977f89c1613e3"
+          },
+          {
+            "path": "scripts/pi/run-architecture-review.mjs",
+            "digest": "03c760d20c0bad0d7e6c49917d0b59d978e2d69d83df4913412e0be94b16130f"
           }
         ]
       },
       {
         "target": "tests/issue-1747-ci-two-gates.test.mjs",
-        "targetDigest": "d571eca0947f05ebfacf44e895b60e6adfc0c0ba90403419e6529b4760b5bcb9",
+        "targetDigest": "d80cb6e90adb439e85466a8bc90c3365b828a4c12ce337d48114f00e88e64cb1",
         "catalogueIds": [
           "verification.phase7-merge-authority"
         ],
@@ -11653,11 +11807,19 @@
           "static-source",
           "unit-fixture"
         ],
-        "limits": "Static CI-workflow job-count and split Pi mock-model proof boundary; tests pin native job 12-minute caps and exact-head workflow wiring. Does not establish that actual Windows Pi, model calls, negative controls, installed Undici, or all security alerts pass without separate native execution.",
+        "limits": "Static CI-workflow job-count and split Pi mock-model proof boundary; tests pin native job 12-minute caps and exact-head workflow wiring. Does not establish that actual Windows Pi, model calls, negative controls, installed Undici, or all security alerts pass without separate native execution. #3293 synthetic contract asserts only changed Pi job bodies trigger the existing 12-minute Pi Windows jobs, without broad workflow fanout. Real native job execution remains separately evidenced.",
         "inputs": [
           {
             "path": ".github/workflows/product-gate.yml",
             "digest": "b0563ee2663d315bb8e169309cfe4f8c5427cacd4aeb6e2cabf6faecf7e2bd11"
+          },
+          {
+            "path": "lib/verification/ci/pi-workflow-scope.mjs",
+            "digest": "bb3fd501d0bafdb9dcebb04be542cf577901f79a0533f8b6e8c11b98f542a3ce"
+          },
+          {
+            "path": ".github/workflows/architecture-shadow.yml",
+            "digest": "efac807280ee9c0f2f6944f784f368bfbf820c5b76865452bcb0f531eb6ca4e1"
           }
         ]
       },
@@ -11670,11 +11832,23 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "2b9e01d8f2f031b1ffe764fea024ed564e551875ae8f44f9ea2b372e2e6943c1"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
             "digest": "3e1bd50c1234a88098f6b2313fe00c9dd23a38e14551213e9d6daba175c3d626"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
+            "digest": "f06a45af461d557751f52ec8a63bc207f62f5bcd3d5e03aba12e29a7705a9a7d"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-native.mjs",
+            "digest": "56cc81816ab7a9a02ee792c47b066226e60389da7d223f8e38e22474aabd3ed0"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
+            "digest": "451f2b26b2d1f632030bf9b36647cecfa7155f04f6e44d3479a30bb17453729b"
           }
         ],
         "truthRefs": [
@@ -11691,7 +11865,7 @@
           "unit-fixture",
           "static-source"
         ],
-        "limits": "Synthetic authenticated MCP request, exact stage receipt, pinned fixed node-test target, write-once result, replay and invalid-selection refusal. Does not prove live owner-Windows execution, API provider invocation, independent product verification, worker dispatcher, source mutation, or merge."
+        "limits": "Synthetic authenticated MCP request, exact stage receipt, pinned fixed node-test target, write-once result, replay and invalid-selection refusal. Does not prove live owner-Windows execution, API provider invocation, independent product verification, worker dispatcher, source mutation, or merge. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release."
       },
       {
         "target": "tests/issue-3259-outbound-openai-once.test.mjs",
@@ -11713,7 +11887,7 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Synthetic one-shot OpenAI Responses fetch only; temporary private owner grant, durable reservation, canonical question/answer journal and fixture Git source. Verifies fail-closed local authorization, no retry after ambiguous external outcomes and source-bound persistence. Does NOT prove live provider credentials/inference, real paid invocation, owner Windows Task Scheduler, autonomous code editing, independent product UAT, or merge authority.",
+        "limits": "Synthetic one-shot OpenAI Responses fetch only; temporary private owner grant, durable reservation, canonical question/answer journal and fixture Git source. Verifies fail-closed local authorization, no retry after ambiguous external outcomes and source-bound persistence. Does NOT prove live provider credentials/inference, real paid invocation, owner Windows Task Scheduler, autonomous code editing, independent product UAT, or merge authority. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/outbound-openai-once.mjs",
@@ -11721,7 +11895,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-contract.mjs",
-            "digest": "a9370aee52db068a185dc61e117e884c347f1ce334d3333cd647eae0a17d88c4"
+            "digest": "78d77f810b6a78c1b41f7dbc44cf6aa377abff2b93cc94656d11c7bb279a3575"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -11729,7 +11903,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/conversation-service.mjs",
-            "digest": "7291486d145d2645e5fae2b6c8f09c44f661a90b679602a02b028164642f8f57"
+            "digest": "32986e45f03a929c29b0e828bb963c08b872b620ae88090249c2137353188c14"
           }
         ]
       },
@@ -12171,6 +12345,709 @@
           {
             "path": "scripts/engineering-team/queue/independent-qa-claim.mjs",
             "digest": "b7f62efe9180cfec36d8eee9923e55b94807c61b468b4fa1003c25a4f8cdb704"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-authorized-coding-once.test.mjs",
+        "targetDigest": "f00257c81dfff597c633f246b3bb5c81b78665b9e5ae614d12e1de35fa4b09a6",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "One-use local owner grant fixture and a real isolated Git worktree/commit; verifies exact source, path, digest, duplicate non-replay, bounded model suggestion, syntax-only checks and unchanged MAIN. Does not prove live paid model invocation, staged PR publication, independently executed focused test, owner-Windows acceptance, background dispatch or green-only merge.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
+            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/gateway-host.mjs",
+            "digest": "17755df74f92130264bfe8f81f0496262accd57bf2218753f98031aeb652d7f8"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/receipts/write-once-json.mjs",
+            "digest": "e93a45ace974f9b53544b9544bd4e97eef6c475ec4f01ff77ef947c8d4316131"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-ollama-coding-provider.test.mjs",
+        "targetDigest": "6668c2f6227dcd5ebc8b51dfacd331a9249c468cb456477e06240b2cc7a98bbb",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Synthetic local Ollama and Git fixtures: only qwen2.5-coder:7b receives a fixed loopback structured request without a credential, one source-bound staged edit, mismatch and replay denial. Does not prove actual owner-Windows worker inference, real draft PR publication, independent F00 admission, product acceptance, background automation or green-only merge. Development-only owner-authorized exact-edition binding for PR #3352 at reviewed source HEAD 246c361100323f065c04baf5329d15aa615f4e33, GitHub comment #6543241425; all CI gates still required on the final new head.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
+            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-authorized-publish-once.test.mjs",
+        "targetDigest": "d454f937e9a1738a4095a66bdf1ea1f41490b6e63eb888ad45c248adf73f60b3",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Mocked local Git object inspection and GitHub Git-data REST responses only; verifies second one-use owner grant, exact prepared source parent/tree/blob, fixed draft PR metadata, durable reservation, duplicate non-replay, remote MAIN drift and uncertain external outcomes. Does not prove live GitHub credentials, actual remote branch/PR creation, native owner Windows publication, independent CI execution of generated code, product acceptance, background dispatch or merge.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
+            "digest": "8a2cf6116d6336484f1cc03f6ad339990d2b02244199e982778a46c0035c273e"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/gateway-host.mjs",
+            "digest": "17755df74f92130264bfe8f81f0496262accd57bf2218753f98031aeb652d7f8"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/receipts/write-once-json.mjs",
+            "digest": "e93a45ace974f9b53544b9544bd4e97eef6c475ec4f01ff77ef947c8d4316131"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-authorized-pr-publish-once.test.mjs",
+        "targetDigest": "d95acd602890a50038edaedea118ae6b99321dabd803457c11130c3fe32409b7",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Native disposable Git worktree/commit and deterministic fake GitHub HTTPS; verifies one-use second owner grant, exact local/remote tree+blob identity, draft-only PR, stale MAIN, dirty stage, uncertain-response non-replay and one-call coding-to-publish handoff. No real owner credentials, real GitHub PR creation, paid model invocation, unattended startup, owner Windows acceptance, independent Product Gate, or merge proof. Pre-commit owner publication grant must bind the single prepared commit in an immutable reservation, never self-mint or grant merge authority; local fixtures are not a live credentialed cycle. #3142 integration regression: preapproved publication grant verifies the actual prepared SHA against durable coding-resource release witness, rejecting foreign/wrong-commit approvals. Not a live Worker1 result.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/publication/authorized-pr-publish-once.mjs",
+            "digest": "8a2cf6116d6336484f1cc03f6ad339990d2b02244199e982778a46c0035c273e"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
+            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/gateway-host.mjs",
+            "digest": "17755df74f92130264bfe8f81f0496262accd57bf2218753f98031aeb652d7f8"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/receipts/write-once-json.mjs",
+            "digest": "e93a45ace974f9b53544b9544bd4e97eef6c475ec4f01ff77ef947c8d4316131"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3302-two-receipt-verifier.test.mjs",
+        "targetDigest": "fa710ac68e024ff569379a9cb1df65a60b666237e1fbdf5bc2a76c7f13db7bba",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Fixture-only correlated owner-private coding/publication receipts, real Ed25519 signing/verification, fixed read-only mocked GitHub API, seven architecture layers and hosted Windows step. Independent changed-file identity, Git blob SHA-1 and content SHA-256 reject extra files, unauthorized paths and changed bytes before CI; negative cancelled/skipped/timed-out/stale/forged cases and write-once no-replay verifier reservation. No real owner-host signer, real GitHub token, actual PR publication, native Product Gate, unattended dispatch or automatic merge proof. Pre-commit owner publication grant must bind the single prepared commit in an immutable reservation, never self-mint or grant merge authority; local fixtures are not a live credentialed cycle.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/verification/two-receipt-verifier.mjs",
+            "digest": "9a937b5dbc129fbf91654e335d8b701066ebf409ff8586d031e5dd3c1a093f82"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/receipts/write-once-json.mjs",
+            "digest": "e93a45ace974f9b53544b9544bd4e97eef6c475ec4f01ff77ef947c8d4316131"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-owner-windows-acceptance-broker.test.mjs",
+        "targetDigest": "5a7175c55764494ce658fae9fec3cf3e4afad912a0ba93a4bec1be5d83e603fb",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture"
+        ],
+        "limits": "Injected local-console owner authorization, exact clean-MAIN and supervisor STOP/PAUSE/heartbeat checks, bounded PR identity, immutable read-back, uncertain no-replay and static-stage non-promotion. Does not prove an owner-machine call, paid model invocation, real candidate checkout, independent signed verifier, process-tree STOP, product acceptance or merge. Owner-authorized PREPRODUCTION DEVELOPMENT rebinding for PR #3351, Oct 30 2026: source/test digests are provisional and subject to exact-head CI. This is not independently signed W8/W9 ADMIT, real-device Product Gate, unattended delivery, or production release.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/acceptance/owner-windows-acceptance.mjs",
+            "digest": "eb0fcf57510a5664635c942f774a776e6c3d67fefcb50845e1013cbe1acac631"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
+            "digest": "d05d01028d0473765bb7f20f60d306f73f74832c552cddfb696d91b853130054"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/storage/factory-stage-budget.mjs",
+            "digest": "accb3c96c6f1970324fc0fcd94470b9ff340470abdc4ecbce096954bf0f40c36"
+          },
+          {
+            "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
+            "digest": "681dba56405951e7fa15df41fda4dce6b9e4c09f67396d4aeca5043fac607862"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
+            "digest": "f06a45af461d557751f52ec8a63bc207f62f5bcd3d5e03aba12e29a7705a9a7d"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-native.mjs",
+            "digest": "56cc81816ab7a9a02ee792c47b066226e60389da7d223f8e38e22474aabd3ed0"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
+            "digest": "451f2b26b2d1f632030bf9b36647cecfa7155f04f6e44d3479a30bb17453729b"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-factory-worker-pool.test.mjs",
+        "targetDigest": "c52ddf2f4e47491be4c5d66499a3964bf236214e9d70f2b340e6cb6bd1d659d7",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Owner-approved narrow one-issue (#3142) pilot exception recorded in GitHub issue #3142 comment 6510212423; exact-edition source/test change still requires scoped approval and Windows evidence. Disposable unit fixtures validate strict single work-order, source head, two grant IDs, expiry under 1 hour, one request, private regular-file path (no symlink/junction), negative issue and consent cases, existing STOP and nonreplayable claims. Local owner-authored JSON consent is NOT an independent F00 registrar signature or WHITE-PAPER-V3 W8/W9 ADMIT; test does not prove owner signature, credential provision, installed Windows worker, autonomous source edit, paid model invocation, published PR, native Windows Product Gate or merge. Manual owner exact-head approval and independent GitHub CI plus owner-Windows acceptance remain mandatory; no auto merge or backlog authorization. Five worker slots share a single claim implementation; each slot is independently identified but no replica is commissioned by this test. #3142 owner-pilot additional negative fixture checks current-head supervisor RUNNING observation without worker release, cross-source or STOP/PAUSE success. Neither this fixture nor the returned draft PR verifies an independently qualified F00 reviewer, owner Windows Product Gate, live dispatcher or merge. PR #3357 exact-edition preproduction review CANDIDATE: revised fixture explicitly rejects current-head RUNNING supervisor with pauseAcknowledged=true, plus PAUSED/STOP_REQUESTED/wrong-head; `pilotSupervisorObservedOnExactHead` remains read-only and grants neither coding nor merge. Actual current-head owner-Windows engineering diagnostics passed, but these are not an F00 signed W8/W9 ADMIT or real product release. Catalogue edition proposal is author-prepared and requires exact-head human or qualified independent review before any merge.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/worker-pool.mjs",
+            "digest": "2f3a0bc2b15d94ab35c7d023a62c61f6ccb25567d63e029dcdb82ebb23c616fe"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
+            "digest": "a20f58c6219ea7b6ee53ce299cbeda0cd7b46fcd3214a2ced9e28346983ec6da"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-reconcile-syntax-failure.test.mjs",
+        "targetDigest": "d0ddad62c5df96ba22efb31296c7c8cfa729df2bd08e120009b1fcc6e3322188",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Candidate revision: adds adversarial VALIDATE_MODEL_EDIT no-write terminal-release fixture with explicit wrong-consent, wrong-phase and replay rejection; retains prior syntax tests. Binding/digest are AUTHOR-PROPOSED against unchanged WHITE-PAPER-V3 W8/W9; requires independent Human semantic review, current exact-head CI and actual Windows Product Gate. Fixture does not prove real owner process isolation or actual owner Windows release.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/receipts/atomic-coding-ownership.mjs",
+            "digest": "a9ed341c9620a9f4be35d4f882f4a3f38b1f3693efc0a5e38d1f8133319f932e"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/reconcile-failed-syntax-once.mjs",
+            "digest": "d66f83718aebdd05fd42c98465af283c37facd7d41ae42d18197a4ba1515afa3"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3302-cross-factory-math-review.test.mjs",
+        "targetDigest": "d61487998cd04637d62eb330c8f00427dc8edc53860fac03de50208a00524dc1",
+        "catalogueIds": [
+          "verification.phase2-core"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Synthetic four-factory F01-F04 mathematical preflight, exact-version references, STOP, Ed25519 receipt signature checks, and signed green-gate eligibility; proposed evidence remains UNPROVEN and never grants merge, canon write, credential or reviewer qualification. CLI is read-only and bounded but not a separately isolated installed Windows signer. Tests do NOT demonstrate genuine external registrar, signer key custody, signed W8/W9 ADMIT, owner Windows release, durable nonce consumption, background dispatch or actual merge.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/verification/aegis/cross-factory-math-review.mjs",
+            "digest": "3a2a34a576489936ea58d651f4027e3bb0979a3bdf19ddf27a609b9e687a162b"
+          },
+          {
+            "path": "scripts/engineering-team/verification/aegis/cross-factory-math-review-cli.mjs",
+            "digest": "c42af54104a3981796245ccf660e88637d4acacab1a50da6ff4e25f48c29d234"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/signed-green-release.mjs",
+            "digest": "eebf4db407b4298cc532665bb562b007f1ffde1020c0e8176d0dc88dc746cc7b"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-2733-ci-windows-lanes.test.mjs",
+        "targetDigest": "52020a9df93fc4d561b48a29bd57967e324c8ee011fa379ea015bd042e07872a",
+        "catalogueIds": [
+          "verification.phase7-merge-authority"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "Source/fixture verification of existing six independent 12-minute Windows Product Gate lanes, no generic workflow metadata fanout, and selective Pi job-body change detection. Does not prove live Windows acceptance, paid model, trusted signer or Factory activation.",
+        "inputs": [
+          {
+            "path": ".github/workflows/architecture-shadow.yml",
+            "digest": "efac807280ee9c0f2f6944f784f368bfbf820c5b76865452bcb0f531eb6ca4e1"
+          },
+          {
+            "path": "lib/verification/ci/pi-workflow-scope.mjs",
+            "digest": "bb3fd501d0bafdb9dcebb04be542cf577901f79a0533f8b6e8c11b98f542a3ce"
+          },
+          {
+            "path": ".github/workflows/product-gate.yml",
+            "digest": "b0563ee2663d315bb8e169309cfe4f8c5427cacd4aeb6e2cabf6faecf7e2bd11"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3268-factory-safe-startup.test.mjs",
+        "targetDigest": "f1246d6ddff298045fb3e44537417335327754e63009ca72581856c9e09b58b0",
+        "catalogueIds": [
+          "production.modular-runtime-2697"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Source-bound deterministic startup guard tests establish supervisor and Factory reserved-port decisions, and assert both launchers gate Git updates and reuse existing dependencies without runtime mutation. These fixtures do NOT independently prove real Windows coexistence, port/process identity, browser readiness or the independent owner's Product Gate.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/launcher/factory-startup-guard.mjs",
+            "digest": "9a4dc7ff071160de13ca71518072e4394995a34d224f3084c00e02241f5f6d97"
+          },
+          {
+            "path": "Start-PlotPickle.bat",
+            "digest": "dd0b891cdad5c498aa092297673f5b61885735a09956dc919f0534e6a7c05491"
+          },
+          {
+            "path": "GIT-PlotPickle.ps1",
+            "digest": "3e69586ffe959286530ebbfc7ca901085a71e69b6a5d49a4fb7799a05e28e68a"
+          },
+          {
+            "path": "scripts/windows-runtime.mjs",
+            "digest": "48872aea97b93d1a94a8e3d33f9037b35f4c2c6732ebe0cc7a76c79e6ed8a5df"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-native-dispatcher-live.test.mjs",
+        "targetDigest": "cdaaea5f0b900d047c0519a8432d7e8e83783e5cfc79eb85fee2df97ea84e9ed",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Mock-backed dispatcher tests verify exact clean MAIN/STOP gating, one-use claims, source-pinned grants, lock ownership, heartbeat freshness, and default callable Date.now clock (including live PID, expired heartbeat and owner-nonce mismatch). Installer assertions preserve SID-verified Windows task identity and distinct PowerShell Start status variable. Neither a mock test nor a CLI status result proves independent F00/AEGIS signing, owner-Windows lifecycle Product Gate, model invocation, autonomous issue-to-merge, or automatic merge. No legacy Pi jobs may replay.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/dispatcher/native-dispatcher.mjs",
+            "digest": "b40e6fcb320c5b9170c64760343dbf3f9f75bf188e1e5968b4528a75ed3c8ded"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
+            "digest": "a20f58c6219ea7b6ee53ce299cbeda0cd7b46fcd3214a2ced9e28346983ec6da"
+          },
+          {
+            "path": "scripts/engineering-team/windows/workers/Install-PlotPickleFactoryWorkers.ps1",
+            "digest": "a6e973910960da1e329630acbf6f6da632d95808dd01e460770927de0fc29b94"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3303-windows-product-gate.test.mjs",
+        "targetDigest": "947ed9d7615426151a84276e9107faf23a3ec0c4f7b3584891295ec4d242a385",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
+            "digest": "f06a45af461d557751f52ec8a63bc207f62f5bcd3d5e03aba12e29a7705a9a7d"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
+            "digest": "d05d01028d0473765bb7f20f60d306f73f74832c552cddfb696d91b853130054"
+          },
+          {
+            "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
+            "digest": "681dba56405951e7fa15df41fda4dce6b9e4c09f67396d4aeca5043fac607862"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-native.mjs",
+            "digest": "56cc81816ab7a9a02ee792c47b066226e60389da7d223f8e38e22474aabd3ed0"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate-probe.mjs",
+            "digest": "451f2b26b2d1f632030bf9b36647cecfa7155f04f6e44d3479a30bb17453729b"
+          }
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "AUTHOR-PROPOSED #3303 preproduction edition, exact candidate code and test review required: bounded fixed authenticated Windows gate selection, guest/forged/replay refusal, source and stage identity, PAUSE, native-probe absence, immutable evidence and independent digest readback semantics. Synthetic callbacks and temporary evidence never prove actual owner-Windows candidate behavior, operating-system sandbox, independent F00 signing, Worker 1 coding, Product Gate PASS or release authority. Existing approved W8/W9 source and oracle references remain unchanged."
+      },
+      {
+        "target": "tests/issue-3142-authenticated-operator-maintenance.test.mjs",
+        "targetDigest": "7d35cd4e0a2336d706da281befb9be687293f9dc62939f619425a4cb6a463ba2",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110",
+          "agent.windows-supervisor-offline-source-migration-3142"
+        ],
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/operations/factory-operator-maintenance.mjs",
+            "digest": "597224726b35246e4d1b3f4cd590ca68d3bfb296671357419d1e22a55d3ec86c"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
+            "digest": "a20f58c6219ea7b6ee53ce299cbeda0cd7b46fcd3214a2ced9e28346983ec6da"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/dispatcher/native-dispatcher.mjs",
+            "digest": "b40e6fcb320c5b9170c64760343dbf3f9f75bf188e1e5968b4528a75ed3c8ded"
+          },
+          {
+            "path": "scripts/engineering-team/windows/supervisor/unattended-supervisor.mjs",
+            "digest": "681dba56405951e7fa15df41fda4dce6b9e4c09f67396d4aeca5043fac607862"
+          },
+          {
+            "path": "scripts/engineering-team/windows/workers/Install-PlotPickleFactoryWorkers.ps1",
+            "digest": "a6e973910960da1e329630acbf6f6da632d95808dd01e460770927de0fc29b94"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
+            "digest": "c7979cad66be58bfe4ee8eeddd3da220a37703742173f5ae43a20b3ae9fd03d2"
+          }
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Owner-authorized PREPRODUCTION candidate: fixed authenticated read-only Worker 1 diagnostics and one-way offline supervisor SHA migration only. Synthetic role/STOP/PAUSE/head/replay/unauthorized tests; no live product Windows acceptance, independent F00/AEGIS signing, Worker 1 coding result, publisher approval or automated merge. Exact head and changed test/source edition require human review; author prepared binding is not independent W8/W9 ADMIT."
+      },
+      {
+        "target": "tests/issue-3142-worker1-pilot-issuer.test.mjs",
+        "targetDigest": "87ce528f7651cb7f58b274239596306e0c536e39fd079b148aaf67c417528d9d",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
+            "digest": "c7979cad66be58bfe4ee8eeddd3da220a37703742173f5ae43a20b3ae9fd03d2"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/worker-pool.mjs",
+            "digest": "2f3a0bc2b15d94ab35c7d023a62c61f6ccb25567d63e029dcdb82ebb23c616fe"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
+            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
+          }
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Owner-authorized fixed pilot for #3142 ONLY. Source-bound one-use authorization records and no-replay marker tested under disposable filesystem; no live Windows worker, no external F00, no Product Gate, no model call, no PR or auto merge proven. Author-proposed exact source/test W8/W9 binding requires independent assessment."
+      },
+      {
+        "target": "tests/issue-3355-durable-mission-store.test.mjs",
+        "targetDigest": "e40532a49c7946c60c008fd551c6963b3f4d4b50e6ab815d1ba7bd37b98c2f19",
+        "catalogueIds": [
+          "agent.conversation-mcp-3259"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Author-proposed issue-3355 disposable mission journal and synthetic local-profile HTTP boundary tests; validates immutable draft-only readback, host-supplied profile partition, same-origin/CSRF-adjacent checks, expiry, data integrity, unavailable worker states and denial of executable actions. Actual local session CSRF/recent reauthentication is enforced by existing server boundary in source but NOT independently tested against a real owner's browser, signed Windows installation, specialist execution or merge. Separate qualified review and real Product Gate required.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/agent-mission-store.mjs",
+            "digest": "dfe8823b24f2baedcfba6e09b0e60ad261e8ce544a13af67a16410b7a86a90d1"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/agent-mission-http.mjs",
+            "digest": "d4a3784f2047158d6ad7a54fa6b62d2805c9eec36a48104a3bd4449fdfc4b689"
+          },
+          {
+            "path": "app/api/factory/mission/route.ts",
+            "digest": "ed08c60d445e069ced1ac4aa8ba545615eabcf8acdb3563c6ddac8c67a755017"
+          },
+          {
+            "path": "build/local-profile-auth-gateway.ts",
+            "digest": "63b2b94ca70a90b79ca25703f712d2793e432a349f4c4440af34fb69a8bf6020"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3355-elara-agent-workspace.test.mjs",
+        "targetDigest": "d49d935f86cd501713e2f393e81fe147f86496912f253fdee7b7953b1d1b5abe",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Author-proposed exact-source inspection for the #3355 Collab Agent Workspace first slice. Checks integration with existing profile-authenticated supervisor and durable conversation endpoints, source-head equality, no false worker/delegation/merge status and responsive layout. Does NOT execute the UI in a real browser, authorize a specialist task, verify independent Human review, prove persistent mission state, certify actual Windows Product Gate or create merge authority. Requires separately qualified semantic review of test truth before release. A false-positive static assertion was narrowed to actual browser storage API calls (not the historical localStorage wording in explanatory prose).",
+        "inputs": [
+          {
+            "path": "app/page.tsx",
+            "digest": "6f9fab7bba085f59fbf0dc7878f0232847949d0ba5337c674b97c59943a12b2c"
+          },
+          {
+            "path": "app/_components/collab/collab-entry-workspace.tsx",
+            "digest": "a08fe89ab059db60e5549cf4a62e5d735b86583357e8e3ab0e063dc918b140af"
+          },
+          {
+            "path": "app/_components/collab/collab-entry-workspace.module.css",
+            "digest": "ab39d4a412592316301b1a22b6185efa4320e568f6e4f6f5189a18c1452e0690"
+          },
+          {
+            "path": "app/_components/settings/tunnel/two-way-conversation-panel.tsx",
+            "digest": "b9a00df5f6f1539747637606e7ff1426a5130d8c003fed92164720bb675a920f"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/conversation-http.mjs",
+            "digest": "55c55edb3bb92e4c163dc94c379894572159e4a1bcdec0785662a3c41c5cda35"
+          },
+          {
+            "path": "app/api/factory/conversation/route.ts",
+            "digest": "bb28cd8537985647f06de1278bf57f3447751b021a88d7a75a3f2a7569d05bec"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3110-worker1-one-shot-authorization.test.mjs",
+        "targetDigest": "f22b3d37ece3bec49f402cc8f1bbc3319d7b640a0f6990e3af75cd6d7f5f7b1e",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "AUTHOR-PROPOSED #3110 fixed first-Worker-1 grant. Disposable unit fixture checks exact owner-scoped source, three distinct IDs, STOP/wrong-head/dispatcher failure, immutable no-replay marker, prior terminal evidence and denial of unauthorized MCP arguments. Does not verify real owner Windows execution, separate semantic approval, F00 qualification, local-model edit, Product Gate, accepted PR or merge. Requires separate source/test review before release.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
+            "digest": "c7979cad66be58bfe4ee8eeddd3da220a37703742173f5ae43a20b3ae9fd03d2"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
+            "digest": "a20f58c6219ea7b6ee53ce299cbeda0cd7b46fcd3214a2ced9e28346983ec6da"
           }
         ]
       }

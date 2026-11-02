@@ -36,6 +36,14 @@ const conversationPost: LocalProfileHandler = async (request) => {
   const route = await import("../app/api/factory/conversation/route");
   return route.POST(request);
 };
+const missionGet: LocalProfileHandler = async (request) => {
+  const route = await import("../app/api/factory/mission/route");
+  return route.GET(request);
+};
+const missionPost: LocalProfileHandler = async (request) => {
+  const route = await import("../app/api/factory/mission/route");
+  return route.POST(request);
+};
 
 const PROFILE_API = "/api/auth/profile";
 const PROFILE_PRESENTATION_API = "/api/auth/profile-presentation";
@@ -87,6 +95,11 @@ const ROUTES = new Map<string, RouteContract>([
   ["/api/factory/conversation", Object.freeze({
     maximumBodyBytes: 128,
     handlers: Object.freeze({ GET: conversationGet, POST: conversationPost }),
+  })],
+  // #3355 draft-only mission ledger shares this same authenticated local gateway.
+  ["/api/factory/mission", Object.freeze({
+    maximumBodyBytes: 512,
+    handlers: Object.freeze({ GET: missionGet, POST: missionPost }),
   })],
   [PROFILE_API, Object.freeze({
     maximumBodyBytes: BODY_LIMITS.get(PROFILE_API)!,

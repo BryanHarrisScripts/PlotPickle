@@ -435,6 +435,8 @@
         "config/developer-agent-stack.json",
         "scripts/pi-managed-install.mjs",
         "scripts/pi-worker-runtime.mjs",
+        "scripts/run-pi-code-quality-review.mjs",
+        "scripts/pi/run-architecture-review.mjs",
         ".pi/npm/package.json",
         ".pi/npm/package-lock.json",
         "scripts/dsdd-pi-draft.mjs",
@@ -1213,6 +1215,7 @@
         "app/feedback/page.tsx",
         "app/pitch-review/page.tsx",
         "app/_components/collab/collab-entry-workspace.tsx",
+        "app/_components/collab/collab-entry-workspace.module.css",
         "app/reports/page.tsx",
         "modules/write/model/write-position-navigation.mjs",
         "modules/write/model/write-position-navigation.d.mts",
@@ -2661,7 +2664,8 @@
       "id": "factory-conversation-http-boundary-3259",
       "classification": "production",
       "include": [
-        "app/api/factory/conversation/route.ts"
+        "app/api/factory/conversation/route.ts",
+        "app/api/factory/mission/route.ts"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [

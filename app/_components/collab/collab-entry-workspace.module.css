@@ -159,3 +159,89 @@
     transition-duration: var(--pp-motion-fast);
   }
 }
+
+/* #3355: one evidence-driven Agent Workspace within the existing Collab owner. */
+.agentWorkspace {
+  display: grid;
+  gap: var(--pp-space-4);
+  min-width: 0;
+  padding: var(--pp-space-5);
+  border: 1px solid var(--pp-line-strong);
+  border-radius: var(--pp-radius-panel);
+  background: var(--pp-surface-raised);
+}
+.agentHeading { display: flex; align-items: start; justify-content: space-between; flex-wrap: wrap; gap: var(--pp-space-4); }
+.agentHeading > div { display: grid; gap: var(--pp-space-3); min-width: 0; flex: 1 1 20rem; }
+.agentHeading p:not(.kicker) { margin: 0; color: var(--pp-muted); line-height: var(--pp-leading-body); }
+.agentFacts, .participants {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pp-space-3);
+  margin: 0;
+}
+.agentFacts > div, .participants > div {
+  display: grid;
+  align-content: start;
+  gap: var(--pp-space-2);
+  min-width: 0;
+  padding: var(--pp-space-4);
+  border: 1px solid var(--pp-line);
+  border-radius: var(--pp-radius-control);
+  background: var(--pp-surface);
+}
+.agentFacts dt { color: var(--pp-muted); font-size: var(--pp-text-xs); }
+.agentFacts dd { margin: 0; color: var(--pp-text); overflow-wrap: anywhere; }
+.agentFacts code { font-size: var(--pp-text-xs); overflow-wrap: anywhere; }
+.participants span { color: var(--pp-muted); font-size: var(--pp-text-sm); }
+.teamRoles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--pp-space-2); padding: 0; margin: 0; list-style: none; }
+.teamRoles li { display: grid; gap: var(--pp-space-2); min-width: 0; padding: var(--pp-space-3); border: 1px solid var(--pp-line); border-radius: var(--pp-radius-control); }
+.teamRoles strong { font-size: var(--pp-text-sm); }
+.teamRoles span { color: var(--pp-muted); font-size: var(--pp-text-xs); overflow-wrap: anywhere; }
+.agentNotice { margin: 0; padding: var(--pp-space-3); border-left: 3px solid var(--pp-orange); color: var(--pp-muted); font-size: var(--pp-text-sm); line-height: var(--pp-leading-body); }
+@media (max-width: 56rem) {
+  .agentFacts, .participants { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .teamRoles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 36rem) {
+  .agentFacts, .participants { grid-template-columns: 1fr; }
+  .teamRoles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .agentWorkspace { padding: var(--pp-space-3); }
+}
+
+/* #3355: authenticated mission draft; no executor or new collaboration runtime. */
+.missionPanel {
+  display: grid;
+  gap: var(--pp-space-3);
+  min-width: 0;
+  padding: var(--pp-space-4);
+  border: 1px solid var(--pp-line);
+  border-radius: var(--pp-radius-control);
+  background: var(--pp-surface);
+}
+.missionPanel p { margin: 0; color: var(--pp-muted); font-size: var(--pp-text-sm); }
+.missionFacts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pp-space-3);
+  margin: 0;
+}
+.missionFacts > div { min-width: 0; }
+.missionFacts dt { color: var(--pp-muted); font-size: var(--pp-text-xs); }
+.missionFacts dd { margin: 0; overflow-wrap: anywhere; }
+.missionFacts code { overflow-wrap: anywhere; }
+.missionForm { display: grid; gap: var(--pp-space-2); }
+.missionForm label { color: var(--pp-text); font-weight: 700; }
+.missionForm input {
+  width: 100%;
+  min-height: var(--pp-touch-target);
+  padding: var(--pp-space-3);
+  border: 1px solid var(--pp-line-strong);
+  border-radius: var(--pp-radius-control);
+  background: var(--pp-surface-raised);
+  color: var(--pp-text);
+}
+.missionForm input:focus-visible { outline: var(--pp-space-1) solid var(--pp-orange); }
+.missionForm button:disabled { opacity: 0.6; cursor: not-allowed; }
+@media (max-width: 36rem) {
+  .missionFacts { grid-template-columns: 1fr; }
+}

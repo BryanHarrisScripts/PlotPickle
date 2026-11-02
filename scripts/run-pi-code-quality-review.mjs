@@ -6,9 +6,9 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { ensureManagedPiInstalled } from "./pi-managed-install.mjs";
+import { resolveManagedPiCliEntry, runManagedPiReadOnly } from "../Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs";
 import {
   resolvePiLocalRuntime,
-  runPiReadOnly,
   runPortableCommand,
 } from "./pi-worker-runtime.mjs";
 
@@ -51,7 +51,6 @@ function reviewPrompt() {
 
 async function main() {
   const pi = await ensureManagedPiInstalled({ allowInstall: false });
-  process.env.PLOTPICKLE_PI_COMMAND = pi.command;
   const runtime = await resolvePiLocalRuntime();
   await mkdir(scanRoot, { recursive: true });
   await mkdir(evidenceRoot, { recursive: true });
@@ -70,9 +69,9 @@ async function main() {
   status("BEN/slop evidence", "READY", path.relative(repoRoot, path.join(scanRoot, "scan.json")));
 
   status("Pi code-quality review", "START", `${pi.version} · PlotPickle-managed · ${runtime.model} via ${runtime.label}`);
-  const review = await runPiReadOnly({
-    command: pi.command,
-    runtime,
+  const cliEntry = await resolveManagedPiCliEntry(pi);
+  const review = await runManagedPiReadOnly({
+    pi, runtime,
     prompt: reviewPrompt(),
     cwd: repoRoot,
     purpose: "code-review",
@@ -96,7 +95,7 @@ async function main() {
       model: runtime.model,
       runtime: runtime.label,
       piVersion: pi.version,
-      piExecutable: pi.command,
+      piExecutable: cliEntry,
       piSource: "PlotPickle-managed",
       review: markdownPath,
       note: "Pi recommendations are advisory. BEN/slop-scan, tests, build, UAT, Full Verification, and repository merge gates remain authoritative.",

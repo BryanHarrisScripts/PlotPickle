@@ -34,10 +34,23 @@ Set-Location -LiteralPath $repoPath
 
 Write-Host ""
 Write-Host "[PLOTPICKLE] Repository: $repoPath"
-Write-Host "[UPDATE] Pulling the latest PlotPickle from GitHub..."
-& $git.Source pull --ff-only
-if ($LASTEXITCODE -ne 0) {
-  throw "git pull --ff-only failed with exit code $LASTEXITCODE. PlotPickle was not started so the repository can be repaired safely."
+$factoryGuard = Join-Path $repoPath 'scripts\engineering-team\windows\launcher\factory-startup-guard.mjs'
+if (-not (Test-Path -LiteralPath $factoryGuard -PathType Leaf)) {
+  throw "Factory-safe startup guard missing. Refusing an unprotected source update."
+}
+$node = Get-Command node.exe -ErrorAction Stop
+& $node.Source $factoryGuard --update-check
+$guardExit = $LASTEXITCODE
+if ($guardExit -eq 0) {
+  Write-Host "[UPDATE] Factory is absent. Pulling the latest PlotPickle from GitHub..."
+  & $git.Source pull --ff-only
+  if ($LASTEXITCODE -ne 0) {
+    throw "git pull --ff-only failed with exit code $LASTEXITCODE. PlotPickle was not started so the repository can be repaired safely."
+  }
+} elseif ($guardExit -eq 10) {
+  Write-Host "[FACTORY PROTECTED] Source update deferred. Starting the current PlotPickle build without changing Factory-owned code or runtime."
+} else {
+  throw "Factory status could not be verified. No source update or startup was attempted."
 }
 
 $repoLauncher = Join-Path $repoPath "PlotPickle.ps1"

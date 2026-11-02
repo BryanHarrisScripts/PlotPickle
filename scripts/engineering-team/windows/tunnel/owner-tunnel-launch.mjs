@@ -124,6 +124,28 @@ function minimalLauncherEnvironment(source, engineering) {
   return result;
 }
 
+// This fixed PowerShell bootstrap creates the owner-visible *target* in a
+// separate console while this directly owned wrapper waits for it. The parent
+// handle is deliberately retained, so taskkill /T can stop the entire tree.
+// No cmd.exe, caller-selected command, or interpolated executable is involved.
+// The verified local .ps1 path is serialized as a single-quoted literal; a
+// filename quote cannot become PowerShell source text.
+function visibleOwnerTunnelArguments(launcher) {
+  const literalPath = launcher.replaceAll("'", "''");
+  const bootstrap = [
+    "$ErrorActionPreference = 'Stop'",
+    "$ownerLauncher = '" + literalPath + "'",
+    '$arguments = \'-NoLogo -NoProfile -ExecutionPolicy Bypass -NoExit -File "\' + $ownerLauncher + \'"\'',
+    "try {",
+    "  $process = Start-Process -FilePath 'powershell.exe' -ArgumentList $arguments -WindowStyle Normal -PassThru -Wait -ErrorAction Stop",
+    "  if (-not $process) { exit 2 }",
+    "  exit $process.ExitCode",
+    "} catch { exit 3 }",
+  ].join("\n");
+  return ["-NoLogo", "-NoProfile", "-NonInteractive", "-EncodedCommand",
+    Buffer.from(bootstrap, "utf16le").toString("base64")];
+}
+
 // Only an owner-authorized POST can run this operation. There is no
 // browser-selected executable, command, argument, path, port or credential.
 export async function launchOwnTunnel({
@@ -140,16 +162,12 @@ export async function launchOwnTunnel({
   // A controller can retain this child handle. It may never guess a PID or
   // adopt a separately started terminal after an app restart.
   try {
-    // A direct detached PowerShell child is not guaranteed to surface an
-    // interactive console when PlotPickle itself is hosted without one. Use
-    // Windows' fixed START builtin to create the visible terminal explicitly.
-    // /wait keeps the owned cmd wrapper alive for STOP/process-tree cleanup.
-    // Every argument is fixed here except the already verified launcher path;
-    // no browser text becomes a command or executable.
-    const child = launch("cmd.exe", [
-      "/d", "/c", "start", "", "/wait", "powershell.exe",
-      "-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-NoExit", "-File", launcher,
-    ], {
+    // A directly spawned non-detached PowerShell script runs but can remain
+    // attached to its parent's console. The fixed Start-Process bootstrap
+    // requests its *own visible* terminal and waits, keeping an owned parent
+    // PID for taskkill /T. Never pass the launcher through cmd.exe or use a
+    // detached process, which Windows PowerShell 5.1 may fail to execute.
+    const child = launch("powershell.exe", visibleOwnerTunnelArguments(launcher), {
       cwd, shell: false, windowsHide: true, detached: false, stdio: "ignore",
       env: minimalLauncherEnvironment(sourceEnv, engineering),
     });

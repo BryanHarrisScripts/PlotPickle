@@ -14,7 +14,7 @@ if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
 $catalog = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
 if ($catalog.schemaVersion -ne 1) { throw 'MCP_CATALOG_VERSION_UNVERIFIED' }
 
-$groups = @('public','control','conversation','storage','engineeringOptIn')
+$groups = @('public','control','conversation','storage','diagnostics','engineeringOptIn')
 foreach ($key in $groups) {
     $values = @($catalog.$key)
     if ($values.Count -eq 0 -or @($values | Where-Object {
@@ -22,13 +22,13 @@ foreach ($key in $groups) {
     }).Count -ne 0) { throw 'MCP_CATALOG_SCHEMA_UNVERIFIED' }
 }
 $declared = @($catalog.public) + @($catalog.control) + @($catalog.conversation) +
-    @($catalog.storage) + @($catalog.engineeringOptIn)
+    @($catalog.storage) + @($catalog.diagnostics) + @($catalog.engineeringOptIn)
 if (@($declared | Sort-Object -Unique).Count -ne $declared.Count) {
     throw 'MCP_CATALOG_DUPLICATE_DECLARATION'
 }
 $expectedPublic = @($catalog.public)
 $expectedAuth = @($catalog.public) + @($catalog.control) + @($catalog.conversation) +
-    @($catalog.storage)
+    @($catalog.storage) + @($catalog.diagnostics)
 if ($EngineeringEnabled) { $expectedAuth += @($catalog.engineeringOptIn) }
 
 function Assert-SameNames([string[]]$expected, [string[]]$observed, [string]$label) {

@@ -10,6 +10,9 @@ import { gatewayAppSource, privateGatewayRoot } from "../gateway/gateway-host.mj
 import { conversationMcpAction, validConversationArgs } from "../gateway/conversation-service.mjs";
 import { timingSafeEqual } from "node:crypto";
 import { requestIndependentSupervisorStart } from "./engineering/factory-supervisor-start.mjs";
+import { inspectOwnerWorkerOperations, requestOwnerSupervisorMigration } from "./engineering/operations/factory-operator-maintenance.mjs";
+import { issueFixedWorker1Pilot, issueOne3110Worker1Ticket } from "./engineering/operations/factory-worker1-pilot-issuer.mjs";
+import { observeFactoryWindowsProductGate, verifyFactoryWindowsProductGateReceipt } from "./engineering/factory-windows-product-gate.mjs";
 import { existsSync } from "node:fs";
 import { lstat, mkdir, readFile, writeFile, unlink } from "node:fs/promises";
 import os from "node:os";
@@ -27,6 +30,7 @@ import { runFactoryDependencyPreflight, checkFactoryDependencyProof,
 import { inspectFactoryServiceLock } from "../queue/factory-service-lock.mjs";
 import { summarizeFactoryObserver } from "./factory-observer.mjs";
 import { supervisorStatus } from "../windows/supervisor/unattended-supervisor.mjs";
+import { inspectOwnerWindowsHost } from "./engineering/factory-host-diagnostics.mjs";
 import { assessCandidateStageCount } from "./storage/factory-stage-budget.mjs";
 import { allowedFactoryTestNames, readFactoryVerificationHead,
   runFactoryNamedTest,inspectFactoryCandidatePr,stageFactoryCandidatePr,
@@ -222,7 +226,7 @@ export function sanitizeStageLockObservation(raw) {
     stagingAuthorized:false,cleanupAuthorized:false,processOwnershipVerified:false});
 }
 
-export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,verifyHead=readFactoryVerificationHead,readSupervisor=null,readStageBudget=null,readStageLock=null}={}) {
+export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,verifyHead=readFactoryVerificationHead,readSupervisor=null,readStageBudget=null,readStageLock=null,readWorkerOperations=null}={}) {
   let raw;
   try { raw=await readFactoryStatus({root,now}); }
   catch { return {state:"UNKNOWN",enabled:null,reason:"PRIVATE_STATE_UNREADABLE",
@@ -248,6 +252,12 @@ export async function factoryStatus({root=privateFactoryRoot(),now=Date.now,veri
     let supervisor=null;
     try {supervisor=await readSupervisor();}catch {supervisor=null;}
     result.supervisor=sanitizeSupervisorObservation(supervisor,now());
+  }
+  if(typeof readWorkerOperations==="function") {
+    let operations=null;
+    try { operations=await readWorkerOperations(); } catch { operations=null; }
+    result.workerOperations=operations?.state==="OBSERVATION_ONLY" ? operations :
+      {state:"UNVERIFIED",sourceHead:null,modelInvoked:false,automaticMergeEnabled:false};
   }
   if(typeof readStageBudget==="function") {
     let stageBudget=null;
@@ -424,6 +434,22 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "SYNC_FETCH_UNVERIFIED","SYNC_SOURCE_CHANGED","SYNC_NOT_FAST_FORWARD",
   "SYNC_MERGE_UNVERIFIED","SYNC_OUTCOME_UNVERIFIED",
   "SOURCE_SYNCED","SOURCE_ALREADY_CURRENT",
+  "SUPERVISOR_HEAD_MIGRATED_NOT_RUNNING","SUPERVISOR_MIGRATION_UNVERIFIED",
+  "SUPERVISOR_MIGRATION_OFFLINE_REQUIRED","SUPERVISOR_MIGRATION_SOURCE_UNVERIFIED",
+  "SUPERVISOR_MIGRATION_STATUS_UNVERIFIED",
+  "WORKER1_PILOT_GRANTED_NOT_DISPATCHED","PILOT_SOURCE_UNVERIFIED",
+  "PILOT_DISPATCHER_NOT_ONLINE","PILOT_STOP_PAUSE_OR_SUPERVISOR_UNVERIFIED",
+  "PILOT_READINESS_UNVERIFIED","PILOT_PRIVATE_STORAGE_UNVERIFIED",
+  "PILOT_EXISTING_ORDER_REQUIRES_RECONCILIATION","PILOT_ALREADY_RESERVED_NO_REPLAY",
+  "PILOT_ID_UNVERIFIED","PILOT_GRANT_VALIDATION_FAILED",
+  "PILOT_READINESS_CHANGED","PILOT_PARTIAL_GRANTS_RECONCILE_NO_REPLAY",
+  "WORKER1_3110_GRANTED_NOT_DISPATCHED","WORKER1_WINDOWS_ONLY",
+  "WORKER1_SOURCE_UNVERIFIED","WORKER1_DISPATCHER_NOT_ONLINE",
+  "WORKER1_STOP_PAUSE_OR_SOURCE_UNVERIFIED","WORKER1_READINESS_UNVERIFIED",
+  "WORKER1_PRIOR_ATTEMPT_UNVERIFIED_NO_REPLAY","WORKER1_ONCE_ALREADY_RESERVED",
+  "WORKER1_STORAGE_UNVERIFIED","WORKER1_IDS_UNVERIFIED",
+  "WORKER1_GRANTS_UNVERIFIED","WORKER1_READINESS_CHANGED",
+  "WORKER1_PARTIAL_GRANTS_RECONCILE_NO_REPLAY",
   "PRODUCT_UAT_SELECTION_INVALID","PRODUCT_UAT_PRIVATE_ROOT_BLOCKED",
   "PRODUCT_UAT_STAGE_UNVERIFIED","PRODUCT_UAT_SOURCE_CHANGED",
   "PRODUCT_UAT_STOP_UNVERIFIED","PRODUCT_UAT_TIMEOUT","PRODUCT_UAT_FAILED",
@@ -446,7 +472,13 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "ENGINEERING_SOURCE_CHANGED","ENGINEERING_SOURCE_UNVERIFIED",
   "ENGINEERING_EXECUTABLE_UNAVAILABLE","ENGINEERING_EXECUTION_UNCONFIRMED",
   "ENGINEERING_TASK_TIMEOUT","ENGINEERING_STOP_UNVERIFIED",
-  "ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"]);
+  "ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED",
+  "PRODUCT_GATE_SELECTION_INVALID","PRODUCT_GATE_STAGE_UNVERIFIED",
+  "PRODUCT_GATE_HOST_UNVERIFIED","PRODUCT_GATE_HOST_CHANGED",
+  "PRODUCT_GATE_CANDIDATE_UNVERIFIED","PRODUCT_GATE_NATIVE_PROBE_UNAVAILABLE",
+  "PRODUCT_GATE_NATIVE_PROBE_UNVERIFIED","PRODUCT_GATE_EVIDENCE_UNVERIFIED",
+  "PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_TRUTH_UNVERIFIED",
+  "PRODUCT_GATE_EVIDENCE_MATCHED","PRODUCT_GATE_SCOPE_UNSUPPORTED"]);
 export function controlTokenMatches(presented,configured) {
   if(typeof configured!=="string"||!CONTROL_TOKEN.test(configured)||
      typeof presented!=="string"||!CONTROL_TOKEN.test(presented))return false;
@@ -457,7 +489,9 @@ const APP_CONTROL_SUITES=Object.freeze(["plotpickle-app-start","plotpickle-app-s
 const allowedFactoryControlSuites=()=>[...allowedFactoryTestNames(),...APP_CONTROL_SUITES,
   "factory-pr-head","factory-pr-stage","factory-sync-main",
   "factory-story-uat","factory-story-verify","factory-supervisor-start",
-  "factory-gateway-acceptance"];
+  "factory-supervisor-migrate","factory-worker1-pilot-issue",
+  "factory-worker1-3110-once",
+  "factory-gateway-acceptance","factory-windows-product-gate","factory-windows-product-gate-verify"];
 export const MCP_CONTROL_TOOLS=Object.freeze([
   {name:"factory_run_dependency_preflight",title:"Run Windows Factory dependency preflight",
     description:"On the paired, stopped Windows host, run the non-reserving npm dependency preflight for an exact main SHA. May take several minutes. Never invokes a model or retries an issue.",
@@ -473,7 +507,7 @@ export const MCP_CONTROL_TOOLS=Object.freeze([
       issues:{type:"array",items:{type:"integer",minimum:1,maximum:9999999},minItems:1,maxItems:5,uniqueItems:true}},
       required:["requestId","expectedHead","issues"],additionalProperties:false}},
   {name:"factory_run_named_test",title:"Run allowlisted Factory test or candidate identity check",
-    description:"Authenticated allowlisted Windows tests, staged headless gateway acceptance, app control, or owner-authorized supervisor Start. No legacy Pi dispatcher, shell, arbitrary program, or merge.",
+    description:"Authenticated fixed Windows tests, app control, supervisor Start/migration and one fixed #3142 pilot or a single bounded #3110 Worker 1 grant. No shell, Pi or merge.",
     inputSchema:{type:"object",properties:{
       requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
       expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
@@ -521,7 +555,7 @@ function validControlArgs(name,args) {
       Number.isSafeInteger(args.candidatePrNumber)&&validIssue(args.candidatePrNumber)&&
       CONTROL_HEAD.test(args.candidateHead||"");
     if(["plotpickle-app-candidate-start","plotpickle-app-factory-start",
-      "factory-gateway-acceptance"].includes(args.suite))return keys.length===6 &&
+      "factory-gateway-acceptance","factory-windows-product-gate","factory-windows-product-gate-verify"].includes(args.suite))return keys.length===6 &&
       Number.isSafeInteger(args.candidatePrNumber)&&validIssue(args.candidatePrNumber)&&
       CONTROL_HEAD.test(args.candidateHead||"")&&REQUEST_ID.test(args.sourceRequestId||"")&&
       args.sourceRequestId!==args.requestId;
@@ -530,7 +564,10 @@ function validControlArgs(name,args) {
     return keys.length===3 && (APP_CONTROL_SUITES.includes(args.suite) ||
       allowedFactoryTestNames().includes(args.suite) ||
       args.suite==="factory-sync-main"||args.suite==="factory-story-uat"||
-      args.suite==="factory-supervisor-start");
+      args.suite==="factory-supervisor-start"||
+      args.suite==="factory-supervisor-migrate"||
+      args.suite==="factory-worker1-pilot-issue"||
+      args.suite==="factory-worker1-3110-once");
   }
   return name==="factory_admit_issues"&&keys.length===3&&
     Array.isArray(args.issues)&&args.issues.length>=1&&args.issues.length<=5&&
@@ -552,33 +589,36 @@ function safeControlReceipt(raw,requestId) {
     diagnostic:raw.code==="ENGINEERING_TASK_FAILED"&&raw.state==="TEST_FAILED"?sanitizeEngineeringOutput(raw.diagnostic):null,
     outputDigest:/^[a-f0-9]{64}$/.test(raw.outputDigest||"")?raw.outputDigest:null,
     candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED",
-      "ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(raw.code)&&
+      "ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED","PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(raw.code)&&
       raw.state==="TEST_PASSED"&&validIssue(raw.candidatePrNumber)?raw.candidatePrNumber:null,
     candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED",
-      "ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(raw.code)&&
+      "ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED","PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(raw.code)&&
       raw.state==="TEST_PASSED"?safeSha(raw.candidateHead):null,
     stageReason:raw.code==="PRODUCT_UAT_STAGE_UNVERIFIED"&&raw.state==="BLOCKED"&&
       FACTORY_STORY_STAGE_REASONS.includes(raw.stageReason)?raw.stageReason:null,
-    stageId:["CANDIDATE_STATIC_STAGED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(raw.code)&&
+    stageId:["CANDIDATE_STATIC_STAGED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED","PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(raw.code)&&
       ["TEST_PASSED","TEST_FAILED"].includes(raw.state)&&
       REQUEST_ID.test(raw.stageId||"")?raw.stageId:null,
     changedFileCount:raw.code==="CANDIDATE_STATIC_STAGED"&&raw.state==="TEST_PASSED"&&
       Number.isSafeInteger(raw.changedFileCount)&&raw.changedFileCount>=1&&
       raw.changedFileCount<=500?raw.changedFileCount:null,
-    sourceRequestId:["PRODUCT_UAT_EVIDENCE_ATTESTED","APP_CANDIDATE_STARTED_VERIFIED"].includes(raw.code)&&raw.state==="TEST_PASSED"&&
+    sourceRequestId:["PRODUCT_UAT_EVIDENCE_ATTESTED","APP_CANDIDATE_STARTED_VERIFIED","PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(raw.code)&&raw.state==="TEST_PASSED"&&
       REQUEST_ID.test(raw.sourceRequestId||"")?raw.sourceRequestId:null,
     checkpointCount:raw.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"&&raw.state==="TEST_PASSED"&&
       Number.isSafeInteger(raw.checkpointCount)&&raw.checkpointCount>=55&&
       raw.checkpointCount<=250?raw.checkpointCount:null,
-    evidenceDigest:raw.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"&&raw.state==="TEST_PASSED"&&
+    evidenceDigest:["PRODUCT_UAT_EVIDENCE_ATTESTED","PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(raw.code)&&raw.state==="TEST_PASSED"&&
       /^[a-f0-9]{64}$/.test(raw.evidenceDigest||"")?raw.evidenceDigest:null,
+    verifierSourceDigest:["PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(raw.code)&&raw.state==="TEST_PASSED"&&
+      /^[a-f0-9]{64}$/.test(raw.verifierSourceDigest||"")?raw.verifierSourceDigest:null,
     projectIdentityDigest:raw.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"&&raw.state==="TEST_PASSED"&&
       /^[a-f0-9]{64}$/.test(raw.projectIdentityDigest||"")?raw.projectIdentityDigest:null,
     issueCount:Number.isSafeInteger(raw.issueCount)&&raw.issueCount>=0&&raw.issueCount<=80
       ?raw.issueCount:null,
     modelInvoked:raw.code.startsWith("ENGINEERING_")?null:false,
     replayAuthorized:false,
-    independentVerification:false};
+    ownerMachineObserved:["PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(raw.code)&&raw.state==="TEST_PASSED"&&raw.ownerMachineObserved===true,
+    independentVerification:false,releaseAuthorized:false};
 }
 export async function factoryControlReceipt({root,requestId}){
   const dir=path.join(root,"mcp-control-requests");
@@ -600,6 +640,11 @@ export async function factoryControlAction(name,args,{
     storyUat:runFactoryStoryUat,storyVerify:runFactoryStoryEvidenceVerify,
     appControl:controlPlotpickleOwnerApp,
     supervisorStart:requestIndependentSupervisorStart,
+    supervisorMigrate:requestOwnerSupervisorMigration,
+    pilotIssuer:issueFixedWorker1Pilot,
+    worker3110Issuer:issueOne3110Worker1Ticket,
+    productGate:observeFactoryWindowsProductGate,
+    productGateVerify:verifyFactoryWindowsProductGateReceipt,
     engineering:runStagedEngineeringTask,
   },
 }={}) {
@@ -637,9 +682,9 @@ export async function factoryControlAction(name,args,{
     await writeFile(path.join(dir,args.requestId+".json"),JSON.stringify({
       schemaVersion:1,requestId:args.requestId,operation:name,
       expectedHead:args.expectedHead,
-      candidatePrNumber:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start","plotpickle-app-factory-start","factory-gateway-acceptance"].includes(args.suite)?args.candidatePrNumber:null,
-      candidateHead:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start","plotpickle-app-factory-start","factory-gateway-acceptance"].includes(args.suite)?args.candidateHead:null,
-      sourceRequestId:["factory-story-verify","plotpickle-app-candidate-start","plotpickle-app-factory-start","factory-gateway-acceptance"].includes(args.suite)?args.sourceRequestId:null,
+      candidatePrNumber:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start","plotpickle-app-factory-start","factory-gateway-acceptance","factory-windows-product-gate","factory-windows-product-gate-verify"].includes(args.suite)?args.candidatePrNumber:null,
+      candidateHead:["factory-pr-head","factory-pr-stage","plotpickle-app-candidate-start","plotpickle-app-factory-start","factory-gateway-acceptance","factory-windows-product-gate","factory-windows-product-gate-verify"].includes(args.suite)?args.candidateHead:null,
+      sourceRequestId:["factory-story-verify","plotpickle-app-candidate-start","plotpickle-app-factory-start","factory-gateway-acceptance","factory-windows-product-gate","factory-windows-product-gate-verify"].includes(args.suite)?args.sourceRequestId:null,
       stageRequestId:name==="factory_engineering_run"?args.stageRequestId:null,
       mode:name==="factory_engineering_run"?args.mode:null,
       at:now(),replayAuthorized:false,
@@ -666,6 +711,43 @@ export async function factoryControlAction(name,args,{
             ?await ops.engineering({selection:args,root,repoRoot:ENGINEERING_REPO_ROOT,
               stageReceipt:await factoryControlReceipt({root,requestId:args.stageRequestId}),
               verifyHead:ops.testHead})
+            :args.suite==="factory-windows-product-gate-verify"
+            ?await ops.productGateVerify({
+              selection:{requestId:args.requestId,expectedHead:args.expectedHead,
+                candidatePrNumber:args.candidatePrNumber,candidateHead:args.candidateHead,
+                sourceRequestId:args.sourceRequestId},
+              root,repoRoot:ENGINEERING_REPO_ROOT,
+              verifyHead:ops.testHead,inspectPr:ops.inspectPr,
+              readControlReceipt:id=>factoryControlReceipt({root,requestId:id}),
+            })
+            :args.suite==="factory-windows-product-gate"
+            ?await (async()=>{
+              const stageReceipt=await factoryControlReceipt({
+                root,requestId:args.sourceRequestId,
+              });
+              const admission=await ops.engineering({
+                selection:{
+                  requestId:args.requestId,expectedHead:args.expectedHead,
+                  stageRequestId:args.sourceRequestId,
+                  candidatePrNumber:args.candidatePrNumber,
+                  candidateHead:args.candidateHead,
+                  mode:"node-script",target:"scripts/verification-test-truth.mjs",
+                  scriptArgs:["--base-ref",args.expectedHead],
+                },root,repoRoot:ENGINEERING_REPO_ROOT,
+                stageReceipt,verifyHead:ops.testHead,
+              });
+              if(admission?.state!=="TEST_PASSED"||
+                 admission.code!=="ENGINEERING_TASK_PASSED")
+                return {state:"BLOCKED",code:"PRODUCT_GATE_TRUTH_UNVERIFIED",
+                  sourceHead:args.expectedHead};
+              return await ops.productGate({
+                selection:{requestId:args.requestId,expectedHead:args.expectedHead,
+                  candidatePrNumber:args.candidatePrNumber,candidateHead:args.candidateHead,
+                  sourceRequestId:args.sourceRequestId},
+                root,repoRoot:ENGINEERING_REPO_ROOT,stageReceipt,
+                verifyHead:ops.testHead,inspectPr:ops.inspectPr,
+              });
+            })()
             :args.suite==="factory-gateway-acceptance"
             ?await (async()=>{
               // Candidate test source is untrusted until its approved-truth
@@ -711,6 +793,12 @@ export async function factoryControlAction(name,args,{
                   }:{})})
               :args.suite==="factory-supervisor-start"
                 ?await ops.supervisorStart({expectedHead:args.expectedHead,verifyHead:ops.testHead})
+              :args.suite==="factory-supervisor-migrate"
+                ?await ops.supervisorMigrate({expectedHead:args.expectedHead,verifyHead:ops.testHead})
+              :args.suite==="factory-worker1-pilot-issue"
+                ?await ops.pilotIssuer({expectedHead:args.expectedHead,verifyHead:ops.testHead})
+              :args.suite==="factory-worker1-3110-once"
+                ?await ops.worker3110Issuer({expectedHead:args.expectedHead,verifyHead:ops.testHead})
               :args.suite==="factory-sync-main"
                 ?await ops.syncMain({expectedHead:args.expectedHead,root,
                   inspect:ops.inspectSyncSource})
@@ -732,19 +820,21 @@ export async function factoryControlAction(name,args,{
             durationMs:name==="factory_engineering_run"||args.suite==="factory-gateway-acceptance"?result.durationMs:null,
             diagnostic:name==="factory_engineering_run"||args.suite==="factory-gateway-acceptance"?result.diagnostic:null,
             outputDigest:name==="factory_engineering_run"||args.suite==="factory-gateway-acceptance"?result.outputDigest:null,
-            candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(result.code)
+            candidatePrNumber:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED","PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(result.code)
               ?(result.candidatePrNumber??args.candidatePrNumber):null,
-            candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(result.code)
+            candidateHead:["CANDIDATE_HEAD_VERIFIED","CANDIDATE_STATIC_STAGED","APP_CANDIDATE_STARTED_VERIFIED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED","PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(result.code)
               ?(result.candidateHead??args.candidateHead):null,
-            stageId:["CANDIDATE_STATIC_STAGED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED"].includes(result.code)?result.stageId:null,
+            stageId:["CANDIDATE_STATIC_STAGED","ENGINEERING_TASK_PASSED","ENGINEERING_TASK_FAILED","PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(result.code)?result.stageId:null,
             stageReason:result.code==="PRODUCT_UAT_STAGE_UNVERIFIED"&&
               FACTORY_STORY_STAGE_REASONS.includes(result.stageReason)
               ?result.stageReason:null,
             changedFileCount:result.code==="CANDIDATE_STATIC_STAGED"
               ?result.changedFileCount:null,
-            sourceRequestId:["PRODUCT_UAT_EVIDENCE_ATTESTED","APP_CANDIDATE_STARTED_VERIFIED"].includes(result.code)?(result.sourceRequestId??args.sourceRequestId):null,
+            sourceRequestId:["PRODUCT_UAT_EVIDENCE_ATTESTED","APP_CANDIDATE_STARTED_VERIFIED","PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(result.code)?(result.sourceRequestId??args.sourceRequestId):null,
             checkpointCount:result.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"?result.checkpointCount:null,
-            evidenceDigest:result.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"?result.evidenceDigest:null,
+            evidenceDigest:["PRODUCT_UAT_EVIDENCE_ATTESTED","PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(result.code)?result.evidenceDigest:null,
+            ownerMachineObserved:["PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(result.code)&&result.ownerMachineObserved===true,
+            verifierSourceDigest:["PRODUCT_GATE_OBSERVED_NOT_RELEASED","PRODUCT_GATE_EVIDENCE_MATCHED"].includes(result.code)?result.verifierSourceDigest:null,
             projectIdentityDigest:result.code==="PRODUCT_UAT_EVIDENCE_ATTESTED"?result.projectIdentityDigest:null};
         }finally{await unlink(lockFile).catch(()=>{});}
       }
@@ -821,6 +911,16 @@ export const MCP_STORAGE_TOOLS = Object.freeze([{
   annotations:{readOnlyHint:true,destructiveHint:false,openWorldHint:false},
 }]);
 
+export const MCP_WINDOWS_DIAGNOSTICS_TOOLS = Object.freeze([{
+  name: "factory_host_diagnostics",
+  title: "Inspect owner Windows supervisor task and lock",
+  description: "Authenticated fixed-script read-only Windows task, PID candidate and STOP/PAUSE marker diagnostics. No commands, repair, source mutation or release approval.",
+  inputSchema: { type:"object", properties:{
+    expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"}
+  }, required:["expectedHead"],additionalProperties:false },
+  annotations:{readOnlyHint:true,destructiveHint:false,openWorldHint:false}
+}]);
+
 export const MCP_CONVERSATION_TOOLS = Object.freeze([{
   name: "factory_conversation", title: "Read and answer PlotPickle's durable conversation",
   description: "Authenticated connection only. Poll pending source-bound questions, read one to receive its delivery ID, then answer it using that ID and a new answer ID. Receipt reads reconcile lost replies. Does not wake ChatGPT, run a model, change source, or grant Factory/merge authority.",
@@ -833,7 +933,37 @@ export const MCP_CONVERSATION_TOOLS = Object.freeze([{
     answer: { type: "string", minLength: 12, maxLength: 2048 },
   }, required: ["action", "expectedHead"], additionalProperties: false },
   annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
-}]);
+},
+  {name: "factory_conversation_observe",
+    title: "Inspect source-bound PlotPickle conversation status and receipts",
+    description: "Authenticated metadata-only status or receipt inspection for a source-bound PlotPickle question. Never returns message text, acknowledges delivery, creates storage, or grants execution.",
+    inputSchema: {type:"object",properties:{
+      action:{type:"string",enum:["pending","receipt"]},
+      expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
+      questionId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+    },required:["action","expectedHead"],additionalProperties:false},
+    annotations:{readOnlyHint:true,destructiveHint:false,openWorldHint:false}},
+  {name: "factory_conversation_receive",
+    title: "Receive one PlotPickle question with a durable delivery token",
+    description: "Authenticated write-once delivery marker for one source-bound question. Returns a token for the reply; delivery is not verified until a correlated answer is recorded. No model, job or merge authority.",
+    inputSchema: {type:"object",properties:{
+      expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
+      questionId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+    },required:["expectedHead","questionId"],additionalProperties:false},
+    annotations:{readOnlyHint:false,destructiveHint:false,openWorldHint:false}},
+  {name: "factory_conversation_reply",
+    title: "Store one correlated answer to an acknowledged PlotPickle question",
+    description: "Authenticated write-once answer, with matched question, delivery and answer IDs. No factory job, code execution, provider spend, independent verification, or merge authority.",
+    inputSchema: {type:"object",properties:{
+      expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
+      questionId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+      deliveryId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+      answerId:{type:"string",pattern:"^[a-f0-9]{32}$"},
+      answer:{type:"string",minLength:12,maxLength:2048},
+    },required:["expectedHead","questionId","deliveryId","answerId","answer"],additionalProperties:false},
+    annotations:{readOnlyHint:false,destructiveHint:false,openWorldHint:false},
+  }
+]);
 
 async function conversationSource(expectedHead) {
   const host = await gatewayAppSource({ repoRoot: ENGINEERING_REPO_ROOT });
@@ -849,7 +979,9 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
   now=Date.now,controlAuthenticated=false,controlOps,
   engineeringEnabled=false,gatewayRoot=privateGatewayRoot(),gatewaySource=conversationSource,
   storageInspect=inspectFactoryStorage,supervisorRead=supervisorStatus,
-  stageBudgetRead=assessCandidateStageCount,stageLockRead=observeCandidateStageLock}={}) {
+  stageBudgetRead=assessCandidateStageCount,stageLockRead=observeCandidateStageLock,
+  workerOperationsRead=inspectOwnerWorkerOperations,
+  hostDiagnosticsRead=inspectOwnerWindowsHost}={}) {
   if(!request || request.jsonrpc!=="2.0" || typeof request.method!=="string")
     return {error:{code:-32600,message:"Invalid JSON-RPC request"}};
   switch(request.method) {
@@ -864,31 +996,51 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
       tool.name==="factory_run_named_test" && !engineeringEnabled
         ? {...tool,inputSchema:{...tool.inputSchema,properties:{...tool.inputSchema.properties,
           suite:{...tool.inputSchema.properties.suite,enum:tool.inputSchema.properties.suite.enum.filter(
-            suite=>suite!=="factory-gateway-acceptance")}}}}
-        : tool),...MCP_CONVERSATION_TOOLS,...MCP_STORAGE_TOOLS,
+            suite=>!["factory-gateway-acceptance",
+              "factory-windows-product-gate"].includes(suite))}}}}
+        : tool),...MCP_CONVERSATION_TOOLS,...MCP_STORAGE_TOOLS,...MCP_WINDOWS_DIAGNOSTICS_TOOLS,
       ...(engineeringEnabled?MCP_ENGINEERING_TOOLS:[])]:MCP_TOOLS}};
     case "tools/call": {
       const name=request.params?.name,args=request.params?.arguments??{};
       if(!args || typeof args!=="object" || Array.isArray(args))
         return {error:invalidParams()};
       const keys=Object.keys(args);
-      const isConversation=name==="factory_conversation";
+      const isConversation=MCP_CONVERSATION_TOOLS.some(t=>t.name===name);
+      // Compatibility: keep the original combined tool. The new observation
+      // method has no write authority; receipt acknowledgement and reply are
+      // separate explicit, authenticated mutation tools.
+      const splitAction=name==="factory_conversation_receive"?"read":
+        name==="factory_conversation_reply"?"answer":null;
+      const conversationArgs=splitAction && !Object.hasOwn(args,"action")
+        ? {...args,action:splitAction} : args;
+      const validConversationSelection=name==="factory_conversation_observe"
+        ? ["pending","receipt"].includes(args.action) &&
+          validConversationArgs(conversationArgs)
+        : splitAction
+          ? !Object.hasOwn(args,"action") &&
+            validConversationArgs(conversationArgs)
+          : validConversationArgs(args);
       const isStorage=name==="factory_storage_inventory";
+      const isHostDiagnostics=name==="factory_host_diagnostics";
       const isEngineering=name==="factory_engineering_run";
       // Executing candidate PR code requires the existing explicit owner opt-in,
       // even when exposed as a fixed named suite rather than a generic runner.
-      const isGatewayAcceptance=name==="factory_run_named_test"&&
-        args.suite==="factory-gateway-acceptance";
+      const candidateExecutingSuite=name==="factory_run_named_test"&&
+        ["factory-gateway-acceptance","factory-windows-product-gate"].includes(args.suite);
       const isControl=MCP_CONTROL_TOOLS.some(x=>x.name===name) || isEngineering;
-      if((isEngineering||isGatewayAcceptance)&&!engineeringEnabled)
+      if((isEngineering||candidateExecutingSuite)&&!engineeringEnabled)
         return {error:{code:-32601,message:"Unknown tool"}};
       if(isControl&&!controlAuthenticated)return {error:{code:-32001,message:"Factory control authorization required"}};
       if(isControl&&!validControlArgs(name,args))return {error:invalidParams()};
       if(isConversation&&!controlAuthenticated)return {error:{code:-32001,message:"Conversation authorization required"}};
-      if(isConversation&&!validConversationArgs(args))return {error:invalidParams()};
+      if(isConversation&&!validConversationSelection)return {error:invalidParams()};
       if(isStorage&&!controlAuthenticated)return {error:{code:-32001,message:"Storage inventory authorization required"}};
       if(isStorage&&!validStorageReportArgs(args))return {error:invalidParams()};
-      if(!isControl&&!isConversation&&!isStorage&&name!=="factory_evidence" && keys.length)
+      if(isHostDiagnostics&&!controlAuthenticated)
+        return {error:{code:-32001,message:"Host diagnostic authorization required"}};
+      if(isHostDiagnostics && (keys.length!==1 || !HEX_SHA.test(args.expectedHead || "")))
+        return {error:invalidParams()};
+      if(!isControl&&!isConversation&&!isStorage&&!isHostDiagnostics&&name!=="factory_evidence" && keys.length)
         return {error:invalidParams()};
       let value;
       if(name==="factory_status")value=await factoryStatus({
@@ -896,6 +1048,7 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
         readStageBudget:controlAuthenticated
           ?()=>stageBudgetRead({base:path.join(root,"chat-candidate-stages")}):null,
         readStageLock:controlAuthenticated?()=>stageLockRead({root}):null,
+        readWorkerOperations:controlAuthenticated?workerOperationsRead:null,
       });
       else if(name==="factory_observer")value=await factoryObserver({root,now,readSupervisor:controlAuthenticated?supervisorRead:null});
       else if(name==="factory_evidence"){
@@ -905,9 +1058,19 @@ export async function executeMcpRequest(request,{root=privateFactoryRoot(),githu
            ((args.attempt??1)===2 && args.issueNumber!==3141))
           return {error:invalidParams()};
         value=await factoryEvidence({root,issueNumber:args.issueNumber,attempt:args.attempt??1});
-      }else if(isConversation)value=await conversationMcpAction(args,{
-        root:gatewayRoot,source:await gatewaySource(args.expectedHead),now:now()});
-      else if(isStorage)value=await storageInspect(args);
+      }else if(isConversation){
+        value=await conversationMcpAction(conversationArgs,{
+          root:gatewayRoot,source:await gatewaySource(args.expectedHead),now:now()});
+        // The observation tool is intentionally metadata-only. Question and
+        // answer text require explicit authenticated delivery, not polling.
+        // The original combined tool remains unchanged for existing clients.
+        if(name==="factory_conversation_observe" && value &&
+           typeof value==="object" && !Array.isArray(value)){
+          const {question:_question,answer:_answer,...metadata}=value;
+          value=metadata;
+        }
+      }else if(isStorage)value=await storageInspect(args);
+      else if(isHostDiagnostics)value=await hostDiagnosticsRead({expectedHead:args.expectedHead});
       else if(name==="factory_issue_preview")value=await factoryIssuePreview({github});
       else if(isControl)value=await factoryControlAction(name,args,{root,github,now,ops:controlOps});
       else return {error:{code:-32601,message:"Unknown tool"}};

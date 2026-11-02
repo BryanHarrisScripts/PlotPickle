@@ -87,7 +87,12 @@ test("#2753 workflow metadata changes do not fan out into unrelated heavyweight 
   const proofStart = architecture.indexOf("  windows-product-proof:", scopeStart);
   const scope = architecture.slice(scopeStart, proofStart);
 
-  assert.equal(scope.includes(".github/workflows/"), false, "workflow files must not be blanket Windows-lane selectors");
+  assert.ok(scope.includes("grep -Fxq '.github/workflows/product-gate.yml'"),
+    "only the exact reusable Product Gate may trigger Pi-specific self-proof");
+  assert.ok(scope.includes("node lib/verification/ci/pi-workflow-scope.mjs"),
+    "Pi self-proof must use a job-scoped comparison rather than blanket workflow fanout");
+  assert.ok(!scope.includes("grep -Eq '^(\\.github/workflows/"),
+    "never select all native Windows lanes for arbitrary workflow changes");
   assert.equal(scope.includes("tests/issue-2733-ci-windows-lanes"), false, "selector regression edits must not force native Windows lanes");
   assert.equal(scope.includes("docs/developer-briefs/2733-split-windows-product-gate"), false, "CI documentation edits must not force native Windows lanes");
   assert.match(scope, /Heavy Windows lanes are selected only by product\/runtime paths they actually prove\./u);

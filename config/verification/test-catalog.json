@@ -12372,7 +12372,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "7453ebe9d3fb575cfe0ca9f3977b0cd805d6e63b29697b39b250768e6d9a3d41"
+            "digest": "c1c872549e4525ecd4228ebcf94eecd36c78e2382751794d9dec3d84ae2a7453"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12386,7 +12386,7 @@
       },
       {
         "target": "tests/issue-3142-ollama-coding-provider.test.mjs",
-        "targetDigest": "a30d33525f38674757e4b7678ddcceb25be6b4bd0564f95f8e79f6c60ae4d556",
+        "targetDigest": "0dd39d67dc172b2f0fd0b8b01b7097ffc712e3d6d2d206f7198890bc05350992",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12408,7 +12408,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "7453ebe9d3fb575cfe0ca9f3977b0cd805d6e63b29697b39b250768e6d9a3d41"
+            "digest": "c1c872549e4525ecd4228ebcf94eecd36c78e2382751794d9dec3d84ae2a7453"
           }
         ]
       },
@@ -12476,7 +12476,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "7453ebe9d3fb575cfe0ca9f3977b0cd805d6e63b29697b39b250768e6d9a3d41"
+            "digest": "c1c872549e4525ecd4228ebcf94eecd36c78e2382751794d9dec3d84ae2a7453"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12869,7 +12869,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
-            "digest": "464ab4f4cb84c385e8f3e901d3037d4dd65497bc64004a2d8aa5d6f244dabcdb"
+            "digest": "4bc16bbeb6398c28540c07de29ff775bc057f95a9ed23694ecbead7a2c4159c1"
           }
         ],
         "truthRefs": [
@@ -12897,7 +12897,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
-            "digest": "464ab4f4cb84c385e8f3e901d3037d4dd65497bc64004a2d8aa5d6f244dabcdb"
+            "digest": "4bc16bbeb6398c28540c07de29ff775bc057f95a9ed23694ecbead7a2c4159c1"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
@@ -12909,7 +12909,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "7453ebe9d3fb575cfe0ca9f3977b0cd805d6e63b29697b39b250768e6d9a3d41"
+            "digest": "c1c872549e4525ecd4228ebcf94eecd36c78e2382751794d9dec3d84ae2a7453"
           }
         ],
         "truthRefs": [
@@ -13039,7 +13039,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
-            "digest": "464ab4f4cb84c385e8f3e901d3037d4dd65497bc64004a2d8aa5d6f244dabcdb"
+            "digest": "4bc16bbeb6398c28540c07de29ff775bc057f95a9ed23694ecbead7a2c4159c1"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",

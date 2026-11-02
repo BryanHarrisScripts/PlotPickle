@@ -12369,7 +12369,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "11115343662dcb4e4924de1f9612cdab0eacc64bcdaa2cd5b533e953e4e64f3e"
+            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12405,7 +12405,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "11115343662dcb4e4924de1f9612cdab0eacc64bcdaa2cd5b533e953e4e64f3e"
+            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
           }
         ]
       },
@@ -12473,7 +12473,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "11115343662dcb4e4924de1f9612cdab0eacc64bcdaa2cd5b533e953e4e64f3e"
+            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12628,7 +12628,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/receipts/atomic-coding-ownership.mjs",
-            "digest": "72401117c8c5b629dbdfdfade194d45f4aa45ce27f111bf32c40434586e4903d"
+            "digest": "a9ed341c9620a9f4be35d4f882f4a3f38b1f3693efc0a5e38d1f8133319f932e"
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/reconcile-failed-syntax-once.mjs",
@@ -12906,7 +12906,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "11115343662dcb4e4924de1f9612cdab0eacc64bcdaa2cd5b533e953e4e64f3e"
+            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
           }
         ],
         "truthRefs": [

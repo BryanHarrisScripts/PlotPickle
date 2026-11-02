@@ -10228,7 +10228,7 @@
       },
       {
         "target": "tests/issue-3203-read-only-project-observation.test.mjs",
-        "targetDigest": "1c7a5b22089b7a57579decac3dd945898494b97c376f3da501b88d117799372b",
+        "targetDigest": "9e0611b03f85484e319e7b67339d884e97e009d1088a871f5ba888f0005af925",
         "catalogueIds": [
           "story-canon.intent-read-only-project-status-3203"
         ],
@@ -10250,7 +10250,7 @@
         "inputs": [
           {
             "path": "modules/intent/model/observe-project-status.ts",
-            "digest": "7318d8c2e5c56082a7fdf89563e0aeae5319149c1cd5641c2eda66fe26ed4bb2"
+            "digest": "e1f34e1404dbc2ab274cc01137e40aea363b6c9da960e4cf7c7f363a8df41b52"
           },
           {
             "path": "modules/plan/projections/canonical-project-outline.ts",

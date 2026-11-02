@@ -9697,7 +9697,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "36021aa4f94b673e19d9299b0cce26683ac1a808e1651db806312dbaf147c846"
+            "digest": "33d307aa0280b35ffc0ed38a7c3807a66c28238d5086fd0d28ce2d2cbe07aa9c"
           }
         ]
       },
@@ -10320,7 +10320,7 @@
           },
           {
             "path": "build/local-profile-auth-gateway.ts",
-            "digest": "433665e344615e9cbc6b6f63351be2e1d6351909c903e809f83cfaef1d191cd4"
+            "digest": "63b2b94ca70a90b79ca25703f712d2793e432a349f4c4440af34fb69a8bf6020"
           },
           {
             "path": "core/auth/profile-experience/local-factory-request.ts",
@@ -11058,7 +11058,7 @@
           },
           {
             "path": "build/local-profile-auth-gateway.ts",
-            "digest": "433665e344615e9cbc6b6f63351be2e1d6351909c903e809f83cfaef1d191cd4"
+            "digest": "63b2b94ca70a90b79ca25703f712d2793e432a349f4c4440af34fb69a8bf6020"
           },
           {
             "path": "app/skin-v1/tunnel-settings-panel.tsx",
@@ -12928,7 +12928,7 @@
       },
       {
         "target": "tests/issue-3355-durable-mission-store.test.mjs",
-        "targetDigest": "beeeef1fead3586696344ac15f4e80aa2560201034225c7e08e98bfd1e516c0b",
+        "targetDigest": "e40532a49c7946c60c008fd551c6963b3f4d4b50e6ab815d1ba7bd37b98c2f19",
         "catalogueIds": [
           "agent.conversation-mcp-3259"
         ],
@@ -12946,11 +12946,23 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Author-proposed issue-3355 immutable mission DRAFT file unit tests on disposable local private storage. Tests source binding, profile scope isolation via injected host authorization, content integrity, expiry, no-dispatch, no-release and symlink refusal; no live Human profile, real Windows Product Gate, provider delegation, approval or merged-code authority is established. Requires qualified independent source/test semantic review before release.",
+        "limits": "Author-proposed issue-3355 disposable mission journal and synthetic local-profile HTTP boundary tests; validates immutable draft-only readback, host-supplied profile partition, same-origin/CSRF-adjacent checks, expiry, data integrity, unavailable worker states and denial of executable actions. Actual local session CSRF/recent reauthentication is enforced by existing server boundary in source but NOT independently tested against a real owner's browser, signed Windows installation, specialist execution or merge. Separate qualified review and real Product Gate required.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/agent-mission-store.mjs",
             "digest": "dfe8823b24f2baedcfba6e09b0e60ad261e8ce544a13af67a16410b7a86a90d1"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/agent-mission-http.mjs",
+            "digest": "d4a3784f2047158d6ad7a54fa6b62d2805c9eec36a48104a3bd4449fdfc4b689"
+          },
+          {
+            "path": "app/api/factory/mission/route.ts",
+            "digest": "ed08c60d445e069ced1ac4aa8ba545615eabcf8acdb3563c6ddac8c67a755017"
+          },
+          {
+            "path": "build/local-profile-auth-gateway.ts",
+            "digest": "63b2b94ca70a90b79ca25703f712d2793e432a349f4c4440af34fb69a8bf6020"
           }
         ]
       }

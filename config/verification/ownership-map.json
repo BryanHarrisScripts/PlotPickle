@@ -1215,6 +1215,7 @@
         "app/feedback/page.tsx",
         "app/pitch-review/page.tsx",
         "app/_components/collab/collab-entry-workspace.tsx",
+        "app/_components/collab/collab-entry-workspace.module.css",
         "app/reports/page.tsx",
         "modules/write/model/write-position-navigation.mjs",
         "modules/write/model/write-position-navigation.d.mts",

@@ -153,13 +153,33 @@ export function codingReleaseIsReconciled(receipts, release) {
  * absent GitHub branch/PR, exited worker process and unchanged supervisor.
  * It never replays the old grant or writes a successful coding/publish receipt.
  */
-export function reconcileSyntaxRejectedOwnership(receipts, {
+export function reconcileSyntaxRejectedOwnership(receipts, options = {}) {
+  return reconcileTerminalRejectedOwnership(receipts, {
+    ...options, expectedPhase: 'CHECK_STAGE_SYNTAX',
+    expectedConsent: 'RECONCILE_ONE_FAILED_SYNTAX_CLAIM_NO_REPLAY',
+    terminalState: 'RECONCILED_SYNTAX_REJECTED_NO_COMMIT',
+  });
+}
+
+/** Distinct owner-only reconciliation. A rejected proposal is never retried. */
+export function reconcileModelEditRejectedOwnership(receipts, options = {}) {
+  return reconcileTerminalRejectedOwnership(receipts, {
+    ...options, expectedPhase: 'VALIDATE_MODEL_EDIT',
+    expectedConsent: 'RECONCILE_ONE_REJECTED_MODEL_EDIT_NO_REPLAY',
+    terminalState: 'RECONCILED_MODEL_EDIT_REJECTED_NO_WRITE',
+  });
+}
+
+function reconcileTerminalRejectedOwnership(receipts, {
   grantId, sourceHead, consent, stageAndRemoteVerified,
+  expectedPhase, expectedConsent, terminalState,
 } = {}) {
-  const DENY = Object.freeze({ state: 'BLOCKED', code: 'SYNTAX_RECONCILIATION_UNVERIFIED' });
+  const DENY = Object.freeze({ state: 'BLOCKED',
+    code: expectedPhase === 'CHECK_STAGE_SYNTAX'
+      ? 'SYNTAX_RECONCILIATION_UNVERIFIED' : 'MODEL_EDIT_RECONCILIATION_UNVERIFIED' });
   if (!/^[a-f0-9]{32}$/.test(grantId || '') ||
       !/^[a-f0-9]{40}$/.test(sourceHead || '') ||
-      consent !== 'RECONCILE_ONE_FAILED_SYNTAX_CLAIM_NO_REPLAY' ||
+      consent !== expectedConsent ||
       stageAndRemoteVerified !== true) return DENY;
   let h;
   try {
@@ -181,11 +201,11 @@ export function reconcileSyntaxRejectedOwnership(receipts, {
     const outcome = JSON.parse(readFileSync(resultPath, 'utf8'));
     if (outcome.state !== 'BLOCKED' ||
         outcome.code !== 'CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE' ||
-        outcome.phase !== 'CHECK_STAGE_SYNTAX' ||
+        outcome.phase !== expectedPhase ||
         outcome.replayAuthorized !== false) return DENY;
     const witness = Object.freeze({ schemaVersion:1, kind:'coding-resource-release',
       grantId, sourceHead, ownershipEpoch:h.epoch, ownershipNonce:row.nonce,
-      state:'RECONCILED_SYNTAX_REJECTED_NO_COMMIT', phase:'CHECK_STAGE_SYNTAX',
+      state:terminalState, phase:expectedPhase,
       replayAuthorized:false, publicationAuthorized:false });
     const file = path.join(receipts, grantId + '.released.json');
     let fd;
@@ -206,7 +226,7 @@ export function reconcileSyntaxRejectedOwnership(receipts, {
       WHERE resource = ? AND grant_id = ? AND nonce = ?`)
       .run(RESOURCE, grantId, row.nonce);
     if (deleted.changes !== 1 || !h.fileValid()) return DENY;
-    return Object.freeze({ state:'RECONCILED_SYNTAX_REJECTED_NO_COMMIT',
+    return Object.freeze({ state:terminalState,
       sourceHead, grantId, retryOriginalAuthorized:false,
       publicationAuthorized:false, originalEvidencePreserved:true });
   } catch { return DENY; }

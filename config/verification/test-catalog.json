@@ -127,7 +127,8 @@
           "tests/issue-3227-discover-matrix-journal.test.mjs",
           "tests/issue-2444-dashboard-review-fold.test.mjs",
           "tests/issue-2454-dashboard-screening-rough-cut.test.mjs",
-          "tests/issue-2587-dashboard-shortcut-remap.test.mjs"
+          "tests/issue-2587-dashboard-shortcut-remap.test.mjs",
+          "tests/issue-3355-elara-agent-workspace.test.mjs"
         ]
       },
       "cost": "fast",
@@ -12924,6 +12925,53 @@
           "static-source"
         ],
         "limits": "Owner-authorized fixed pilot for #3142 ONLY. Source-bound one-use authorization records and no-replay marker tested under disposable filesystem; no live Windows worker, no external F00, no Product Gate, no model call, no PR or auto merge proven. Author-proposed exact source/test W8/W9 binding requires independent assessment."
+      },
+      {
+        "target": "tests/issue-3355-elara-agent-workspace.test.mjs",
+        "targetDigest": "f74666cc41d4c9e0cb8ae0c0bf85498dfd973d238816a8b00dfee7ac21eb36dd",
+        "catalogueIds": [
+          "experience.navigation-continuity"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Author-proposed exact-source inspection for the #3355 Collab Agent Workspace first slice. Checks integration with existing profile-authenticated supervisor and durable conversation endpoints, source-head equality, no false worker/delegation/merge status and responsive layout. Does NOT execute the UI in a real browser, authorize a specialist task, verify independent Human review, prove persistent mission state, certify actual Windows Product Gate or create merge authority. Requires separately qualified semantic review of test truth before release.",
+        "inputs": [
+          {
+            "path": "app/page.tsx",
+            "digest": "6f9fab7bba085f59fbf0dc7878f0232847949d0ba5337c674b97c59943a12b2c"
+          },
+          {
+            "path": "app/_components/collab/collab-entry-workspace.tsx",
+            "digest": "91795d3ada9a5f1d312a32547263ee220fdfc316306a4cde1b9eb47e079c6647"
+          },
+          {
+            "path": "app/_components/collab/collab-entry-workspace.module.css",
+            "digest": "ec59bd34775c72da20297ae3f20d166b338000f3355e2870be54aa2dced79ca3"
+          },
+          {
+            "path": "app/_components/settings/tunnel/two-way-conversation-panel.tsx",
+            "digest": "b9a00df5f6f1539747637606e7ff1426a5130d8c003fed92164720bb675a920f"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/conversation-http.mjs",
+            "digest": "55c55edb3bb92e4c163dc94c379894572159e4a1bcdec0785662a3c41c5cda35"
+          },
+          {
+            "path": "app/api/factory/conversation/route.ts",
+            "digest": "bb28cd8537985647f06de1278bf57f3447751b021a88d7a75a3f2a7569d05bec"
+          }
+        ]
       }
     ]
   }

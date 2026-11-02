@@ -7330,11 +7330,11 @@
           },
           {
             "path": "package.json",
-            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
+            "digest": "dc72e00b4c74076464942ead08b6154184fd0ea16b521344e8e43e6e7bb0d0ea"
           },
           {
             "path": "package-lock.json",
-            "digest": "53335abd3ff0a735cc93b19bbe06c8e29691573725800f24aa309a4a140796dd"
+            "digest": "43b2b9732771cdd47248ccbc141b748b97795cdeda9ab01e5c2b5ce067fb8794"
           }
         ]
       },
@@ -7502,7 +7502,7 @@
           },
           {
             "path": "package.json",
-            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
+            "digest": "dc72e00b4c74076464942ead08b6154184fd0ea16b521344e8e43e6e7bb0d0ea"
           },
           {
             "path": "tests/support/story-project-repository-fixture.mjs",
@@ -7542,7 +7542,7 @@
           },
           {
             "path": "package.json",
-            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
+            "digest": "dc72e00b4c74076464942ead08b6154184fd0ea16b521344e8e43e6e7bb0d0ea"
           },
           {
             "path": "tests/support/story-project-repository-fixture.mjs",
@@ -7622,7 +7622,7 @@
           },
           {
             "path": "package.json",
-            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
+            "digest": "dc72e00b4c74076464942ead08b6154184fd0ea16b521344e8e43e6e7bb0d0ea"
           }
         ]
       },
@@ -7722,7 +7722,7 @@
           },
           {
             "path": "package.json",
-            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
+            "digest": "dc72e00b4c74076464942ead08b6154184fd0ea16b521344e8e43e6e7bb0d0ea"
           },
           {
             "path": "tests/phase-f-collaboration-release.test.mjs",
@@ -7786,7 +7786,7 @@
           },
           {
             "path": "package.json",
-            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
+            "digest": "dc72e00b4c74076464942ead08b6154184fd0ea16b521344e8e43e6e7bb0d0ea"
           },
           {
             "path": "tests/phase-f-collaboration-release.test.mjs",
@@ -9567,11 +9567,11 @@
           },
           {
             "path": "package.json",
-            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
+            "digest": "dc72e00b4c74076464942ead08b6154184fd0ea16b521344e8e43e6e7bb0d0ea"
           },
           {
             "path": "package-lock.json",
-            "digest": "53335abd3ff0a735cc93b19bbe06c8e29691573725800f24aa309a4a140796dd"
+            "digest": "43b2b9732771cdd47248ccbc141b748b97795cdeda9ab01e5c2b5ce067fb8794"
           }
         ]
       },
@@ -10589,7 +10589,7 @@
           },
           {
             "path": "package.json",
-            "digest": "334eba6f0631336322c97d9302e46f59f2edb164e37a59e4f6c166cca414dbec"
+            "digest": "dc72e00b4c74076464942ead08b6154184fd0ea16b521344e8e43e6e7bb0d0ea"
           }
         ]
       },

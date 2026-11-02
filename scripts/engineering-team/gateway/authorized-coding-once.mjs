@@ -27,6 +27,31 @@ const ENDPOINT = 'https://api.openai.com/v1/responses';
 const LOCAL_MODEL = 'qwen2.5-coder:7b';
 const LOCAL_ENDPOINT = 'http://127.0.0.1:11434/api/generate';
 const localModel = model => model === LOCAL_MODEL;
+// #3110 commissioning: the old edit span comes from verified source, not
+// model transcription. Other jobs keep the existing oldText/newText protocol.
+const FIXED_3110_TARGET = 'scripts/engineering-team/gateway/worker-pool/worker-pool.mjs';
+const FIXED_3110_OLD = "    ID.test(work.publicationId || '') && work.grantId !== work.publicationId &&";
+export function sourceBound3110Anchor(grant, original) {
+  if (grant?.issueNumber !== 3110 || grant.targetPath !== FIXED_3110_TARGET ||
+      typeof original !== 'string') return null;
+  const at = original.indexOf(FIXED_3110_OLD);
+  return at >= 0 && original.indexOf(FIXED_3110_OLD, at + 1) === -1
+    ? FIXED_3110_OLD : null;
+}
+export function bindSourceBound3110Proposal(anchor, proposal) {
+  if (anchor !== FIXED_3110_OLD ||
+      !exact(proposal, ['newText']) || typeof proposal.newText !== 'string')
+    return null;
+  const replacement = proposal.newText;
+  // Retain the original validation plus all three pairwise inequalities.
+  // The unchanged exact-once validator, syntax and independent tests still apply.
+  if (!replacement.includes("ID.test(work.publicationId || '')") ||
+      !['work.requestId !== work.grantId',
+        'work.requestId !== work.publicationId',
+        'work.grantId !== work.publicationId'].every(x => replacement.includes(x)))
+    return null;
+  return { oldText: anchor, newText: replacement };
+}
 // Retained evidence does not consume a concurrent worker slot. Reserve disk
 // headroom for one new worktree and leave every historical stage untouched.
 const MIN_CODING_STAGE_FREE_BYTES = 9n * 1024n ** 3n;
@@ -327,7 +352,7 @@ async function boundedResponse(response) {
   finally { reader.releaseLock(); }
 }
 
-async function boundedLocalResponse(response, model) {
+async function boundedLocalResponse(response, model, anchoredOldText = null) {
   if (!response?.ok || !response.body?.getReader) return null;
   const reader = response.body.getReader(), chunks = [];
   let count = 0;
@@ -344,13 +369,18 @@ async function boundedLocalResponse(response, model) {
         typeof data.response !== 'string' || data.response.length > 16_384)
       return null;
     const edit = JSON.parse(data.response);
-    return exact(edit, ['oldText', 'newText']) ? edit : null;
+    return anchoredOldText !== null
+      ? bindSourceBound3110Proposal(anchoredOldText, edit)
+      : (exact(edit, ['oldText', 'newText']) ? edit : null);
   } catch { return null; }
   finally { reader.releaseLock(); }
 }
 
 async function modelEdit({ grant, original, credential, fetchImpl }) {
   if (localModel(grant.model)) {
+    const anchored = grant.issueNumber === 3110;
+    const oldText = anchored ? sourceBound3110Anchor(grant, original) : null;
+    if (anchored && !oldText) return null;
     // No arbitrary host, redirected provider URL, authorization header,
     // token, tools, persistent conversation, or external model request.
     const response = await fetchImpl(LOCAL_ENDPOINT, {
@@ -361,9 +391,20 @@ async function modelEdit({ grant, original, credential, fetchImpl }) {
         model: LOCAL_MODEL, stream: false, keep_alive: '0',
         options: { temperature: 0, num_predict: grant.maxOutputTokens },
         format: { type: 'object', additionalProperties: false,
-          properties: { oldText: { type: 'string' }, newText: { type: 'string' } },
-          required: ['oldText', 'newText'] },
-        prompt: `Return JSON only with exact oldText/newText strings. Replace one
+          properties: anchored
+            ? { newText: { type: 'string' } }
+            : { oldText: { type: 'string' }, newText: { type: 'string' } },
+          required: anchored ? ['newText'] : ['oldText', 'newText'] },
+        prompt: anchored
+          ? `Return JSON only with one field: newText. Replace exactly ONE
+trusted source span with valid JavaScript. Retain publicationId validation,
+all three pairwise inequalities between requestId, grantId and publicationId,
+and the final &&. Do not return oldText, surrounding code, explanations,
+markdown, tools or unrelated edits.
+Exact source span (do not transcribe): ${oldText}
+Issue #${grant.issueNumber}. Owner objective: ${grant.objective}
+Source context (read-only):\n${original}`
+          : `Return JSON only with exact oldText/newText strings. Replace one
 unique substring without altering unrelated code. No shell, tools, network,
 additional files, or claims of tests. Issue #${grant.issueNumber}.
 Owner objective: ${grant.objective}
@@ -372,7 +413,7 @@ ${original}`,
       }),
       signal: AbortSignal.timeout(180_000),
     });
-    return boundedLocalResponse(response, LOCAL_MODEL);
+    return boundedLocalResponse(response, LOCAL_MODEL, oldText);
   }
   const response = await fetchImpl(ENDPOINT, {
     method: 'POST',

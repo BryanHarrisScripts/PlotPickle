@@ -50,5 +50,5 @@ test("#3355 reuses the existing profile-authorized, durable conversation gate", 
   assert.match(http, /ACTION_NOT_AUTHORIZED/);
   assert.match(server, /authorizeLocalFactoryRequest/);
   assert.doesNotMatch(source, /(?:window\.)?(?:localStorage|sessionStorage)\.(?:getItem|setItem|removeItem)\(/);
-  assert.doesNotMatch(source, /fetch\\("https?:\\/\\//);
+  assert.doesNotMatch(source, /fetch\("https?:\/\//);
 });

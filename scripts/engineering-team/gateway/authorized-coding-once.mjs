@@ -398,7 +398,8 @@ async function modelEdit({ grant, original, credential, fetchImpl }) {
         prompt: anchored
           ? `Return JSON only with one field: newText. Replace exactly ONE
 trusted source span with valid JavaScript. Retain publicationId validation,
-all three pairwise inequalities between requestId, grantId and publicationId,
+all three exact clauses work.requestId !== work.grantId,
+work.requestId !== work.publicationId, and work.grantId !== work.publicationId,
 and the final &&. Do not return oldText, surrounding code, explanations,
 markdown, tools or unrelated edits.
 Exact source span (do not transcribe): ${oldText}

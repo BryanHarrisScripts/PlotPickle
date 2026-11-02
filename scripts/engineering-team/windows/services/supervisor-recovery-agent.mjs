@@ -9,7 +9,7 @@
  */
 import {execFile} from "node:child_process";
 import {promisify} from "node:util";
-import {lstat, mkdir, readdir, readFile, writeFile} from "node:fs/promises";
+import {lstat, mkdir, readdir, readFile, rename, rm, writeFile} from "node:fs/promises";
 import {randomUUID} from "node:crypto";
 import os from "node:os";
 import path from "node:path";
@@ -48,6 +48,18 @@ async function markerState(file) {
     return s.isFile()&&!s.isSymbolicLink()?"PRESENT":"UNVERIFIABLE";
   }catch(e){return e?.code==="ENOENT"?"ABSENT":"UNVERIFIABLE";}
 }
+async function verifiedHeartbeatAge(head,now) {
+  const file=path.join(SUPERVISOR_STATE,"heartbeat.json");
+  try {
+    const info=await lstat(file);
+    if(!info.isFile()||info.isSymbolicLink()||info.size<2||info.size>4096)
+      return null;
+    const hb=JSON.parse(await readFile(file,"utf8"));
+    if(hb?.sourceHead!==head||!Number.isSafeInteger(hb.at)||
+       hb.at<1||hb.at>now+5000)return null;
+    return now-hb.at;
+  }catch{return null;}
+}
 async function safeDirectory(dir) {
   await mkdir(dir,{recursive:true,mode:0o700});
   const s=await lstat(dir);
@@ -81,11 +93,11 @@ async function safeHistory(now) {
     attempts:recent.length,latestAt:Math.max(0,...recent.map(r=>r.requested.at))};
 }
 export async function evaluateSupervisorRecovery({platform,head,branch,clean,
-  status,task,lock,stop,pause,enabled,history}={}) {
+  status,task,lock,stop,pause,enabled,history,heartbeatAgeMs,now=Date.now()}={}) {
   if(platform!=="win32")return blocked("WINDOWS_ONLY");
   if(!SHA.test(head||"")||branch!=="main"||!clean)return blocked("CLEAN_MAIN_REQUIRED");
   if(!status||status.exactSha!==head)return blocked("SUPERVISOR_SOURCE_MISMATCH");
-  if(status.state==="RUNNING")return observation("HEALTHY","SUPERVISOR_HEARTBEAT_PRESENT",{sourceHead:head});
+  if(status.state==="RUNNING")return observation("OBSERVED","SUPERVISOR_HEARTBEAT_PRESENT_NOT_PROCESS_PROOF",{sourceHead:head});
   if(status.state!=="OFFLINE"||status.pauseAcknowledged===true)return blocked("SUPERVISOR_NOT_ELIGIBLE");
   if(!task||task.taskInstalled!==true||task.taskState!=="Ready"||
      task.sourceHead!==head||task.recoveryPolicyVerified!==true)
@@ -93,16 +105,19 @@ export async function evaluateSupervisorRecovery({platform,head,branch,clean,
   if(stop!=="ABSENT"||pause!=="ABSENT"||enabled!=="PRESENT")
     return blocked("STOP_PAUSE_OR_CONSENT_UNVERIFIABLE");
   if(lock!=="ABSENT")return blocked("LOCK_PRESENT_REQUIRES_SEPARATE_REVIEW");
+  // Let the existing 3 x 5 minute Task Scheduler restart policy complete first.
+  if(!Number.isSafeInteger(heartbeatAgeMs)||heartbeatAgeMs<1200000)
+    return blocked("TASK_SCHEDULER_RETRY_WINDOW_OR_HEARTBEAT_UNVERIFIED");
   if(!history||history.uncertain||history.attempts>=3)
     return blocked("RECOVERY_RECEIPT_UNCERTAIN_OR_BUDGET_EXHAUSTED");
-  if(history.latestAt&&Date.now()-history.latestAt<300000)
+  if(history.latestAt&&now-history.latestAt<300000)
     return blocked("RECOVERY_COOLDOWN");
   return observation("ELIGIBLE","REVIEWED_TASK_START_ALLOWED",{sourceHead:head});
 }
 export async function recoverSupervisorOnce({now=Date.now(),platform=process.platform,
   runner=run}={}) {
   if(platform!=="win32")return blocked("WINDOWS_ONLY");
-  let head,branch,clean,status,task,stop,pause,enabled,lock,history;
+  let head,branch,clean,status,task,stop,pause,enabled,lock,history,heartbeatAgeMs;
   try {
     [head,branch]=await Promise.all([
       runner("git",["-C",REPO,"rev-parse","HEAD"]),
@@ -119,9 +134,10 @@ export async function recoverSupervisorOnce({now=Date.now(),platform=process.pla
       markerState(path.join(SUPERVISOR_STATE,"running.lock")),
       safeHistory(now)
     ]);
+    heartbeatAgeMs=await verifiedHeartbeatAge(head,now);
   }catch{return blocked("OBSERVATION_UNVERIFIABLE");}
   const decision=await evaluateSupervisorRecovery({platform,head,branch,clean,
-    status,task,stop,pause,enabled,lock,history});
+    status,task,stop,pause,enabled,lock,history,heartbeatAgeMs,now});
   if(decision.state!=="ELIGIBLE")return decision;
   // Before requesting start, atomically preserve the intent; no uncertain replay.
   let requestId,requestPath;
@@ -174,11 +190,9 @@ async function persistHeartbeat(result) {
   try {
     const latest=await markerState(target);
     if(latest==="UNVERIFIABLE")throw Error("HEARTBEAT_TARGET_CHANGED");
-    const {rename,rm}=await import("node:fs/promises");
     await rename(temp,target);
     return payload;
   }finally{
-    const {rm}=await import("node:fs/promises");
     await rm(temp,{force:true}).catch(()=>{});
   }
 }

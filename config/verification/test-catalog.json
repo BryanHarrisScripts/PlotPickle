@@ -4267,7 +4267,8 @@
           "tests/issue-3142-ollama-coding-provider.test.mjs",
           "tests/issue-3303-windows-product-gate.test.mjs",
           "tests/issue-3142-authenticated-operator-maintenance.test.mjs",
-          "tests/issue-3142-worker1-pilot-issuer.test.mjs"
+          "tests/issue-3142-worker1-pilot-issuer.test.mjs",
+          "tests/issue-3110-worker1-one-shot-authorization.test.mjs"
         ]
       },
       "cost": "fast",
@@ -10003,7 +10004,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-observer.mjs",
@@ -10071,7 +10072,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
@@ -10119,7 +10120,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/queue/factory-disk-space.mjs",
@@ -10374,7 +10375,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-named-tests.mjs",
@@ -10434,7 +10435,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/plotpickle-app-lifecycle.mjs",
@@ -10494,7 +10495,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": ".github/workflows/architecture-shadow.yml",
@@ -10730,7 +10731,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -11540,7 +11541,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
@@ -11584,7 +11585,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/windows/tunnel/Upgrade-PlotPickleTunnelCatalog.ps1",
@@ -11648,7 +11649,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
@@ -11831,7 +11832,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-engineering-exec.mjs",
@@ -12558,7 +12559,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
@@ -12602,7 +12603,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
-            "digest": "d98c761e63da7b29e0875692cc6d21a36a1904bb709c6eeb57e4fe0c691537d2"
+            "digest": "a20f58c6219ea7b6ee53ce299cbeda0cd7b46fcd3214a2ced9e28346983ec6da"
           }
         ]
       },
@@ -12778,7 +12779,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
-            "digest": "d98c761e63da7b29e0875692cc6d21a36a1904bb709c6eeb57e4fe0c691537d2"
+            "digest": "a20f58c6219ea7b6ee53ce299cbeda0cd7b46fcd3214a2ced9e28346983ec6da"
           },
           {
             "path": "scripts/engineering-team/windows/workers/Install-PlotPickleFactoryWorkers.ps1",
@@ -12795,7 +12796,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
@@ -12844,7 +12845,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/operations/factory-operator-maintenance.mjs",
@@ -12852,7 +12853,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
-            "digest": "d98c761e63da7b29e0875692cc6d21a36a1904bb709c6eeb57e4fe0c691537d2"
+            "digest": "a20f58c6219ea7b6ee53ce299cbeda0cd7b46fcd3214a2ced9e28346983ec6da"
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/dispatcher/native-dispatcher.mjs",
@@ -12868,7 +12869,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
-            "digest": "a3d0b02c451635ab600c8e2a044e811cc0af6f75b021c8a2977c2e23c93912a7"
+            "digest": "c7979cad66be58bfe4ee8eeddd3da220a37703742173f5ae43a20b3ae9fd03d2"
           }
         ],
         "truthRefs": [
@@ -12896,11 +12897,11 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
-            "digest": "a3d0b02c451635ab600c8e2a044e811cc0af6f75b021c8a2977c2e23c93912a7"
+            "digest": "c7979cad66be58bfe4ee8eeddd3da220a37703742173f5ae43a20b3ae9fd03d2"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
-            "digest": "de3fc90bf09de688b82a61c602cf2b2bcd7f3917ad1f32b0deb2d5ab87a39f34"
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-pool.mjs",
@@ -13011,6 +13012,42 @@
           {
             "path": "app/api/factory/conversation/route.ts",
             "digest": "bb28cd8537985647f06de1278bf57f3447751b021a88d7a75a3f2a7569d05bec"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3110-worker1-one-shot-authorization.test.mjs",
+        "targetDigest": "f22b3d37ece3bec49f402cc8f1bbc3319d7b640a0f6990e3af75cd6d7f5f7b1e",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "AUTHOR-PROPOSED #3110 fixed first-Worker-1 grant. Disposable unit fixture checks exact owner-scoped source, three distinct IDs, STOP/wrong-head/dispatcher failure, immutable no-replay marker, prior terminal evidence and denial of unauthorized MCP arguments. Does not verify real owner Windows execution, separate semantic approval, F00 qualification, local-model edit, Product Gate, accepted PR or merge. Requires separate source/test review before release.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
+            "digest": "c7979cad66be58bfe4ee8eeddd3da220a37703742173f5ae43a20b3ae9fd03d2"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+            "digest": "0473669fd180f85c1a0df1975c5f5fb29b3a0d70cfd95091a94b2b599762406c"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
+            "digest": "a20f58c6219ea7b6ee53ce299cbeda0cd7b46fcd3214a2ced9e28346983ec6da"
           }
         ]
       }

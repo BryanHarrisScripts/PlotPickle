@@ -207,3 +207,41 @@
   .teamRoles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .agentWorkspace { padding: var(--pp-space-3); }
 }
+
+/* #3355: authenticated mission draft; no executor or new collaboration runtime. */
+.missionPanel {
+  display: grid;
+  gap: var(--pp-space-3);
+  min-width: 0;
+  padding: var(--pp-space-4);
+  border: 1px solid var(--pp-line);
+  border-radius: var(--pp-radius-control);
+  background: var(--pp-surface);
+}
+.missionPanel p { margin: 0; color: var(--pp-muted); font-size: var(--pp-text-sm); }
+.missionFacts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pp-space-3);
+  margin: 0;
+}
+.missionFacts > div { min-width: 0; }
+.missionFacts dt { color: var(--pp-muted); font-size: var(--pp-text-xs); }
+.missionFacts dd { margin: 0; overflow-wrap: anywhere; }
+.missionFacts code { overflow-wrap: anywhere; }
+.missionForm { display: grid; gap: var(--pp-space-2); }
+.missionForm label { color: var(--pp-text); font-weight: 700; }
+.missionForm input {
+  width: 100%;
+  min-height: var(--pp-touch-target);
+  padding: var(--pp-space-3);
+  border: 1px solid var(--pp-line-strong);
+  border-radius: var(--pp-radius-control);
+  background: var(--pp-surface-raised);
+  color: var(--pp-text);
+}
+.missionForm input:focus-visible { outline: var(--pp-space-1) solid var(--pp-orange); }
+.missionForm button:disabled { opacity: 0.6; cursor: not-allowed; }
+@media (max-width: 36rem) {
+  .missionFacts { grid-template-columns: 1fr; }
+}

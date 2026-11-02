@@ -9000,7 +9000,7 @@
           },
           {
             "path": "app/sage-settings-workspace.tsx",
-            "digest": "206e791087002500caece14bcf9c62ae2ce7a7885377b7e60aa3496ec4c48fa3"
+            "digest": "4557a22399b770a5f6fe344a718fbbaf2bed85bad79cc35c6ccaf27a15366fb8"
           },
           {
             "path": "app/local-voice-settings.tsx",
@@ -9699,7 +9699,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "00516971a5995cca146c01a50b6d50b406efd33f054b614c93ce9dae118cc9fe"
+            "digest": "a2291ba57368f47b1dc0c5e84c010981cfbc5c28ae0c05d005cf6a22d0af29bc"
           }
         ]
       },

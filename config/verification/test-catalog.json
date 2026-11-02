@@ -7330,11 +7330,11 @@
           },
           {
             "path": "package.json",
-            "digest": "dc72e00b4c74076464942ead08b6154184fd0ea16b521344e8e43e6e7bb0d0ea"
+            "digest": "db82aff04d04a03db8cdd8ef8341d5a4558a08734cba61322bd37f3718f1e358"
           },
           {
             "path": "package-lock.json",
-            "digest": "43b2b9732771cdd47248ccbc141b748b97795cdeda9ab01e5c2b5ce067fb8794"
+            "digest": "6288ed32ada81d99fef0a49e03bf8db970670d3ac61498db5c1e5b44e4a3e174"
           }
         ]
       },
@@ -7502,7 +7502,7 @@
           },
           {
             "path": "package.json",
-            "digest": "dc72e00b4c74076464942ead08b6154184fd0ea16b521344e8e43e6e7bb0d0ea"
+            "digest": "db82aff04d04a03db8cdd8ef8341d5a4558a08734cba61322bd37f3718f1e358"
           },
           {
             "path": "tests/support/story-project-repository-fixture.mjs",
@@ -7542,7 +7542,7 @@
           },
           {
             "path": "package.json",
-            "digest": "dc72e00b4c74076464942ead08b6154184fd0ea16b521344e8e43e6e7bb0d0ea"
+            "digest": "db82aff04d04a03db8cdd8ef8341d5a4558a08734cba61322bd37f3718f1e358"
           },
           {
             "path": "tests/support/story-project-repository-fixture.mjs",
@@ -7622,7 +7622,7 @@
           },
           {
             "path": "package.json",
-            "digest": "dc72e00b4c74076464942ead08b6154184fd0ea16b521344e8e43e6e7bb0d0ea"
+            "digest": "db82aff04d04a03db8cdd8ef8341d5a4558a08734cba61322bd37f3718f1e358"
           }
         ]
       },
@@ -7722,7 +7722,7 @@
           },
           {
             "path": "package.json",
-            "digest": "dc72e00b4c74076464942ead08b6154184fd0ea16b521344e8e43e6e7bb0d0ea"
+            "digest": "db82aff04d04a03db8cdd8ef8341d5a4558a08734cba61322bd37f3718f1e358"
           },
           {
             "path": "tests/phase-f-collaboration-release.test.mjs",
@@ -7786,7 +7786,7 @@
           },
           {
             "path": "package.json",
-            "digest": "dc72e00b4c74076464942ead08b6154184fd0ea16b521344e8e43e6e7bb0d0ea"
+            "digest": "db82aff04d04a03db8cdd8ef8341d5a4558a08734cba61322bd37f3718f1e358"
           },
           {
             "path": "tests/phase-f-collaboration-release.test.mjs",
@@ -9567,11 +9567,11 @@
           },
           {
             "path": "package.json",
-            "digest": "dc72e00b4c74076464942ead08b6154184fd0ea16b521344e8e43e6e7bb0d0ea"
+            "digest": "db82aff04d04a03db8cdd8ef8341d5a4558a08734cba61322bd37f3718f1e358"
           },
           {
             "path": "package-lock.json",
-            "digest": "43b2b9732771cdd47248ccbc141b748b97795cdeda9ab01e5c2b5ce067fb8794"
+            "digest": "6288ed32ada81d99fef0a49e03bf8db970670d3ac61498db5c1e5b44e4a3e174"
           }
         ]
       },
@@ -10589,7 +10589,7 @@
           },
           {
             "path": "package.json",
-            "digest": "dc72e00b4c74076464942ead08b6154184fd0ea16b521344e8e43e6e7bb0d0ea"
+            "digest": "db82aff04d04a03db8cdd8ef8341d5a4558a08734cba61322bd37f3718f1e358"
           }
         ]
       },

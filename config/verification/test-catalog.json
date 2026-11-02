@@ -12370,7 +12370,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "11115343662dcb4e4924de1f9612cdab0eacc64bcdaa2cd5b533e953e4e64f3e"
+            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12406,7 +12406,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "11115343662dcb4e4924de1f9612cdab0eacc64bcdaa2cd5b533e953e4e64f3e"
+            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
           }
         ]
       },
@@ -12474,7 +12474,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "11115343662dcb4e4924de1f9612cdab0eacc64bcdaa2cd5b533e953e4e64f3e"
+            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12607,7 +12607,7 @@
       },
       {
         "target": "tests/issue-3142-reconcile-syntax-failure.test.mjs",
-        "targetDigest": "003e5232eea1b2b3d911c1046da9c259c32350ba71f1156132dc9fbfc7df9c72",
+        "targetDigest": "d0ddad62c5df96ba22efb31296c7c8cfa729df2bd08e120009b1fcc6e3322188",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12625,11 +12625,11 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Disposable filesystem/SQLite tests verify owner-gated rejected-syntax reconciliation terminal evidence, preservation of immutable original claim, refusal of replay and continued distinct claim admission. Windows CLI independently checks stage syntax, current source ancestry, stopped worker and absent remote branch before owner consent; these unit tests do NOT prove live owner-Windows reconciliation, signer, automated worker, product acceptance or merge.",
+        "limits": "Candidate revision: adds adversarial VALIDATE_MODEL_EDIT no-write terminal-release fixture with explicit wrong-consent, wrong-phase and replay rejection; retains prior syntax tests. Binding/digest are AUTHOR-PROPOSED against unchanged WHITE-PAPER-V3 W8/W9; requires independent Human semantic review, current exact-head CI and actual Windows Product Gate. Fixture does not prove real owner process isolation or actual owner Windows release.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/receipts/atomic-coding-ownership.mjs",
-            "digest": "72401117c8c5b629dbdfdfade194d45f4aa45ce27f111bf32c40434586e4903d"
+            "digest": "a9ed341c9620a9f4be35d4f882f4a3f38b1f3693efc0a5e38d1f8133319f932e"
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/reconcile-failed-syntax-once.mjs",
@@ -12907,7 +12907,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "11115343662dcb4e4924de1f9612cdab0eacc64bcdaa2cd5b533e953e4e64f3e"
+            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
           }
         ],
         "truthRefs": [

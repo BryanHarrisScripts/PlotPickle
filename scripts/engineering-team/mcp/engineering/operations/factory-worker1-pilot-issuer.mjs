@@ -287,6 +287,45 @@ async function prior3110HistorySettled(root,entries,expectedHead,at){
   return true;
 }
 
+/**
+ * The first #3110 ticket is permanently consumed. One distinct second grant
+ * requires a verified no-write release, no PR, and a newer trusted MAIN.
+ */
+async function prior3110TerminalRecoveryProven(root,expectedHead,at) {
+  try {
+    const dir=path.join(root,"owner-pilot-reservations");
+    const d=await lstat(dir);
+    if(!d.isDirectory()||d.isSymbolicLink())return false;
+    const p=path.join(dir,"issue-3110.json"),st=await lstat(p);
+    if(!st.isFile()||st.isSymbolicLink()||st.size<2||st.size>4096)return false;
+    const marker=JSON.parse(await readFile(p,"utf8"));
+    if(marker.schemaVersion!==1||marker.issueNumber!==3110||
+       marker.state!=="GRANT_WRITES_RESERVED_NO_REPLAY"||
+       !/^[a-f0-9]{32}$/.test(marker.requestId||"")||
+       !SHA.test(marker.sourceHead||"")||
+       marker.sourceHead===expectedHead||
+       !Number.isSafeInteger(marker.at)||marker.at>=at)return false;
+    const order=await historicalRecord(root,"owner-work-orders",marker.requestId+".json");
+    if(!validateOwnerWorkOrder(order,order.sourceHead)||
+       order.requestId!==marker.requestId||
+       order.sourceHead!==marker.sourceHead||
+       order.issueNumber!==3110||order.assignedWorker!=="coding-worker-1")return false;
+    const coding=await historicalRecord(root,"coding-attempts",order.grantId+".result.json");
+    const release=await historicalRecord(root,"coding-attempts",order.grantId+".released.json");
+    if(coding.state!=="BLOCKED"||
+       coding.code!=="CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE"||
+       coding.phase!=="VALIDATE_MODEL_EDIT"||coding.replayAuthorized!==false||
+       release.schemaVersion!==1||release.kind!=="coding-resource-release"||
+       release.grantId!==order.grantId||release.sourceHead!==order.sourceHead||
+       release.state!=="RECONCILED_MODEL_EDIT_REJECTED_NO_WRITE"||
+       release.phase!=="VALIDATE_MODEL_EDIT"||
+       release.replayAuthorized!==false||release.publicationAuthorized!==false||
+       release.localCommit!==undefined||release.branch!==undefined)return false;
+    return await historicalAbsent(root,"publication-attempts",order.publicationId+".result.json") &&
+      await historicalAbsent(root,"engineering-receipts",order.grantId+".json");
+  }catch{return false;}
+}
+
 export async function issueOne3110Worker1Ticket({
   expectedHead,platform=process.platform,repoRoot=ROOT,
   verifyHead=readFactoryVerificationHead,root=privateGatewayRoot(),
@@ -310,7 +349,7 @@ export async function issueOne3110Worker1Ticket({
       return denied("WORKER1_STOP_PAUSE_OR_SOURCE_UNVERIFIED");
   }catch{return denied("WORKER1_READINESS_UNVERIFIED");}
 
-  let dirs;
+  let dirs,terminalRecovery=false;
   try{
     dirs={
       reserve:await ownerDirectory(root,"owner-pilot-reservations"),
@@ -324,8 +363,14 @@ export async function issueOne3110Worker1Ticket({
       return denied("WORKER1_PRIOR_ATTEMPT_UNVERIFIED_NO_REPLAY");
     const reservations=await readdir(dirs.reserve);
     if(reservations.some(n=>!["issue-3142.json",
-      "issue-3142-terminal-recovery.json"].includes(n)))
+      "issue-3142-terminal-recovery.json","issue-3110.json",
+      "issue-3110-terminal-recovery.json"].includes(n)))
       return denied("WORKER1_ONCE_ALREADY_RESERVED");
+    const original3110=reservations.includes("issue-3110.json");
+    if(reservations.includes("issue-3110-terminal-recovery.json")||
+       (original3110 && !await prior3110TerminalRecoveryProven(root,expectedHead,at)))
+      return denied("WORKER1_ONCE_ALREADY_RESERVED");
+    terminalRecovery=original3110;
   }catch{return denied("WORKER1_STORAGE_UNVERIFIED");}
 
   const requestId=id(),grantId=id(),publicationId=id();
@@ -360,7 +405,8 @@ export async function issueOne3110Worker1Ticket({
        (await dispatcherRead())?.state!=="ONLINE_OBSERVED")
       return denied("WORKER1_READINESS_CHANGED");
     // Write-once reservation FIRST; preserve partial failure for Human review.
-    await oneFile(dirs.reserve,"issue-3110.json",{
+    await oneFile(dirs.reserve,terminalRecovery
+      ?"issue-3110-terminal-recovery.json":"issue-3110.json",{
       schemaVersion:1,issueNumber:3110,requestId,sourceHead:expectedHead,
       state:"GRANT_WRITES_RESERVED_NO_REPLAY",at});
     await oneFile(dirs.coding,grantId+".json",coding);

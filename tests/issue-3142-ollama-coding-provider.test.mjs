@@ -4,7 +4,9 @@ import { createHash } from 'node:crypto';
 import { mkdtemp, mkdir, rm, writeFile, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { validateCodingGrant, runAuthorizedCodingOnce } from '../scripts/engineering-team/gateway/authorized-coding-once.mjs';
+import { validateCodingGrant, runAuthorizedCodingOnce, boundedSourceEdit,
+  sourceBound3110Anchor, bindSourceBound3110Proposal }
+  from '../scripts/engineering-team/gateway/authorized-coding-once.mjs';
 
 const HEAD = 'a'.repeat(40);
 const COMMIT = 'b'.repeat(40);
@@ -118,3 +120,30 @@ test('unexpected local model identity is permanently fail-closed without fallbac
     assert.equal(again.code, 'CODING_ALREADY_RESERVED_OR_UNVERIFIABLE');
     assert.equal(calls, 1);
   }));
+
+// #3110: model proposals can only supply the new span. The old fragment is
+// immutable, unique, checked against source, and passed to the same validator.
+test('commissioning local proposal remains anchored and rejects ambiguous or incomplete edits',()=>{
+  const sourceText=`export function validateOwnerWorkOrder(work) {
+    return ID.test(work.publicationId || '') && work.grantId !== work.publicationId &&
+      Boolean(work.requestId);
+  }
+`;
+  const scope={issueNumber:3110,
+    targetPath:'scripts/engineering-team/gateway/worker-pool/worker-pool.mjs'};
+  const anchor=sourceBound3110Anchor(scope,sourceText);
+  assert.ok(anchor);
+  const proposed={newText:
+    "    ID.test(work.publicationId || '') && work.requestId !== work.grantId &&\n" +
+    "    work.requestId !== work.publicationId && work.grantId !== work.publicationId &&"};
+  const edit=bindSourceBound3110Proposal(anchor,proposed);
+  assert.deepEqual(Object.keys(edit).sort(),['newText','oldText']);
+  assert.equal(boundedSourceEdit(sourceText,edit),sourceText.replace(anchor,proposed.newText));
+  assert.equal(bindSourceBound3110Proposal(anchor,{oldText:anchor,...proposed}),null,
+    'model transcription is not accepted by anchored response parser');
+  assert.equal(bindSourceBound3110Proposal(anchor,{newText:'return true;'}),null);
+  assert.equal(sourceBound3110Anchor(scope,sourceText+sourceText),null,
+    'ambiguous old source must fail closed');
+  assert.equal(sourceBound3110Anchor({...scope,issueNumber:3142},sourceText),null);
+  assert.equal(sourceBound3110Anchor({...scope,targetPath:'other.mjs'},sourceText),null);
+});

@@ -160,11 +160,34 @@ export async function recoverSupervisorOnce({now=Date.now(),platform=process.pla
     outcome,{sourceHead:head,processOwnershipVerified:false,
       independentWindowsAcceptance:false});
 }
+async function persistHeartbeat(result) {
+  const root=path.join(PRIVATE,"service-manager");
+  await safeDirectory(root);
+  const target=path.join(root,"heartbeat.json");
+  const before=await markerState(target);
+  if(before==="UNVERIFIABLE")throw Error("MANAGER_HEARTBEAT_PATH_UNVERIFIABLE");
+  const temp=path.join(root,".heartbeat-"+randomUUID()+".tmp");
+  const payload={schemaVersion:1,at:Date.now(),state:result.state,
+    code:result.code,sourceHead:SHA.test(result.sourceHead||"")?result.sourceHead:null,
+    processOwnershipVerified:false,automaticMergeEnabled:false};
+  await writeFile(temp,JSON.stringify(payload)+"\n",{flag:"wx",mode:0o600});
+  try {
+    const latest=await markerState(target);
+    if(latest==="UNVERIFIABLE")throw Error("HEARTBEAT_TARGET_CHANGED");
+    const {rename,rm}=await import("node:fs/promises");
+    await rename(temp,target);
+    return payload;
+  }finally{
+    const {rm}=await import("node:fs/promises");
+    await rm(temp,{force:true}).catch(()=>{});
+  }
+}
 async function main(args=process.argv.slice(2)) {
   if(args.length!==1||!["--once","--watch"].includes(args[0]))
     throw Error("EXACT_RECOVERY_MODE_REQUIRED");
   do {
     const result=await recoverSupervisorOnce();
+    await persistHeartbeat(result);
     process.stdout.write(JSON.stringify(result)+"\n");
     if(args[0]==="--once")return;
     await new Promise(resolve=>setTimeout(resolve,60000));

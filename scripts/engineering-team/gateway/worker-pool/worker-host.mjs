@@ -36,9 +36,9 @@ export async function readOwnerOrder(root, id) {
 }
 
 /**
- * #3142 owner's ONE-ISSUE supervised-bootstrap exception. This is a local
- * human-created work-order consent, not independent F00 or W8/W9 attestation.
- * It never releases scheduled --serve, a second worker, another issue or merge.
+ * #3142 pilot or #3110 fixed first-job owner-supervised exception. Local
+ * Human work-order consent is NOT independent F00 or W8/W9 attestation.
+ * Only the explicitly scoped request may reach Worker 1, never another issue or merge.
  * A coding worker cannot issue its own approval from GitHub issue text.
  */
 export function validOwnerPilotException(value, order, head, at) {
@@ -48,8 +48,10 @@ export function validOwnerPilotException(value, order, head, at) {
     Object.keys(value).length === fields.length &&
     fields.every(field => Object.hasOwn(value, field)) &&
     value.schemaVersion === 1 && value.kind === 'owner-one-shot-exception' &&
-    value.consent === 'AUTHORIZE_ONE_3142_PILOT_NO_F00' &&
-    value.issueNumber === 3142 && order?.issueNumber === 3142 &&
+    ((value.consent === 'AUTHORIZE_ONE_3142_PILOT_NO_F00' &&
+      value.issueNumber === 3142 && order?.issueNumber === 3142) ||
+     (value.consent === 'AUTHORIZE_ONE_3110_SUPERVISED_DRAFT_NO_F00' &&
+      value.issueNumber === 3110 && order?.issueNumber === 3110)) &&
     value.sourceHead === head && order.sourceHead === head &&
     value.requestId === order.requestId && ID.test(value.requestId || '') &&
     value.grantId === order.grantId && ID.test(value.grantId || '') &&
@@ -102,9 +104,9 @@ export async function runOwnerWorkerTicket({
   const order = await readOwnerOrder(root, requestId);
   if (!order) return blocked('PRIVATE_OWNER_WORK_ORDER_REQUIRED');
   if (order.assignedWorker !== role) return blocked('WORKER_ROLE_MISMATCH');
-  // Only the explicit owner's #3142 single-use local exception can replace
-  // the unavailable F00 release preflight for this one draft-PR attempt.
-  // All other issues still require the existing independent release callback.
+  // The previously reviewed #3142 pilot and new bounded #3110 first-job
+  // consent permit ONE supervised draft-PR attempt, never independent review,
+  // protected test admission or merge. Every other issue remains release-gated.
   const release = async () => await independentReleaseReady() === true ||
     (role === 'coding-worker-1' &&
       await readOwnerPilotException(root, order, source.head, Date.now()));

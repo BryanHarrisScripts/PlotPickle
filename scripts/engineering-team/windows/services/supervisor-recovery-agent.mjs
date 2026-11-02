@@ -89,7 +89,7 @@ async function safeHistory(now) {
     r.result.head!==r.requested.head||
     r.result.at<r.requested.at))throw Error("RECEIPT_MISMATCH");
   const recent=records.filter(r=>r.requested.at>=now-3600000);
-  return {uncertain:recent.some(r=>r.result.outcome!=="START_OBSERVED"),
+  return {uncertain:records.some(r=>r.result.outcome!=="START_OBSERVED"),
     attempts:recent.length,latestAt:Math.max(0,...recent.map(r=>r.requested.at))};
 }
 export async function evaluateSupervisorRecovery({platform,head,branch,clean,

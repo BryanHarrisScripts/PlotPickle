@@ -12606,7 +12606,7 @@
       },
       {
         "target": "tests/issue-3142-reconcile-syntax-failure.test.mjs",
-        "targetDigest": "003e5232eea1b2b3d911c1046da9c259c32350ba71f1156132dc9fbfc7df9c72",
+        "targetDigest": "d0ddad62c5df96ba22efb31296c7c8cfa729df2bd08e120009b1fcc6e3322188",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12624,7 +12624,7 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Disposable filesystem/SQLite tests verify owner-gated rejected-syntax reconciliation terminal evidence, preservation of immutable original claim, refusal of replay and continued distinct claim admission. Windows CLI independently checks stage syntax, current source ancestry, stopped worker and absent remote branch before owner consent; these unit tests do NOT prove live owner-Windows reconciliation, signer, automated worker, product acceptance or merge.",
+        "limits": "Candidate revision: adds adversarial VALIDATE_MODEL_EDIT no-write terminal-release fixture with explicit wrong-consent, wrong-phase and replay rejection; retains prior syntax tests. Binding/digest are AUTHOR-PROPOSED against unchanged WHITE-PAPER-V3 W8/W9; requires independent Human semantic review, current exact-head CI and actual Windows Product Gate. Fixture does not prove real owner process isolation or actual owner Windows release.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/receipts/atomic-coding-ownership.mjs",

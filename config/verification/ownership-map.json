@@ -2664,7 +2664,8 @@
       "id": "factory-conversation-http-boundary-3259",
       "classification": "production",
       "include": [
-        "app/api/factory/conversation/route.ts"
+        "app/api/factory/conversation/route.ts",
+        "app/api/factory/mission/route.ts"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [

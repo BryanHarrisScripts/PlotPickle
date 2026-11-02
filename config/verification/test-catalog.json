@@ -4941,7 +4941,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-3259-conversation-mcp.test.mjs",
-          "tests/issue-3259-outbound-openai-once.test.mjs"
+          "tests/issue-3259-outbound-openai-once.test.mjs",
+          "tests/issue-3355-durable-mission-store.test.mjs"
         ]
       },
       "cost": "fast",
@@ -9697,7 +9698,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "f686ff3b8bf7a739037edb81fb439a47cf03255d3875cd1cdc13f996d9ba12df"
+            "digest": "00516971a5995cca146c01a50b6d50b406efd33f054b614c93ce9dae118cc9fe"
           }
         ]
       },
@@ -10320,7 +10321,7 @@
           },
           {
             "path": "build/local-profile-auth-gateway.ts",
-            "digest": "433665e344615e9cbc6b6f63351be2e1d6351909c903e809f83cfaef1d191cd4"
+            "digest": "63b2b94ca70a90b79ca25703f712d2793e432a349f4c4440af34fb69a8bf6020"
           },
           {
             "path": "core/auth/profile-experience/local-factory-request.ts",
@@ -11058,7 +11059,7 @@
           },
           {
             "path": "build/local-profile-auth-gateway.ts",
-            "digest": "433665e344615e9cbc6b6f63351be2e1d6351909c903e809f83cfaef1d191cd4"
+            "digest": "63b2b94ca70a90b79ca25703f712d2793e432a349f4c4440af34fb69a8bf6020"
           },
           {
             "path": "app/skin-v1/tunnel-settings-panel.tsx",
@@ -12370,7 +12371,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "11115343662dcb4e4924de1f9612cdab0eacc64bcdaa2cd5b533e953e4e64f3e"
+            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12406,7 +12407,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "11115343662dcb4e4924de1f9612cdab0eacc64bcdaa2cd5b533e953e4e64f3e"
+            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
           }
         ]
       },
@@ -12474,7 +12475,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "11115343662dcb4e4924de1f9612cdab0eacc64bcdaa2cd5b533e953e4e64f3e"
+            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12607,7 +12608,7 @@
       },
       {
         "target": "tests/issue-3142-reconcile-syntax-failure.test.mjs",
-        "targetDigest": "003e5232eea1b2b3d911c1046da9c259c32350ba71f1156132dc9fbfc7df9c72",
+        "targetDigest": "d0ddad62c5df96ba22efb31296c7c8cfa729df2bd08e120009b1fcc6e3322188",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12625,11 +12626,11 @@
           "unit-fixture",
           "real-boundary"
         ],
-        "limits": "Disposable filesystem/SQLite tests verify owner-gated rejected-syntax reconciliation terminal evidence, preservation of immutable original claim, refusal of replay and continued distinct claim admission. Windows CLI independently checks stage syntax, current source ancestry, stopped worker and absent remote branch before owner consent; these unit tests do NOT prove live owner-Windows reconciliation, signer, automated worker, product acceptance or merge.",
+        "limits": "Candidate revision: adds adversarial VALIDATE_MODEL_EDIT no-write terminal-release fixture with explicit wrong-consent, wrong-phase and replay rejection; retains prior syntax tests. Binding/digest are AUTHOR-PROPOSED against unchanged WHITE-PAPER-V3 W8/W9; requires independent Human semantic review, current exact-head CI and actual Windows Product Gate. Fixture does not prove real owner process isolation or actual owner Windows release.",
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/receipts/atomic-coding-ownership.mjs",
-            "digest": "72401117c8c5b629dbdfdfade194d45f4aa45ce27f111bf32c40434586e4903d"
+            "digest": "a9ed341c9620a9f4be35d4f882f4a3f38b1f3693efc0a5e38d1f8133319f932e"
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/reconcile-failed-syntax-once.mjs",
@@ -12907,7 +12908,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "11115343662dcb4e4924de1f9612cdab0eacc64bcdaa2cd5b533e953e4e64f3e"
+            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
           }
         ],
         "truthRefs": [
@@ -12925,6 +12926,46 @@
           "static-source"
         ],
         "limits": "Owner-authorized fixed pilot for #3142 ONLY. Source-bound one-use authorization records and no-replay marker tested under disposable filesystem; no live Windows worker, no external F00, no Product Gate, no model call, no PR or auto merge proven. Author-proposed exact source/test W8/W9 binding requires independent assessment."
+      },
+      {
+        "target": "tests/issue-3355-durable-mission-store.test.mjs",
+        "targetDigest": "e40532a49c7946c60c008fd551c6963b3f4d4b50e6ab815d1ba7bd37b98c2f19",
+        "catalogueIds": [
+          "agent.conversation-mcp-3259"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "real-boundary"
+        ],
+        "limits": "Author-proposed issue-3355 disposable mission journal and synthetic local-profile HTTP boundary tests; validates immutable draft-only readback, host-supplied profile partition, same-origin/CSRF-adjacent checks, expiry, data integrity, unavailable worker states and denial of executable actions. Actual local session CSRF/recent reauthentication is enforced by existing server boundary in source but NOT independently tested against a real owner's browser, signed Windows installation, specialist execution or merge. Separate qualified review and real Product Gate required.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/gateway/agent-mission-store.mjs",
+            "digest": "dfe8823b24f2baedcfba6e09b0e60ad261e8ce544a13af67a16410b7a86a90d1"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/agent-mission-http.mjs",
+            "digest": "d4a3784f2047158d6ad7a54fa6b62d2805c9eec36a48104a3bd4449fdfc4b689"
+          },
+          {
+            "path": "app/api/factory/mission/route.ts",
+            "digest": "ed08c60d445e069ced1ac4aa8ba545615eabcf8acdb3563c6ddac8c67a755017"
+          },
+          {
+            "path": "build/local-profile-auth-gateway.ts",
+            "digest": "63b2b94ca70a90b79ca25703f712d2793e432a349f4c4440af34fb69a8bf6020"
+          }
+        ]
       },
       {
         "target": "tests/issue-3355-elara-agent-workspace.test.mjs",

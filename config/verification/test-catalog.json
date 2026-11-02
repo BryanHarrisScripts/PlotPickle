@@ -12372,7 +12372,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
+            "digest": "7453ebe9d3fb575cfe0ca9f3977b0cd805d6e63b29697b39b250768e6d9a3d41"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12386,7 +12386,7 @@
       },
       {
         "target": "tests/issue-3142-ollama-coding-provider.test.mjs",
-        "targetDigest": "6668c2f6227dcd5ebc8b51dfacd331a9249c468cb456477e06240b2cc7a98bbb",
+        "targetDigest": "a30d33525f38674757e4b7678ddcceb25be6b4bd0564f95f8e79f6c60ae4d556",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12408,7 +12408,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
+            "digest": "7453ebe9d3fb575cfe0ca9f3977b0cd805d6e63b29697b39b250768e6d9a3d41"
           }
         ]
       },
@@ -12476,7 +12476,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
+            "digest": "7453ebe9d3fb575cfe0ca9f3977b0cd805d6e63b29697b39b250768e6d9a3d41"
           },
           {
             "path": "scripts/engineering-team/gateway/gateway-host.mjs",
@@ -12869,7 +12869,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
-            "digest": "c7979cad66be58bfe4ee8eeddd3da220a37703742173f5ae43a20b3ae9fd03d2"
+            "digest": "464ab4f4cb84c385e8f3e901d3037d4dd65497bc64004a2d8aa5d6f244dabcdb"
           }
         ],
         "truthRefs": [
@@ -12897,7 +12897,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
-            "digest": "c7979cad66be58bfe4ee8eeddd3da220a37703742173f5ae43a20b3ae9fd03d2"
+            "digest": "464ab4f4cb84c385e8f3e901d3037d4dd65497bc64004a2d8aa5d6f244dabcdb"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
@@ -12909,7 +12909,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
-            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
+            "digest": "7453ebe9d3fb575cfe0ca9f3977b0cd805d6e63b29697b39b250768e6d9a3d41"
           }
         ],
         "truthRefs": [
@@ -13017,7 +13017,7 @@
       },
       {
         "target": "tests/issue-3110-worker1-one-shot-authorization.test.mjs",
-        "targetDigest": "f22b3d37ece3bec49f402cc8f1bbc3319d7b640a0f6990e3af75cd6d7f5f7b1e",
+        "targetDigest": "0b97dfc8304d05cc6744833b97c280473418ea7351187c652ba880ae4f70726d",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -13039,7 +13039,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
-            "digest": "c7979cad66be58bfe4ee8eeddd3da220a37703742173f5ae43a20b3ae9fd03d2"
+            "digest": "464ab4f4cb84c385e8f3e901d3037d4dd65497bc64004a2d8aa5d6f244dabcdb"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",

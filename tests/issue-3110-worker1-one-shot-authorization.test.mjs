@@ -138,3 +138,36 @@ test("#3110 authenticated MCP selection is fixed, one-use and never invokes a mo
     "DUPLICATE_OR_UNVERIFIABLE_REQUEST");
   assert.equal(invoked,1);
 }));
+
+// This is a second, distinct source-bound ticket, never a replay of the
+// original failed #3110 work order or coding resource.
+test("#3110 terminal no-write recovery requires a newer MAIN and original receipt",()=>withRoot(async root=>{
+  const o=options(root);
+  const first=await issueOne3110Worker1Ticket(o);
+  assert.equal(first.code,"WORKER1_3110_GRANTED_NOT_DISPATCHED");
+  const files=await readdir(path.join(root,"owner-work-orders"));
+  const work=JSON.parse(await readFile(path.join(root,"owner-work-orders",files[0]),"utf8"));
+  await save(root,"factory-worker-claims",work.requestId+".json",{
+    state:"RESERVED_NO_REPLAY",requestId:work.requestId,issueNumber:3110,
+    sourceHead:HEAD,workerId:"coding-worker-1"});
+  await save(root,"coding-attempts",work.grantId+".result.json",{
+    state:"BLOCKED",code:"CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE",
+    phase:"VALIDATE_MODEL_EDIT",replayAuthorized:false});
+  const next="d".repeat(40);
+  const recovered={...o,expectedHead:next,verifyHead:async()=>next,now:()=>AT+3000000};
+  assert.equal((await issueOne3110Worker1Ticket(recovered)).code,
+    "WORKER1_PRIOR_ATTEMPT_UNVERIFIED_NO_REPLAY");
+  await save(root,"coding-attempts",work.grantId+".released.json",{
+    schemaVersion:1,kind:"coding-resource-release",grantId:work.grantId,
+    sourceHead:HEAD,state:"RECONCILED_MODEL_EDIT_REJECTED_NO_WRITE",
+    phase:"VALIDATE_MODEL_EDIT",replayAuthorized:false,publicationAuthorized:false});
+  const second=await issueOne3110Worker1Ticket(recovered);
+  assert.equal(second.code,"WORKER1_3110_GRANTED_NOT_DISPATCHED");
+  const entries=await readdir(path.join(root,"owner-work-orders"));
+  assert.equal(entries.length,2);
+  const markers=await readdir(path.join(root,"owner-pilot-reservations"));
+  assert.deepEqual(markers.sort(),["issue-3110-terminal-recovery.json","issue-3110.json"]);
+  assert.equal((await issueOne3110Worker1Ticket(recovered)).state,"BLOCKED");
+  const firstOrder=JSON.parse(await readFile(path.join(root,"owner-work-orders",files[0]),"utf8"));
+  assert.equal(firstOrder.requestId,work.requestId,"original ticket remains unchanged");
+}));

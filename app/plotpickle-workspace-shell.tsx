@@ -32,7 +32,7 @@ import {
   type RootWorkspace,
 } from "./navigation/global-shortcuts";
 import styles from "./plotpickle-workspace-shell.module.css";
-import studio from "./agent-native-studio-shell.module.css";
+import studio from "./skin-v1/agent-native-studio-shell.module.css";
 
 export type { RootWorkspace } from "./navigation/global-shortcuts";
 

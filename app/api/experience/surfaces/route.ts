@@ -1,5 +1,5 @@
 import { authorizeLocalFactoryRequest } from "../../../../core/auth/profile-experience/local-factory-request";
-import { describePlotPickleSurfaces } from "../../../../lib/experience/agent-surface-inventory.mjs";
+import { describePlotPickleSurfaces } from "../../../../lib/verification/skin-v1/agent-surface-inventory.mjs";
 
 export const runtime="nodejs";
 export const dynamic="force-dynamic";

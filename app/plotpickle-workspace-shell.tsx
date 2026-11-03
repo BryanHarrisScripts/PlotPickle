@@ -352,18 +352,19 @@ export default function PlotPickleWorkspaceShell({
   const router = useRouter();
   // Presentation preference only: never changes story, provider, agent or profile authority.
   const [studioColumns, setStudioColumns] = useState<1 | 2 | 3>(3);
+  const [layoutPreferenceAvailable, setLayoutPreferenceAvailable] = useState(true);
   useEffect(() => {
     try {
       const saved = window.sessionStorage.getItem("plotpickle:studio-columns:v1");
       if (saved === "1" || saved === "2" || saved === "3") {
         setStudioColumns(Number(saved) as 1 | 2 | 3);
       }
-    } catch { /* Browser storage is not a dependency for viewing a story. */ }
+    } catch { setLayoutPreferenceAvailable(false); }
   }, []);
   function chooseStudioColumns(columns: 1 | 2 | 3) {
     setStudioColumns(columns);
     try { window.sessionStorage.setItem("plotpickle:studio-columns:v1", String(columns)); }
-    catch { /* Keep working in memory if session storage is unavailable. */ }
+    catch { setLayoutPreferenceAvailable(false); }
   }
 
   const runShortcut = useCallback((shortcut: GlobalShortcut) => {
@@ -437,6 +438,9 @@ export default function PlotPickleWorkspaceShell({
             </button>
           ))}
         </div>
+        {!layoutPreferenceAvailable ? (
+          <small role="status">Layout preference is session-only and cannot be saved.</small>
+        ) : null}
       </header>
       <nav
         data-studio-navigator="true"

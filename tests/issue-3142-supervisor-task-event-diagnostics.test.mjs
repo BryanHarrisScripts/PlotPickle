@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
+import {fileURLToPath} from "node:url";
 import {
   sanitizeOwnerWindowsDiagnostics,inspectOwnerWindowsHost,
   SUPERVISOR_DIAGNOSTIC_SCRIPT_SHA256,
@@ -70,7 +71,7 @@ test("#3142 fixed host adapter runs no caller command and pins checked-in script
   assert.match(SUPERVISOR_DIAGNOSTIC_SCRIPT_SHA256,/^[0-9a-f]{64}$/);
   let invoked=0;
   const outcome=await inspectOwnerWindowsHost({
-    expectedHead:HEAD,platform:"win32",scriptPath:script.pathname,
+    expectedHead:HEAD,platform:"win32",scriptPath:fileURLToPath(script),
     source:async()=>({head:HEAD,channel:"main"}),
     run:async(program,args,options)=>{
       invoked++;

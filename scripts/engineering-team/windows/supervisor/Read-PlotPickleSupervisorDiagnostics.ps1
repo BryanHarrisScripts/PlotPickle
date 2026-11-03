@@ -66,8 +66,8 @@ if ($lockState -eq 'PRESENT') {
     }
 }
 
-# Scan at most 256 recent selected event IDs within a fixed twelve-hour
-# window. A bounded scan finding no matching entry does NOT prove absence.
+# Scan at most 256 selected event IDs in a fixed 12-hour window. Finding
+# none does NOT establish that no task failure occurred outside that window.
 $taskEventsState = 'NOT_FOUND_IN_BOUNDED_SCAN'
 $taskEvents = @()
 try {
@@ -88,27 +88,12 @@ try {
                     $fields[$fieldName] = [string]$item.InnerText
                 }
             }
-            if ($fields['TaskName'] -cne '\\PlotPickleIndependentSupervisor' -and
+            if ($fields['TaskName'] -cne '\PlotPickleIndependentSupervisor' -and
                 $fields['TaskName'] -cne 'PlotPickleIndependentSupervisor') { continue }
             $resultCode = $null
             foreach ($name in @('ResultCode','ErrorCode','ReturnCode')) {
                 $candidate = [string]$fields[$name]
-                if ($candidate -cmatch '^(?:0x[0-9A-Fa-f]{1,8}|[0-9]{1,10}|-[0-9]{1,10})
-    taskState = $taskState
-    lastTaskResult = $lastResult
-    lastRunUtc = $lastRunUtc
-    nextRunUtc = $nextRunUtc
-    taskEventsState = $taskEventsState
-    taskEvents = @($taskEvents)
-    lockState = $lockState
-    lockPid = $pidValue
-    processState = $processState
-    stopMarker = (Marker 'stop-request.json')
-    pauseMarker = (Marker 'pause-request.json')
-    processOwnershipVerified = $false
-    remediationAuthorized = $false
-} | ConvertTo-Json -Compress -Depth 3
-) {
+                if ($candidate -cmatch '^(?:0x[0-9A-Fa-f]{1,8}|[0-9]{1,10}|-[0-9]{1,10})$') {
                     $resultCode = $candidate
                     break
                 }
@@ -135,6 +120,10 @@ try {
     schemaVersion = 1
     taskState = $taskState
     lastTaskResult = $lastResult
+    lastRunUtc = $lastRunUtc
+    nextRunUtc = $nextRunUtc
+    taskEventsState = $taskEventsState
+    taskEvents = @($taskEvents)
     lockState = $lockState
     lockPid = $pidValue
     processState = $processState

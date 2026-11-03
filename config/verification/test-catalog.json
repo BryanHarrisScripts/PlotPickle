@@ -10021,11 +10021,11 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-host-diagnostics.mjs",
-            "digest": "f04974b01ff476ea5ebc7533fef1a61d2d911f80e416b7b2cf01f871bd2fb873"
+            "digest": "204442d37540a234a1fa35164a2674b64da6d941c5b94753f0ca831c0fc7ed3c"
           },
           {
             "path": "scripts/engineering-team/windows/supervisor/Read-PlotPickleSupervisorDiagnostics.ps1",
-            "digest": "d2b86a63d5eb3e094a7b1403130092dda8a0fc9834abad89d4edef32d10ecbde"
+            "digest": "d3f1ce3f6abdb5d6428b89d892fe1fbedc3f259fb1a45963c0f045584271aa1f"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
@@ -13076,11 +13076,11 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/windows/supervisor/Read-PlotPickleSupervisorDiagnostics.ps1",
-            "digest": "d2b86a63d5eb3e094a7b1403130092dda8a0fc9834abad89d4edef32d10ecbde"
+            "digest": "d3f1ce3f6abdb5d6428b89d892fe1fbedc3f259fb1a45963c0f045584271aa1f"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-host-diagnostics.mjs",
-            "digest": "f04974b01ff476ea5ebc7533fef1a61d2d911f80e416b7b2cf01f871bd2fb873"
+            "digest": "204442d37540a234a1fa35164a2674b64da6d941c5b94753f0ca831c0fc7ed3c"
           }
         ]
       }

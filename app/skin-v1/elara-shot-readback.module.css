@@ -51,7 +51,8 @@
   cursor: pointer;
 }
 .inspect:disabled { opacity: .5; cursor: default; }
-.inspect:focus-visible, .selectors select:focus-visible, .root a:focus-visible {
+.refresh { justify-self: start; min-height: 40px; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; padding: 6px 10px; background: #1b2632; color: #d7e4e8; cursor: pointer; font: inherit; font-size: 11px; }
+.inspect:focus-visible, .refresh:focus-visible, .selectors select:focus-visible, .root a:focus-visible {
   outline: 2px solid #8bd7ac;
   outline-offset: 2px;
 }

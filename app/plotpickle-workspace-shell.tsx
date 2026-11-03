@@ -16,6 +16,7 @@ import {
 } from "@/core/storage/profile-private-browser";
 import CommunityPublicConversationsRail from "./_components/community/community-public-conversations-rail";
 import TwoWayConversationTest from "./_components/settings/tunnel/two-way-conversation-panel";
+import ElaraShotReadback from "./skin-v1/elara-shot-readback";
 import {
   NAVIGATION_AREAS,
   PLOTPICKLE_OPEN_NODE_EVENT,
@@ -559,7 +560,8 @@ export default function PlotPickleWorkspaceShell({
           <strong>Elara · Creative Room</strong>
           <small>Authenticated collaboration · active workspace: {destinationLabel}</small>
         </header>
-        <p className={studio.roomNote}>This is the existing durable conversation transport, not a simulated specialist agent or an autonomous approval.</p>
+        <p className={studio.roomNote}>This panel reads the existing PPF and durable conversation receipts; it does not simulate agents, approval or saved media bytes.</p>
+        <ElaraShotReadback />
         <TwoWayConversationTest />
         <Link href="/?workspace=collab">Open Elara's full workspace</Link>
         {activeWorkspace === "community" && !contextId ? <CommunityPublicConversationsRail /> : null}

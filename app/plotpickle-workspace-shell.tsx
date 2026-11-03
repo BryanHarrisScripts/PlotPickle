@@ -353,6 +353,7 @@ export default function PlotPickleWorkspaceShell({
   const router = useRouter();
   // Presentation preference only: never changes story, provider, agent or profile authority.
   const [studioColumns, setStudioColumns] = useState<1 | 2 | 3>(3);
+  const [navigatorOpen, setNavigatorOpen] = useState(false);
   const [layoutPreferenceAvailable, setLayoutPreferenceAvailable] = useState(true);
   useEffect(() => {
     try {
@@ -364,11 +365,13 @@ export default function PlotPickleWorkspaceShell({
   }, []);
   function chooseStudioColumns(columns: 1 | 2 | 3) {
     setStudioColumns(columns);
+    setNavigatorOpen(false);
     try { window.sessionStorage.setItem("plotpickle:studio-columns:v1", String(columns)); }
     catch { setLayoutPreferenceAvailable(false); }
   }
 
   const runShortcut = useCallback((shortcut: GlobalShortcut) => {
+    setNavigatorOpen(false);
     if (shortcut.action.kind === "workspace") {
       onNavigate(shortcut.action.workspace);
       return;
@@ -386,6 +389,11 @@ export default function PlotPickleWorkspaceShell({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && navigatorOpen) {
+        event.preventDefault();
+        setNavigatorOpen(false);
+        return;
+      }
       if (globalShortcutBlocked(event)) return;
       const shortcut = shortcutForKey(event.key);
       if (!shortcut) return;
@@ -394,7 +402,7 @@ export default function PlotPickleWorkspaceShell({
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [runShortcut]);
+  }, [runShortcut, navigatorOpen]);
 
   const activeArea = navigationArea ?? navigationAreaForDestination(activeShortcutId, activeWorkspace);
   const area = NAVIGATION_AREAS.find((candidate) => candidate.id === activeArea) ?? NAVIGATION_AREAS[0];
@@ -418,6 +426,7 @@ export default function PlotPickleWorkspaceShell({
     <div
       className={`${styles.shell} ${studio.shell}`}
       data-studio-columns={studioColumns}
+      data-studio-nav-open={navigatorOpen ? "true" : "false"}
       data-active-workspace={activeWorkspace}
       data-active-shortcut={activeShortcutId || activeWorkspace}
       data-current-navigation-area={activeArea}
@@ -430,6 +439,8 @@ export default function PlotPickleWorkspaceShell({
           <small>One project · one Canon · shared Human and Elara surfaces</small>
         </div>
         <div className={studio.modeControls} role="group" aria-label="Workspace columns">
+          <button className={studio.navToggle} type="button" aria-controls="plotpickle-studio-navigation" aria-expanded={navigatorOpen}
+            onClick={() => setNavigatorOpen((value) => !value)}>Navigate</button>
           {([1, 2, 3] as const).map((columns) => (
             <button key={columns} type="button" aria-pressed={studioColumns === columns}
               onClick={() => chooseStudioColumns(columns)}
@@ -444,6 +455,7 @@ export default function PlotPickleWorkspaceShell({
         ) : null}
       </header>
       <nav
+        id="plotpickle-studio-navigation"
         data-studio-navigator="true"
         aria-label="PlotPickle global workflow"
         className={styles.navigator}

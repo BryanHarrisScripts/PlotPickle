@@ -138,19 +138,19 @@ export default function ElaraShotReadback() {
       </p>
       <div className={styles.selectors}>
         <label>Block
-          <select value={block} onChange={(e) => { setBlock(Number(e.target.value)); setObservation(null); }}>
+          <select value={block} onChange={(e) => { generation.current += 1; setBlock(Number(e.target.value)); setObservation(null); setBusy(false); }}>
             {Array.from({ length: 24 }, (_, i) => i + 1).map(value => (
               <option key={value} value={value}>{String(value).padStart(2, "0")}</option>
             ))}
           </select>
         </label>
         <label>Mini
-          <select value={mini} onChange={(e) => { setMini(Number(e.target.value)); setObservation(null); }}>
+          <select value={mini} onChange={(e) => { generation.current += 1; setMini(Number(e.target.value)); setObservation(null); setBusy(false); }}>
             {[1, 2, 3, 4].map(value => <option key={value} value={value}>{value}</option>)}
           </select>
         </label>
         <label>Shot
-          <select value={shot} onChange={(e) => { setShot(Number(e.target.value)); setObservation(null); }}>
+          <select value={shot} onChange={(e) => { generation.current += 1; setShot(Number(e.target.value)); setObservation(null); setBusy(false); }}>
             {Array.from({ length: 25 }, (_, i) => i + 1).map(value => (
               <option key={value} value={value}>{String(value).padStart(2, "0")}</option>
             ))}

@@ -130,8 +130,8 @@ export default function ElaraShotReadback() {
   return (
     <section className={styles.root} aria-label="Read a canonical Storyboard shot">
       <div className={styles.title}>
-        <strong>Storyboard shot · Headless parity</strong>
-        <small>Same profile-owned PPF as Storyboard and Previs</small>
+        <strong>Storyboard shot · Canonical readback</strong>
+        <small>Existing authenticated PPF route · agent API adapter pending</small>
       </div>
       <p className={styles.project} title={project?.id || undefined}>
         {project ? `${project.title} · revision ${project.revision}` : "No active saved story"}

@@ -1,6 +1,16 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"
+if /I "%~1"=="--console" (
+  powershell.exe -NoProfile -File "scripts\engineering-team\windows\launcher\Start-PlotPickle-Console.ps1"
+  if errorlevel 1 exit /b 1
+  exit /b 0
+)
+if /I "%~1"=="--console-status" (
+  powershell.exe -NoProfile -File "scripts\engineering-team\windows\launcher\Start-PlotPickle-Console.ps1" -Mode Status
+  if errorlevel 1 exit /b 1
+  exit /b 0
+)
 title PlotPickle - Local App
 
 for /F "delims=" %%E in ('echo prompt $E^| cmd') do set "ESC=%%E"

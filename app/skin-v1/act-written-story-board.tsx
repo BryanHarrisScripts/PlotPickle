@@ -2,6 +2,7 @@
 
 import { blockWritingEntry } from "@/core/contracts/block-writing";
 import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
+import { stageSessionActiveProjectHandoff } from "@/core/storage/project-library-browser";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import type { OutlineBlockReadiness } from "@/modules/plan/outline-readiness";
 import { currentOutlineAssessment } from "@/modules/plan/outline-agent-assessment";
@@ -65,7 +66,7 @@ export default function ActWrittenStoryBoard({ project, act, outlineReadiness, s
                           {passages.map((passage) => <p key={passage.id}>{passage.text}</p>)}
                         </div>
                       ) : <p>No script or saved writing mapped to this Mini-Block yet. Check the planned intent in its Story Card.</p>}
-                      <div className="pp-skin-v1-outline-storyboard-handoff"><strong>Storyboard handoff</strong><p>{assessment?.miniBlocks[index]?.storyboardCue || "Read this screenplay movement and choose a visual scene or anchor. No visual decision has been accepted yet."}</p><a href={`/storyboard?block=${block.number}&mini=${index + 1}`}>Open Storyboard · Block {block.number} / Mini {index + 1}</a></div>
+                      <div className="pp-skin-v1-outline-storyboard-handoff"><strong>Storyboard handoff</strong><p>{assessment?.miniBlocks[index]?.storyboardCue || "Read this screenplay movement and choose a visual scene or anchor. No visual decision has been accepted yet."}</p><a href={`/storyboard?block=${block.number}&mini=${index + 1}`} onClick={() => stageSessionActiveProjectHandoff()}>Open Storyboard · Block {block.number} / Mini {index + 1}</a></div>
                     </details>
                   ))}
                 </article>

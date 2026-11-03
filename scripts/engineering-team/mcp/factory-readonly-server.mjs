@@ -12,6 +12,7 @@ import { timingSafeEqual } from "node:crypto";
 import { requestIndependentSupervisorStart } from "./engineering/factory-supervisor-start.mjs";
 import { inspectOwnerWorkerOperations, requestOwnerSupervisorMigration } from "./engineering/operations/factory-operator-maintenance.mjs";
 import { issueFixedWorker1Pilot, issueOne3110Worker1Ticket } from "./engineering/operations/factory-worker1-pilot-issuer.mjs";
+import { issueOne3355Worker1Order } from "./engineering/operations/issue-3355-worker1-issuer.mjs";
 import { observeFactoryWindowsProductGate, verifyFactoryWindowsProductGateReceipt } from "./engineering/factory-windows-product-gate.mjs";
 import { existsSync } from "node:fs";
 import { lstat, mkdir, readFile, writeFile, unlink } from "node:fs/promises";
@@ -450,6 +451,11 @@ const CONTROL_CODES=new Set([...dependencyCodes,
   "WORKER1_STORAGE_UNVERIFIED","WORKER1_IDS_UNVERIFIED",
   "WORKER1_GRANTS_UNVERIFIED","WORKER1_READINESS_CHANGED",
   "WORKER1_PARTIAL_GRANTS_RECONCILE_NO_REPLAY",
+  "WORKER1_3355_ORDER_RELEASED_FOR_DISPATCH","WORKER1_3355_WINDOWS_ONLY",
+  "WORKER1_3355_HEAD_INVALID","WORKER1_3355_PREREQUISITES_UNVERIFIED",
+  "WORKER1_3355_ALREADY_RESERVED_NO_REPLAY","WORKER1_3355_STORAGE_UNVERIFIED",
+  "WORKER1_3355_IDS_UNVERIFIED","WORKER1_3355_ORDER_INVALID",
+  "WORKER1_3355_READINESS_CHANGED","WORKER1_3355_PARTIAL_GRANTS_RECONCILE_NO_REPLAY",
   "PRODUCT_UAT_SELECTION_INVALID","PRODUCT_UAT_PRIVATE_ROOT_BLOCKED",
   "PRODUCT_UAT_STAGE_UNVERIFIED","PRODUCT_UAT_SOURCE_CHANGED",
   "PRODUCT_UAT_STOP_UNVERIFIED","PRODUCT_UAT_TIMEOUT","PRODUCT_UAT_FAILED",
@@ -490,7 +496,7 @@ const allowedFactoryControlSuites=()=>[...allowedFactoryTestNames(),...APP_CONTR
   "factory-pr-head","factory-pr-stage","factory-sync-main",
   "factory-story-uat","factory-story-verify","factory-supervisor-start",
   "factory-supervisor-migrate","factory-worker1-pilot-issue",
-  "factory-worker1-3110-once",
+  "factory-worker1-3110-once","factory-worker1-3355-once",
   "factory-gateway-acceptance","factory-windows-product-gate","factory-windows-product-gate-verify"];
 export const MCP_CONTROL_TOOLS=Object.freeze([
   {name:"factory_run_dependency_preflight",title:"Run Windows Factory dependency preflight",
@@ -507,7 +513,7 @@ export const MCP_CONTROL_TOOLS=Object.freeze([
       issues:{type:"array",items:{type:"integer",minimum:1,maximum:9999999},minItems:1,maxItems:5,uniqueItems:true}},
       required:["requestId","expectedHead","issues"],additionalProperties:false}},
   {name:"factory_run_named_test",title:"Run allowlisted Factory test or candidate identity check",
-    description:"Authenticated fixed Windows tests, app control, supervisor Start/migration and one fixed #3142 pilot or a single bounded #3110 Worker 1 grant. No shell, Pi or merge.",
+    description:"Authenticated fixed Windows tests, app control, supervisor Start/migration and fixed owner-scoped Worker 1 grants. Issuance never runs a model or merges.",
     inputSchema:{type:"object",properties:{
       requestId:{type:"string",pattern:"^[a-f0-9]{32}$"},
       expectedHead:{type:"string",pattern:"^[a-f0-9]{40}$"},
@@ -567,7 +573,8 @@ function validControlArgs(name,args) {
       args.suite==="factory-supervisor-start"||
       args.suite==="factory-supervisor-migrate"||
       args.suite==="factory-worker1-pilot-issue"||
-      args.suite==="factory-worker1-3110-once");
+      args.suite==="factory-worker1-3110-once"||
+      args.suite==="factory-worker1-3355-once");
   }
   return name==="factory_admit_issues"&&keys.length===3&&
     Array.isArray(args.issues)&&args.issues.length>=1&&args.issues.length<=5&&
@@ -643,6 +650,7 @@ export async function factoryControlAction(name,args,{
     supervisorMigrate:requestOwnerSupervisorMigration,
     pilotIssuer:issueFixedWorker1Pilot,
     worker3110Issuer:issueOne3110Worker1Ticket,
+    worker3355Issuer:issueOne3355Worker1Order,
     productGate:observeFactoryWindowsProductGate,
     productGateVerify:verifyFactoryWindowsProductGateReceipt,
     engineering:runStagedEngineeringTask,
@@ -799,6 +807,8 @@ export async function factoryControlAction(name,args,{
                 ?await ops.pilotIssuer({expectedHead:args.expectedHead,verifyHead:ops.testHead})
               :args.suite==="factory-worker1-3110-once"
                 ?await ops.worker3110Issuer({expectedHead:args.expectedHead,verifyHead:ops.testHead})
+              :args.suite==="factory-worker1-3355-once"
+                ?await ops.worker3355Issuer({expectedHead:args.expectedHead,verifyHead:ops.testHead})
               :args.suite==="factory-sync-main"
                 ?await ops.syncMain({expectedHead:args.expectedHead,root,
                   inspect:ops.inspectSyncSource})

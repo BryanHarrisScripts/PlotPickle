@@ -12,6 +12,7 @@ import { ownerOneShotAllowed } from '../owner-runtime-gate.mjs';
 import { runOwnerCodingAndPublishOnce } from '../authorized-coding-once.mjs';
 import { supervisorStatus } from '../../windows/supervisor/unattended-supervisor.mjs';
 import { FACTORY_WORKERS, projectWorkerFleet, claimAndRunOwnerJobOnce } from './worker-pool.mjs';
+import { runOwner3355DraftOnce } from './issue-3355/worker-execution.mjs';
 
 const ID = /^[a-f0-9]{32}$/;
 const blocked = code => ({ state: 'BLOCKED', code,
@@ -48,7 +49,9 @@ export function validOwnerPilotException(value, order, head, at) {
     Object.keys(value).length === fields.length &&
     fields.every(field => Object.hasOwn(value, field)) &&
     value.schemaVersion === 1 && value.kind === 'owner-one-shot-exception' &&
-    ((value.consent === 'AUTHORIZE_ONE_3142_PILOT_NO_F00' &&
+    ((value.consent === 'AUTHORIZE_ONE_3355_WORKER1_NO_F00' &&
+      value.issueNumber === 3355 && order?.issueNumber === 3355) ||
+     (value.consent === 'AUTHORIZE_ONE_3142_PILOT_NO_F00' &&
       value.issueNumber === 3142 && order?.issueNumber === 3142) ||
      (value.consent === 'AUTHORIZE_ONE_3110_SUPERVISED_DRAFT_NO_F00' &&
       value.issueNumber === 3110 && order?.issueNumber === 3110)) &&
@@ -114,7 +117,11 @@ export async function runOwnerWorkerTicket({
     order, expectedHead: source.head, privateRoot: root,
     operatorReady: () => ownerOneShotAllowed(source.head),
     independentReleaseReady: release,
-    runAuthorizedOnce: code,
+    runAuthorizedOnce: order.issueNumber === 3355
+      ? ({grantId,publicationId}) => runOwner3355DraftOnce({
+        requestId:order.requestId,grantId,publicationId,
+        sourceHead:source.head,repoRoot,root})
+      : code,
   });
 }
 

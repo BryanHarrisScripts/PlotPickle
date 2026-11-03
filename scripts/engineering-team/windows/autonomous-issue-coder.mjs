@@ -17,6 +17,7 @@ import {
   runPortableCommand,
 } from "../../pi-worker-runtime.mjs";
 import { installFactoryDependencies, factoryNpmFailureCode } from "../queue/factory-dependency-preflight.mjs";
+import { terminateVerificationProcessTree } from "../../full-verification-process.mjs";
 
 const REPO="BryanHarrisScripts/PlotPickle";
 const HERE=path.dirname(fileURLToPath(import.meta.url));
@@ -183,7 +184,7 @@ export function summarizeFactoryPiWriteEvents(stdout) {
   }
   return Object.freeze(summary);
 }
-async function localAgent(worktree,issue,head,attempt=1) {
+async function localAgent(worktree,issue,head,attempt=1,operatorReady=async()=>true) {
   const pi=await resolvePiExecutable();
   if(!pi.ready)return {ready:false,code:"PI_UNAVAILABLE"};
   let runtime;
@@ -201,16 +202,33 @@ async function localAgent(worktree,issue,head,attempt=1) {
     mutationAuthorized:true,destructiveAuthorized:false,
     privacyPolicy:{localOnly:true,cloudAllowed:false}
   };
+  const cancellation=new AbortController();
+  let child=null, stopping=null, checking=false;
+  const monitor=setInterval(()=>{
+    if(checking||stopping)return;
+    checking=true;
+    void Promise.resolve().then(operatorReady).then(ready=>{
+      if(ready!==true&&!stopping){
+        stopping=terminateVerificationProcessTree(child).finally(()=>cancellation.abort());
+      }
+    }).catch(()=>{
+      if(!stopping)stopping=terminateVerificationProcessTree(child).finally(()=>cancellation.abort());
+    }).finally(()=>{checking=false;});
+  },1000);
   try{
+    if(await operatorReady()!==true)return {ready:false,code:"OWNER_STOP_PAUSE_OR_HEAD_CHANGED"};
     const result=await runPortableCommand(pi.executable,[
       "--mode","json","-p","--no-session",
       "--tools","read,grep,find,ls,write,edit",
       ...piDeveloperVirtualArgs(worktree),
       "Read .plotpickle-autonomous-issue.md. Use write/edit tools to MAKE the authorized filesystem change now; never merely propose a patch in chat. Do not alter any files outside the issue scope."
     ],{cwd:worktree,timeout:MAX_DURATION_MS,maxBuffer:32*1024*1024,
+      signal:cancellation.signal,onChild:owned=>{child=owned;},
       env:{...piDeveloperEnvironment(configured.agentDir,projection),
         PLOTPICKLE_CODEMODE_TASK_JSON:JSON.stringify(codemodeTask),
         PLOTPICKLE_PI_ALLOW_CLOUD:"0",PLOTPICKLE_PI_ROUTE:"local"}});
+    if(stopping||await operatorReady()!==true)
+      return {ready:false,code:"OWNER_STOP_PAUSE_OR_HEAD_CHANGED"};
     const observed=summarizeFactoryPiWriteEvents(result.stdout);
     if(!observed.valid||!observed.settled||
        observed.writeStarted!==observed.writeSucceeded+observed.writeFailed)
@@ -218,10 +236,25 @@ async function localAgent(worktree,issue,head,attempt=1) {
     if(!observed.writeStarted)return {ready:false,code:"PI_WRITE_TOOL_NOT_OBSERVED"};
     if(!observed.writeSucceeded)return {ready:false,code:"PI_WRITE_TOOL_FAILED"};
     return {ready:true,code:"LOCAL_AGENT_FINISHED"};
-  }finally{await unlink(context).catch(()=>{});}
+  }catch(error){
+    if(stopping||cancellation.signal.aborted)
+      return {ready:false,code:"OWNER_STOP_PAUSE_OR_HEAD_CHANGED"};
+    throw error;
+  }finally{
+    clearInterval(monitor);
+    if(stopping)await stopping;
+    await unlink(context).catch(()=>{});
+  }
 }
-export async function produceDraftIssuePR({issueNumber,head,root,attempt=1}) {
+export async function produceDraftIssuePR({issueNumber,head,root,attempt=1,
+  operatorReady=async()=>true}={}) {
   const output=code=>({state:code==="PROVIDER_NOT_READY"?"WAITING_FOR_PROVIDER":"BLOCKED",code});
+  const guarded=async operation=>{
+    if(await operatorReady()!==true)throw Error("OWNER_STOP_PAUSE_OR_HEAD_CHANGED");
+    const result=await operation();
+    if(await operatorReady()!==true)throw Error("OWNER_STOP_PAUSE_OR_HEAD_CHANGED");
+    return result;
+  };
   if(attempt!==1&&attempt!==2)return output("INVALID_ATTEMPT");
   if(attempt===2&&issueNumber!==3141)return output("RETRY_NOT_ALLOWED");
   if(process.platform!=="win32")return output("WINDOWS_ONLY");
@@ -238,7 +271,8 @@ export async function produceDraftIssuePR({issueNumber,head,root,attempt=1}) {
       return output("RETRY_NOT_AUTHORIZED");
   }
   if((await sourceHead())!==head)return output("EXACT_MAIN_MISMATCH");
-  const issue=await allowlistedGitHubIssue(issueNumber);
+  if(await operatorReady()!==true)return output("OWNER_STOP_PAUSE_OR_HEAD_CHANGED");
+  const issue=await guarded(()=>allowlistedGitHubIssue(issueNumber));
   const suffix=attempt===2?"-a2":"";
   const name="issue-"+issueNumber+"-"+head.slice(0,10)+suffix;
   const worktree=path.join(root,"worktrees",name);
@@ -247,41 +281,43 @@ export async function produceDraftIssuePR({issueNumber,head,root,attempt=1}) {
   const pi=await resolvePiExecutable();
   if(!pi.ready)return {state:"WAITING_FOR_PROVIDER",code:"PI_NOT_INSTALLED"};
   try {await resolvePiLocalRuntime();} catch{return {state:"WAITING_FOR_PROVIDER",code:"APPROVED_LOCAL_MODEL_UNAVAILABLE"};}
-  await command("git",["worktree","add","-b",branch,worktree,head]);
+  await guarded(()=>command("git",["worktree","add","-b",branch,worktree,head]));
   let pushed=false;
   let phase="INSTALL_DEPENDENCIES";
   try{
-    await installFactoryDependencies({cwd:worktree,root});
+    await guarded(()=>installFactoryDependencies({cwd:worktree,root}));
     phase="RUN_LOCAL_PI";
-    const agent=await localAgent(worktree,issue,head,attempt);
+    const agent=await localAgent(worktree,issue,head,attempt,operatorReady);
     if(!agent.ready){
       if(["PI_UNAVAILABLE","LOCAL_MODEL_UNAVAILABLE"].includes(agent.code))
         return {state:"WAITING_FOR_PROVIDER",code:agent.code};
       return {state:"BLOCKED",code:agent.code,phase:"RUN_LOCAL_PI"};
     }
     phase="INSPECT_CANDIDATE_PATCH";
-    const changes=await changedPaths(worktree),assessment=assessFactoryPaths(changes,issueNumber);
+    const changes=await guarded(()=>changedPaths(worktree)),assessment=assessFactoryPaths(changes,issueNumber);
     if(!assessment.allowed)return factoryRejectedPatchReceipt(assessment);
     phase="CHECK_DIFF";
-    await command("git",["diff","--check"],{cwd:worktree});
+    await guarded(()=>command("git",["diff","--check"],{cwd:worktree}));
     phase="RUN_CONTRACTS_UAT";
-    await command(process.execPath,["scripts/run-uat-autopilot.mjs","--contracts-only",
-      "--artifact-root",".artifacts/autonomous-issue-"+issueNumber],{cwd:worktree,timeout:15*60_000,maxBuffer:512_000});
+    await guarded(()=>command(process.execPath,["scripts/run-uat-autopilot.mjs","--contracts-only",
+      "--artifact-root",".artifacts/autonomous-issue-"+issueNumber],{cwd:worktree,timeout:15*60_000,maxBuffer:512_000}));
     phase="RUN_PRODUCTION_BUILD";
-    await runPortableCommand(resolveActiveNpmCommand(),["run","build"],
-      {cwd:worktree,timeout:15*60_000,maxBuffer:512_000});
+    await guarded(()=>runPortableCommand(resolveActiveNpmCommand(),["run","build"],
+      {cwd:worktree,timeout:15*60_000,maxBuffer:512_000}));
     phase="RECHECK_BASE_HEAD";
     if((await sourceHead())!==head)return output("MAIN_HEAD_MOVED");
     phase="STAGE_CANDIDATE";
-    await command("git",["add","--",...changes],{cwd:worktree});
+    await guarded(()=>command("git",["add","--",...changes],{cwd:worktree}));
     phase="RECHECK_STAGED_PATHS";
     const staged=(await command("git",["diff","--cached","--name-only"],{cwd:worktree})).split(/\r?\n/).filter(Boolean);
     if(!assessFactoryPaths(staged,issueNumber).allowed)return output("STAGED_PATH_SCOPE_REJECTED");
     phase="COMMIT_CANDIDATE";
-    await command("git",["commit","-m","Factory candidate for issue #"+issueNumber],{cwd:worktree,timeout:120_000});
+    await guarded(()=>command("git",["commit","-m","Factory candidate for issue #"+issueNumber],{cwd:worktree,timeout:120_000}));
     phase="PUSH_CANDIDATE";
+    if(await operatorReady()!==true)throw Error("OWNER_STOP_PAUSE_OR_HEAD_CHANGED");
     await command("git",["push","-u","origin",branch],{cwd:worktree,timeout:120_000});
     pushed=true;
+    if(await operatorReady()!==true)throw Error("OWNER_STOP_PAUSE_OR_HEAD_CHANGED");
     const body="Factory candidate for #"+issueNumber+"\n\nLocal Pi proposed a source patch in a clean isolated worktree. "+
       "A separate wrapper verified path admission, git diff, contracts-only UAT and production build. "+
       "This PR is DRAFT and NOT independently browser-UAT/CI verified; merge is prohibited until required exact-head gates pass. "+
@@ -289,11 +325,14 @@ export async function produceDraftIssuePR({issueNumber,head,root,attempt=1}) {
       "For optional human inspection on Windows, run node scripts/engineering-team/review/factory-hunk.mjs --pr <PR_NUMBER> using this PR number. "+
       "Hunk 0.23 review is advisory only, not a CI, Product Gate, or merge approval.";
     phase="CREATE_DRAFT_PR";
-    const url=await command("gh",["pr","create","--repo",REPO,"--base","main","--head",branch,
-      "--draft","--title","factory: issue #"+issueNumber+" candidate","--body",body],{cwd:worktree,timeout:90_000});
+    const url=await guarded(()=>command("gh",["pr","create","--repo",REPO,"--base","main","--head",branch,
+      "--draft","--title","factory: issue #"+issueNumber+" candidate","--body",body],{cwd:worktree,timeout:90_000}));
     if(!/^https:\/\/github\.com\/BryanHarrisScripts\/PlotPickle\/pull\/\d+$/.test(url))return output("PR_URL_UNCONFIRMED");
     return {state:"WAITING_FOR_PRODUCT_UAT",code:"DRAFT_PR_CREATED",prUrl:url};
   }catch(error){
+    if(error?.message==='OWNER_STOP_PAUSE_OR_HEAD_CHANGED')
+      return {state:'BLOCKED',code:pushed?'PUSHED_UNCERTAIN':'OWNER_STOP_PAUSE_OR_HEAD_CHANGED',
+        phase,replayAuthorized:false};
     if(phase==="INSTALL_DEPENDENCIES")return {
       state:"BLOCKED",code:factoryNpmFailureCode(error),phase,
     };

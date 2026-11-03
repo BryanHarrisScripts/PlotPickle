@@ -13054,7 +13054,7 @@
       },
       {
         "target": "tests/issue-3142-supervisor-task-event-diagnostics.test.mjs",
-        "targetDigest": "e7396a902edc3fd00625aa3a5565742d2e0b12a9725971590a2582c1228f2f92",
+        "targetDigest": "826dcdbe1c291e5ec67f4f05a23e284fde05db815b408898c1c74a4804702b91",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],

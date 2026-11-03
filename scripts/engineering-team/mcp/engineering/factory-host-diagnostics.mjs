@@ -13,7 +13,7 @@ import { gatewayAppSource } from '../../gateway/gateway-host.mjs';
 
 const exec = promisify(execFile);
 const SHA = /^[a-f0-9]{40}$/;
-export const SUPERVISOR_DIAGNOSTIC_SCRIPT_SHA256 = 'd2b86a63d5eb3e094a7b1403130092dda8a0fc9834abad89d4edef32d10ecbde';
+export const SUPERVISOR_DIAGNOSTIC_SCRIPT_SHA256 = 'd3f1ce3f6abdb5d6428b89d892fe1fbedc3f259fb1a45963c0f045584271aa1f';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 const SCRIPT = path.join(ROOT, 'scripts', 'engineering-team', 'windows',
   'supervisor', 'Read-PlotPickleSupervisorDiagnostics.ps1');

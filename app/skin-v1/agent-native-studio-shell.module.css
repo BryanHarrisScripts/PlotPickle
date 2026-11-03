@@ -2,7 +2,7 @@
  * Uses existing PlotPickle surfaces, navigation and authenticated conversation.
  * Does not create a new project, conversation ledger or source of Canon truth.
  */
-.shell {
+.shell[data-studio-columns] {
   --studio-base: #07090e;
   --studio-elevated: #0d111a;
   --studio-border: rgba(255, 255, 255, 0.12);
@@ -68,6 +68,10 @@
   border-color: var(--studio-accent);
   color: #d9ffeb;
   background: #1b3129;
+}
+.navToggle { margin-right: 6px; }
+@media (min-width: 1101px) {
+  .shell[data-studio-columns="3"] .navToggle { display: none; }
 }
 .modeControls button:focus-visible,
 .room a:focus-visible {
@@ -216,4 +220,18 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .shell * { scroll-behavior: auto; }
+}
+
+/* Navigation is never unreachable in focus, split, or narrow display modes. */
+.shell[data-studio-nav-open="true"] [data-studio-navigator] {
+  display: block !important;
+  position: fixed;
+  z-index: 400;
+  top: 54px;
+  left: 0;
+  width: min(310px, calc(100vw - 20px));
+  height: calc(100dvh - 54px);
+  max-height: calc(100dvh - 54px);
+  box-shadow: 10px 0 36px rgba(0, 0, 0, .55);
+  border: 1px solid var(--studio-border);
 }

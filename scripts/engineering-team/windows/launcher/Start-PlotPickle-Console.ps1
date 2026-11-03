@@ -166,6 +166,19 @@ function Sync-Main {
     $guard = Join-Path $repo 'scripts\engineering-team\windows\launcher\factory-startup-guard.mjs'
     $null = & node.exe $guard --update-check
     if ($LASTEXITCODE -ne 0) { throw 'MAIN_BEHIND_FACTORY_RUNTIME_PROTECTED_RESTART_REQUIRED' }
+    if ((Read-Http 'http://127.0.0.1:4173/') -ne 'NOT_RESPONDING' -or
+        (Read-TunnelLauncherState) -ne 'ABSENT') {
+        throw 'MAIN_BEHIND_APP_OR_TUNNEL_STILL_ACTIVE'
+    }
+    foreach ($taskName in @('PlotPickleIndependentSupervisor','PlotPickleCodingDispatcher',
+            'PlotPickleCodingWorker1','PlotPickleServiceManagerPilot')) {
+        if ((Read-Task $taskName) -notin @('Ready','Disabled')) {
+            throw ('MAIN_BEHIND_TASK_NOT_QUIESCENT: ' + $taskName)
+        }
+    }
+    $activeSource = @(Get-CimInstance Win32_Process -Filter "Name='node.exe'" |
+        Where-Object { $_.CommandLine -match 'unattended-supervisor[.]mjs|supervisor-recovery-agent[.]mjs|worker-host[.]mjs|factory-readonly-server[.]mjs' })
+    if ($activeSource.Count -gt 0) { throw 'MAIN_BEHIND_FACTORY_SOURCE_PROCESS_ACTIVE' }
     & git.exe -C $repo merge --ff-only origin/main
     if ($LASTEXITCODE -ne 0) { throw 'MAIN_FAST_FORWARD_FAILED' }
     if ((Read-Source) -cne $remote) { throw 'MAIN_POST_SYNC_MISMATCH' }

@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import {issueOne3110Worker1Ticket} from "../scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs";
 import {inspectRejectedModelEdit} from "../scripts/engineering-team/gateway/worker-pool/reconcile-rejected-model-edit-once.mjs";
+import {boundedSourceEdit} from "../scripts/engineering-team/gateway/authorized-coding-once.mjs";
 
 const OLD="c".repeat(40),HEAD="d".repeat(40),DIGEST="b".repeat(64),AT=1800000000000;
 const withRoot=async fn=>{
@@ -126,3 +127,14 @@ test("#3110 forged first reservation or publication blocks terminal ticket",()=>
   r=await issueOne3110Worker1Ticket(issuer(root,HEAD,AT+7200000,15));
   assert.equal(r.code,"WORKER1_ONCE_ALREADY_RESERVED");
 }));
+
+test("#3110 next Qwen objective has a unique actual source oldText accepted by strict edit gate",async()=>{
+  const source=await readFile(new URL("../scripts/engineering-team/gateway/worker-pool/worker-pool.mjs",import.meta.url),"utf8");
+  const oldText="work.grantId !== work.publicationId &&";
+  const newText="work.requestId !== work.grantId && work.requestId !== work.publicationId && work.grantId !== work.publicationId &&";
+  assert.equal(source.split(oldText).length-1,1,"replacement must be unique on exact source");
+  const changed=boundedSourceEdit(source,{oldText,newText});
+  assert.ok(changed,"model adapter strict boundedSourceEdit must accept literal replacement");
+  assert.equal(changed.split("work.requestId !== work.grantId &&").length-1,1);
+  assert.equal(changed.slice(0,source.indexOf(oldText)),source.slice(0,source.indexOf(oldText)));
+});

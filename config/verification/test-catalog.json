@@ -12973,7 +12973,7 @@
       },
       {
         "target": "tests/issue-3355-elara-agent-workspace.test.mjs",
-        "targetDigest": "d49d935f86cd501713e2f393e81fe147f86496912f253fdee7b7953b1d1b5abe",
+        "targetDigest": "e0473014ac82ce869be4ac3c7e282d76c8029e6f50e952bdf7e0ac7a942d9ed3",
         "catalogueIds": [
           "experience.navigation-continuity"
         ],
@@ -12990,7 +12990,7 @@
         "scopes": [
           "static-source"
         ],
-        "limits": "Author-proposed exact-source inspection for the #3355 Collab Agent Workspace first slice. Checks integration with existing profile-authenticated supervisor and durable conversation endpoints, source-head equality, no false worker/delegation/merge status and responsive layout. Does NOT execute the UI in a real browser, authorize a specialist task, verify independent Human review, prove persistent mission state, certify actual Windows Product Gate or create merge authority. Requires separately qualified semantic review of test truth before release. A false-positive static assertion was narrowed to actual browser storage API calls (not the historical localStorage wording in explanatory prose).",
+        "limits": "Author-proposed exact-source inspection for the #3355 Collab Agent Workspace three-column slice. Checks profile-authenticated supervisor and durable conversation reuse, source-head equality, honest no-worker/delegation/merge status, ordered Story Navigator / Mission Canvas / Creative Room sections, links to canonical Storyboard and Previs, explicit absent shot selection, and responsive layout. Does NOT execute the UI in a real browser, authorize a specialist task, verify independent Human review, prove persistent mission state, certify actual Windows Product Gate or create merge authority. Requires separately qualified semantic review of test truth before release. A false-positive static assertion was narrowed to actual browser storage API calls (not the historical localStorage wording in explanatory prose).",
         "inputs": [
           {
             "path": "app/page.tsx",
@@ -12998,11 +12998,11 @@
           },
           {
             "path": "app/_components/collab/collab-entry-workspace.tsx",
-            "digest": "a08fe89ab059db60e5549cf4a62e5d735b86583357e8e3ab0e063dc918b140af"
+            "digest": "b95111c45de890cb46eb40c7d546b4660041fad8a38d6c3c3fca1818b68d1204"
           },
           {
             "path": "app/_components/collab/collab-entry-workspace.module.css",
-            "digest": "ab39d4a412592316301b1a22b6185efa4320e568f6e4f6f5189a18c1452e0690"
+            "digest": "801498626db69ab45923ac2a7819cd397de184730817c5aba50067da23564fcd"
           },
           {
             "path": "app/_components/settings/tunnel/two-way-conversation-panel.tsx",

@@ -4268,7 +4268,8 @@
           "tests/issue-3303-windows-product-gate.test.mjs",
           "tests/issue-3142-authenticated-operator-maintenance.test.mjs",
           "tests/issue-3142-worker1-pilot-issuer.test.mjs",
-          "tests/issue-3110-worker1-one-shot-authorization.test.mjs"
+          "tests/issue-3110-worker1-one-shot-authorization.test.mjs",
+          "tests/issue-3142-supervisor-task-event-diagnostics.test.mjs"
         ]
       },
       "cost": "fast",
@@ -10020,11 +10021,11 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-host-diagnostics.mjs",
-            "digest": "3b3b511f87ab2aebd0240a1fcb268445de316759a1d364df04bbbf5e42343970"
+            "digest": "f04974b01ff476ea5ebc7533fef1a61d2d911f80e416b7b2cf01f871bd2fb873"
           },
           {
             "path": "scripts/engineering-team/windows/supervisor/Read-PlotPickleSupervisorDiagnostics.ps1",
-            "digest": "2eb1b133166fa04db99496b019e71639a14688e9d62a2dcd94db09f900e1b317"
+            "digest": "d2b86a63d5eb3e094a7b1403130092dda8a0fc9834abad89d4edef32d10ecbde"
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-windows-product-gate.mjs",
@@ -13048,6 +13049,38 @@
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
             "digest": "a20f58c6219ea7b6ee53ce299cbeda0cd7b46fcd3214a2ced9e28346983ec6da"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3142-supervisor-task-event-diagnostics.test.mjs",
+        "targetDigest": "e7396a902edc3fd00625aa3a5565742d2e0b12a9725971590a2582c1228f2f92",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "static-source",
+          "unit-fixture"
+        ],
+        "limits": "AUTHOR-PROPOSED #3142 sanitized Task Scheduler diagnostic extension. Node fixtures assert strict event ID/time/result-code allowlisting, bounded records, no raw event messages, authenticated exact-head fixed-script invocation and immutable Windows script digest. No actual owner Windows event channel, process ownership, Supervisor repair, independent reviewer approval, Product Gate, model work or merge proven. A missing event in the 256-record 12-hour scan is not proof of absence.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/windows/supervisor/Read-PlotPickleSupervisorDiagnostics.ps1",
+            "digest": "d2b86a63d5eb3e094a7b1403130092dda8a0fc9834abad89d4edef32d10ecbde"
+          },
+          {
+            "path": "scripts/engineering-team/mcp/engineering/factory-host-diagnostics.mjs",
+            "digest": "f04974b01ff476ea5ebc7533fef1a61d2d911f80e416b7b2cf01f871bd2fb873"
           }
         ]
       }

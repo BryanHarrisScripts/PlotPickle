@@ -14,7 +14,7 @@ param(
     [string]$Consent = ''
 )
 $ErrorActionPreference = 'Stop'
-if ($env:OS -ne 'Windows_NT') { throw 'OWNER_WINDOWS_ONLY' }
+if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { throw 'OWNER_WINDOWS_ONLY' }
 $operations = @(@($Install,$Status,$Stop,$Start,$Uninstall) | Where-Object { $_ })
 if ($operations.Count -ne 1) { throw 'EXACTLY_ONE_MANAGER_OPERATION_REQUIRED' }
 $requiredConsent='ENABLE_PLOTPICKLE_SERVICE_MANAGER_PILOT'

@@ -40,6 +40,15 @@ function Get-Matching {
       $t.Actions[0].WorkingDirectory -cne $PSScriptRoot) {
     throw 'FOREIGN_TASK_OWNERSHIP_UNVERIFIED'
   }
+  # This acceptance task must belong to the actual owner session.
+  $id=[string]$t.Principal.UserId
+  if ($id -cne $identity.User.Value -and $id -cne $identity.Name) {
+    try {
+      $resolved=(New-Object Security.Principal.NTAccount($id)).Translate(
+        [Security.Principal.SecurityIdentifier])
+      if ($resolved.Value -cne $identity.User.Value) { throw 'FOREIGN_TASK_PRINCIPAL' }
+    } catch { throw 'FOREIGN_TASK_PRINCIPAL' }
+  }
   return $t
 }
 if ($Child) {
@@ -84,7 +93,17 @@ if ($Status) {
     try { $heartbeat = Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json }
     catch { $heartbeat = $null }
   }
+  $ownedProcess=$false
+  if ($heartbeat -and $heartbeat.pid -gt 0) {
+    try {
+      $process=Get-CimInstance Win32_Process -Filter ('ProcessId=' + [int]$heartbeat.pid) -ErrorAction Stop
+      $ownedProcess=($null -ne $process -and $process.Name -eq 'powershell.exe' -and
+        $process.CommandLine -like ('*' + $PSCommandPath + '*') -and
+        $process.CommandLine -match ('-Child\s+-Tag\s+' + $Tag + '(?:\s|$)'))
+    } catch { $ownedProcess=$false }
+  }
   [pscustomobject]@{
+    processObserved=[bool]$ownedProcess
     state='OBSERVED_NOT_RELEASE_PROOF'
     taskInstalled=$true
     taskState=[string]$t.State

@@ -294,10 +294,17 @@ async function prior3110HistorySettled(root,entries,expectedHead,at){
  */
 async function original3110TerminalNoWrite(root,expectedHead,at){
   try {
-    const marker=await historicalRecord(root,"owner-pilot-reservations","issue-3110.json");
+    const markerDir=path.join(root,"owner-pilot-reservations");
+    const parent=await lstat(markerDir);
+    if(!parent.isDirectory()||parent.isSymbolicLink())return false;
+    const markerPath=path.join(markerDir,"issue-3110.json");
+    const st=await lstat(markerPath);
+    if(!st.isFile()||st.isSymbolicLink()||st.size<2||st.size>4096)
+      return false;
+    const marker=JSON.parse(await readFile(markerPath,"utf8"));
     if(marker.schemaVersion!==1||marker.issueNumber!==3110||
        marker.state!=="GRANT_WRITES_RESERVED_NO_REPLAY"||
-       !ID.test(marker.requestId||"")||!SHA.test(marker.sourceHead||"")||
+       !/^[a-f0-9]{32}$/.test(marker.requestId||"")||!SHA.test(marker.sourceHead||"")||
        marker.sourceHead===expectedHead||!Number.isSafeInteger(marker.at)||
        marker.at>=at)return false;
     const work=await historicalRecord(root,"owner-work-orders",marker.requestId+".json");

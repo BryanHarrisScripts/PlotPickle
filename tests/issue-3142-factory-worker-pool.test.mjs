@@ -42,14 +42,15 @@ test('a bare or widened queue ticket cannot grant source execution', () => {
     { ...order, sourceHead: 'b'.repeat(40) },
     { ...order, consent: 'RUN_ALL' },
     { ...order, extra: true },
+    { ...order, requestId: order.grantId },
+    { ...order, requestId: order.publicationId },
     { ...order, publicationId: order.grantId } ])
     assert.equal(validateOwnerWorkOrder(bad, head), false);
 });
 test('the identical bounded claim engine supports each replica without reusing another worker identity', async () => {
   for (let i = 1; i <= 5; i++) {
     const root = await mkdtemp(path.join(os.tmpdir(), 'pp-replica-'));
-    const ticket = { ...order, assignedWorker:'coding-worker-' + i,
-      requestId:String(i).repeat(32) };
+    const ticket = { ...order, assignedWorker:'coding-worker-' + i };
     let invoked = 0;
     try {
       const got = await claimAndRunOwnerJobOnce({

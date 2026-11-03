@@ -116,7 +116,7 @@ export async function evaluateSupervisorRecovery({platform,head,branch,clean,
   return observation("ELIGIBLE","REVIEWED_TASK_START_ALLOWED",{sourceHead:head});
 }
 export async function recoverSupervisorOnce({now=Date.now(),platform=process.platform,
-  runner=run}={}) {
+  runner=run,readJson=readJsonCommand}={}) {
   if(platform!=="win32")return blocked("WINDOWS_ONLY");
   let head,branch,clean,status,task,stop,pause,enabled,lock,history,heartbeatAgeMs;
   try {
@@ -173,8 +173,8 @@ export async function recoverSupervisorOnce({now=Date.now(),platform=process.pla
         INSTALLER,"-Start","-Consent",CONSENT]);
       await new Promise(resolve=>setTimeout(resolve,10000));
       const [current,owned]=await Promise.all([
-        readJsonCommand(process.execPath,[SUPERVISOR,"--status"]),
-        readJsonCommand("powershell.exe",["-NoProfile","-NonInteractive","-File",INSTALLER,"-Status"])
+        readJson(process.execPath,[SUPERVISOR,"--status"]),
+        readJson("powershell.exe",["-NoProfile","-NonInteractive","-File",INSTALLER,"-Status"])
       ]);
       if(current.state==="RUNNING"&&current.exactSha===head&&
          owned.taskInstalled===true&&owned.taskState==="Running"&&owned.sourceHead===head)

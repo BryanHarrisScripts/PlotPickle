@@ -13,7 +13,7 @@ import { gatewayAppSource } from '../../gateway/gateway-host.mjs';
 
 const exec = promisify(execFile);
 const SHA = /^[a-f0-9]{40}$/;
-export const SUPERVISOR_DIAGNOSTIC_SCRIPT_SHA256 = '2eb1b133166fa04db99496b019e71639a14688e9d62a2dcd94db09f900e1b317';
+export const SUPERVISOR_DIAGNOSTIC_SCRIPT_SHA256 = 'd3f1ce3f6abdb5d6428b89d892fe1fbedc3f259fb1a45963c0f045584271aa1f';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 const SCRIPT = path.join(ROOT, 'scripts', 'engineering-team', 'windows',
   'supervisor', 'Read-PlotPickleSupervisorDiagnostics.ps1');
@@ -25,8 +25,37 @@ const taskStates = new Set(['Ready','Running','Disabled','Queued','Unknown',
 const markers = new Set(['ABSENT','PRESENT','UNVERIFIABLE']);
 const processStates = new Set(['MISSING','CANDIDATE_NOT_VERIFIED',
   'OTHER_PROCESS_OR_REUSED_PID','UNVERIFIABLE']);
+const eventStates = new Set(['OBSERVED','NOT_FOUND_IN_BOUNDED_SCAN','UNAVAILABLE']);
+const eventIds = new Set([100,101,102,103,107,111,129,200,201,203]);
+const utcStamp = value => value === null || (typeof value === 'string' &&
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{7}Z$/.test(value) &&
+  Number.isFinite(Date.parse(value)));
+const resultCode = value => value === null || (typeof value === 'string' &&
+  /^(?:0x[0-9A-Fa-f]{1,8}|[0-9]{1,10}|-[0-9]{1,10})$/.test(value));
+const safeEvent = value => value && typeof value === 'object' && !Array.isArray(value) &&
+  Object.keys(value).sort().join(',') === 'id,resultCode,timeUtc' &&
+  eventIds.has(value.id) && utcStamp(value.timeUtc) &&
+  typeof value.timeUtc === 'string' && resultCode(value.resultCode);
+function safeEventExtension(raw) {
+  // Synthetic pre-extension fixtures remain explicitly UNAVAILABLE, never PASS.
+  if (raw.taskEventsState === undefined && raw.taskEvents === undefined &&
+      raw.lastRunUtc === undefined && raw.nextRunUtc === undefined)
+    return Object.freeze({state:'UNAVAILABLE',events:Object.freeze([]),
+      lastRunUtc:null,nextRunUtc:null});
+  if(!eventStates.has(raw.taskEventsState) || !Array.isArray(raw.taskEvents) ||
+     raw.taskEvents.length > 8 || !raw.taskEvents.every(safeEvent) ||
+     !utcStamp(raw.lastRunUtc) || !utcStamp(raw.nextRunUtc) ||
+     (raw.taskEventsState === 'OBSERVED') !== (raw.taskEvents.length > 0))
+    return null;
+  return Object.freeze({state:raw.taskEventsState,
+    events:Object.freeze(raw.taskEvents.map(e=>Object.freeze({
+      id:e.id,timeUtc:e.timeUtc,resultCode:e.resultCode}))),
+    lastRunUtc:raw.lastRunUtc,nextRunUtc:raw.nextRunUtc});
+}
 export function sanitizeOwnerWindowsDiagnostics(raw, head) {
-  if(!raw || typeof raw !== 'object' || Array.isArray(raw) ||
+  const events=raw && typeof raw === 'object' && !Array.isArray(raw)
+    ?safeEventExtension(raw):null;
+  if(!events || !raw || typeof raw !== 'object' || Array.isArray(raw) ||
      raw.schemaVersion !== 1 || !taskStates.has(raw.taskState) ||
      !markers.has(raw.lockState) || !markers.has(raw.stopMarker) ||
      !markers.has(raw.pauseMarker) || !processStates.has(raw.processState) ||
@@ -40,6 +69,8 @@ export function sanitizeOwnerWindowsDiagnostics(raw, head) {
   return Object.freeze({
     state:'OBSERVED_NOT_RELEASE_PROOF', sourceHead:head,
     taskState:raw.taskState, lastTaskResult:raw.lastTaskResult,
+    lastRunUtc:events.lastRunUtc,nextRunUtc:events.nextRunUtc,
+    taskEventsState:events.state,taskEvents:events.events,
     lockState:raw.lockState, lockPid:raw.lockPid,
     processState:raw.processState,
     stopMarker:raw.stopMarker, pauseMarker:raw.pauseMarker,

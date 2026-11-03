@@ -15,7 +15,15 @@ function Marker([string]$file) {
         return 'UNVERIFIABLE'
     }
 }
+# Times and Task Scheduler event metadata only. Never return event Message,
+# ActionName, command lines, user identities or private filesystem paths.
+function UtcStamp($date) {
+    if ($null -eq $date -or $date.Year -lt 2000) { return $null }
+    return $date.ToUniversalTime().ToString('o', [Globalization.CultureInfo]::InvariantCulture)
+}
 $taskState = 'NOT_INSTALLED'
+$lastRunUtc = $null
+$nextRunUtc = $null
 $lastResult = $null
 try {
     $tasks = @(Get-ScheduledTask -TaskName 'PlotPickleIndependentSupervisor' -ErrorAction Stop)
@@ -25,6 +33,8 @@ try {
         try {
             $info = Get-ScheduledTaskInfo -InputObject $tasks[0] -ErrorAction Stop
             $lastResult = [long]$info.LastTaskResult
+            $lastRunUtc = UtcStamp $info.LastRunTime
+            $nextRunUtc = UtcStamp $info.NextRunTime
         } catch { $lastResult = $null }
     }
 } catch { $taskState = 'NOT_INSTALLED_OR_UNREADABLE' }
@@ -55,10 +65,65 @@ if ($lockState -eq 'PRESENT') {
         $processState = 'UNVERIFIABLE'
     }
 }
+
+# Scan at most 256 selected event IDs in a fixed 12-hour window. Finding
+# none does NOT establish that no task failure occurred outside that window.
+$taskEventsState = 'NOT_FOUND_IN_BOUNDED_SCAN'
+$taskEvents = @()
+try {
+    $recent = @(Get-WinEvent -FilterHashtable @{
+        LogName = 'Microsoft-Windows-TaskScheduler/Operational'
+        StartTime = (Get-Date).AddHours(-12)
+        Id = @(100,101,102,103,107,111,129,200,201,203)
+    } -MaxEvents 256 -ErrorAction Stop)
+    foreach ($eventRecord in $recent) {
+        if ($taskEvents.Count -ge 8) { break }
+        try {
+            $eventXml = [xml]$eventRecord.ToXml()
+            $fields = @{}
+            foreach ($item in @($eventXml.Event.EventData.Data)) {
+                if ($null -eq $item) { continue }
+                $fieldName = [string]$item.GetAttribute('Name')
+                if ($fieldName -in @('TaskName','ResultCode','ErrorCode','ReturnCode')) {
+                    $fields[$fieldName] = [string]$item.InnerText
+                }
+            }
+            if ($fields['TaskName'] -cne '\PlotPickleIndependentSupervisor' -and
+                $fields['TaskName'] -cne 'PlotPickleIndependentSupervisor') { continue }
+            $resultCode = $null
+            foreach ($name in @('ResultCode','ErrorCode','ReturnCode')) {
+                $candidate = [string]$fields[$name]
+                if ($candidate -cmatch '^(?:0x[0-9A-Fa-f]{1,8}|[0-9]{1,10}|-[0-9]{1,10})$') {
+                    $resultCode = $candidate
+                    break
+                }
+            }
+            $taskEvents += [pscustomobject]@{
+                id = [int]$eventRecord.Id
+                timeUtc = UtcStamp $eventRecord.TimeCreated
+                resultCode = $resultCode
+            }
+        } catch {
+            $taskEventsState = 'UNAVAILABLE'
+            $taskEvents = @()
+            break
+        }
+    }
+    if ($taskEvents.Count -gt 0) { $taskEventsState = 'OBSERVED' }
+} catch {
+    $taskEventsState = 'UNAVAILABLE'
+    if ($_.FullyQualifiedErrorId -match 'NoMatchingEventsFound') {
+        $taskEventsState = 'NOT_FOUND_IN_BOUNDED_SCAN'
+    }
+}
 [pscustomobject]@{
     schemaVersion = 1
     taskState = $taskState
     lastTaskResult = $lastResult
+    lastRunUtc = $lastRunUtc
+    nextRunUtc = $nextRunUtc
+    taskEventsState = $taskEventsState
+    taskEvents = @($taskEvents)
     lockState = $lockState
     lockPid = $pidValue
     processState = $processState

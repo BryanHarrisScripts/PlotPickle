@@ -52,7 +52,7 @@ async function readTarget(root){
  * pending separate review; no historical file is deleted or rewritten.
  */
 async function historicalRecord(root,folder,name){
-  if(!/^[a-f0-9]{32}(?:\.result)?\.json$/.test(name))
+  if(!/^[a-f0-9]{32}(?:\.(?:result|released))?\.json$/.test(name))
     throw Error("HISTORICAL_RECORD_NAME_INVALID");
   const parent=path.join(root,folder);
   const ps=await lstat(parent);

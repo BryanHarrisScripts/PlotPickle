@@ -10,6 +10,7 @@ param(
   [switch]$Start,
   [switch]$Status,
   [switch]$Stop,
+  [switch]$Crash,
   [switch]$Cleanup,
   [switch]$Child,
   [ValidatePattern('^[0-9]{2,10}$')][string]$Tag
@@ -18,7 +19,7 @@ $ErrorActionPreference = 'Stop'
 if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) {
   throw 'WINDOWS_ONLY'
 }
-if (@(@($Setup,$Start,$Status,$Stop,$Cleanup,$Child) | Where-Object { $_ }).Count -ne 1) {
+if (@(@($Setup,$Start,$Status,$Stop,$Crash,$Cleanup,$Child) | Where-Object { $_ }).Count -ne 1) {
   throw 'EXACTLY_ONE_OPERATION'
 }
 if ([string]::IsNullOrWhiteSpace($Tag)) { throw 'TAG_REQUIRED' }
@@ -116,6 +117,22 @@ if ($Start) {
   if ($t.State -ne 'Ready') { throw 'TASK_NOT_READY' }
   Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
   '{"state":"START_REQUESTED_UNCONFIRMED"}'
+  return
+}
+if ($Crash) {
+  if ($t.State -ne 'Running') { throw 'SCRATCH_TASK_NOT_RUNNING' }
+  if (-not (Test-Path -LiteralPath $marker -PathType Leaf)) {
+    throw 'NO_SCRATCH_HEARTBEAT'
+  }
+  $hb=Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json
+  $candidate=Get-CimInstance Win32_Process -Filter ('ProcessId=' + [int]$hb.pid) -ErrorAction Stop
+  if ($null -eq $candidate -or $candidate.Name -ne 'powershell.exe' -or
+      $candidate.CommandLine -notlike ('*' + $PSCommandPath + '*') -or
+      $candidate.CommandLine -notmatch ('-Child\s+-Tag\s+' + $Tag + '(?:\s|$)')) {
+    throw 'SCRATCH_CHILD_PID_NOT_OWNED'
+  }
+  Stop-Process -Id ([int]$hb.pid) -Force -ErrorAction Stop
+  '{"state":"SCRATCH_CHILD_TERMINATED"}'
   return
 }
 if ($Stop) {

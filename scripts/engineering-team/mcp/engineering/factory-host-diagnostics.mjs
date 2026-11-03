@@ -28,7 +28,7 @@ const processStates = new Set(['MISSING','CANDIDATE_NOT_VERIFIED',
 const eventStates = new Set(['OBSERVED','NOT_FOUND_IN_BOUNDED_SCAN','UNAVAILABLE']);
 const eventIds = new Set([100,101,102,103,107,111,129,200,201,203]);
 const utcStamp = value => value === null || (typeof value === 'string' &&
-  /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{7}Z$/.test(value) &&
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{7}Z$/.test(value) &&
   Number.isFinite(Date.parse(value)));
 const resultCode = value => value === null || (typeof value === 'string' &&
   /^(?:0x[0-9A-Fa-f]{1,8}|[0-9]{1,10}|-[0-9]{1,10})$/.test(value));

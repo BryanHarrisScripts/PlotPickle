@@ -121,8 +121,7 @@
   min-width: 0;
   gap: 14px;
 }
-.shell [data-shell-orientation="true"] [data-shell-local-order],
-.shell [data-shell-orientation="true"] [class*="destinationScroller"] {
+.shell [data-studio-destination-scroller="true"] {
   width: 100%;
   min-width: 0;
   overflow-x: auto;

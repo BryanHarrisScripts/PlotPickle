@@ -557,7 +557,7 @@ export default function PlotPickleWorkspaceShell({
       <aside className={studio.room} data-studio-room="true" aria-label="Elara Creative Room">
         <header className={studio.roomHead}>
           <strong>Elara · Creative Room</strong>
-          <small>Authenticated collaboration · current story: {destinationLabel}</small>
+          <small>Authenticated collaboration · active workspace: {destinationLabel}</small>
         </header>
         <p className={studio.roomNote}>This is the existing durable conversation transport, not a simulated specialist agent or an autonomous approval.</p>
         <TwoWayConversationTest />

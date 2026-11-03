@@ -8,20 +8,6 @@
   },
   "rules": [
     {
-      "id": "agent-native-surface-catalog-3263",
-      "classification": "production",
-      "include": [
-        "lib/experience/agent-surface-inventory.mjs",
-        "scripts/experience/read-surface-inventory.mjs"
-      ],
-      "ownerLayer": "experience-contract",
-      "riskTokens": [
-        "surface",
-        "navigation",
-        "agent"
-      ]
-    },
-    {
       "id": "factory-reviewed-mcp-tool-catalog-3278",
       "classification": "production",
       "include": [

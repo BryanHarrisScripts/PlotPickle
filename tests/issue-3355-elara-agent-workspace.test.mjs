@@ -17,6 +17,19 @@ test("#3355 mounts a real Agent Workspace in the existing Collab entry", async (
   assert.match(entry, /Teams 2–5 are planned, not installed/);
   assert.match(styles, /\.teamRoles\s*\{/);
   assert.match(styles, /@media \(max-width: 36rem\)/);
+  assert.match(entry, /data-agent-columns="story-mission-conversation"/);
+  const storyIndex = entry.indexOf('aria-label="Story and mission navigator"');
+  const canvasIndex = entry.indexOf('aria-label="Mission canvas"');
+  const roomIndex = entry.indexOf('aria-label="Creative Room and durable conversation evidence"');
+  assert.ok(storyIndex > 0 && storyIndex < canvasIndex && canvasIndex < roomIndex,
+    "the story, mission and conversation columns must keep their shared order");
+  assert.match(entry, /href="\/storyboard"/);
+  assert.match(entry, /href="\/previs"/);
+  assert.match(entry, /Act, Sequence, Block, Mini-Block and Shot are not selected here/);
+  assert.match(styles, /\.agentColumns\s*\{/);
+  assert.match(styles, /\.agentRoom\s*\{/);
+  assert.match(styles, /grid-template-columns:\s*minmax\(12rem,/);
+  assert.match(styles, /@media \(max-width: 48rem\)/);
 });
 
 test("#3355 cannot turn a heartbeat or a test reply into a worker, reviewer or merge", async () => {

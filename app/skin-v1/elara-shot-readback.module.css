@@ -1,0 +1,64 @@
+.root {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 10px;
+  background: #101722;
+  color: #e2e8f0;
+  font-size: 12px;
+}
+.title { display: grid; gap: 4px; }
+.title strong { font-size: 13px; font-weight: 720; }
+.title small { font-size: 11px; line-height: 1.4; color: #9caeb7; }
+.project {
+  margin: 0;
+  overflow: hidden;
+  color: #b0ecc8;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+.selectors { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.selectors label {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  color: #abb9c3;
+  font-size: 10px;
+  font-weight: 600;
+}
+.selectors select {
+  min-width: 0;
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid rgba(255, 255, 255, .22);
+  border-radius: 6px;
+  padding: 4px 6px;
+  background: #1c2732;
+  color: #eef5f8;
+  font: inherit;
+  font-size: 12px;
+}
+.inspect {
+  min-height: 44px;
+  border: 1px solid rgba(141, 222, 178, .5);
+  border-radius: 6px;
+  background: #1a352d;
+  color: #d6ffec;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.inspect:disabled { opacity: .5; cursor: default; }
+.refresh { justify-self: start; min-height: 40px; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; padding: 6px 10px; background: #1b2632; color: #d7e4e8; cursor: pointer; font: inherit; font-size: 11px; }
+.inspect:focus-visible, .refresh:focus-visible, .selectors select:focus-visible, .root a:focus-visible {
+  outline: 2px solid #8bd7ac;
+  outline-offset: 2px;
+}
+.status { margin: 0; min-height: 16px; color: #b4bfc9; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.evidence { margin: 0; display: grid; gap: 0; border-top: 1px solid rgba(255,255,255,.1); }
+.evidence div { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+.evidence dt { color: #b2c0ca; }
+.evidence dd { margin: 0; color: #e1f3e8; text-align: right; overflow-wrap: anywhere; }
+.root a { color: #a3e9c5; font-size: 11px; text-decoration: underline; text-underline-offset: 3px; }

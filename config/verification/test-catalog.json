@@ -12579,7 +12579,7 @@
       },
       {
         "target": "tests/issue-3142-factory-worker-pool.test.mjs",
-        "targetDigest": "c52ddf2f4e47491be4c5d66499a3964bf236214e9d70f2b340e6cb6bd1d659d7",
+        "targetDigest": "cac207ebd646ba00b0e255176d8b26c6e961e12f170dc6da63123491dc4c40b4",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -12601,7 +12601,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-pool.mjs",
-            "digest": "2f3a0bc2b15d94ab35c7d023a62c61f6ccb25567d63e029dcdb82ebb23c616fe"
+            "digest": "44630481a03daaff688d7023186625e94b4763fc13799b8e35d2e3c172651c8f"
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
@@ -12907,7 +12907,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-pool.mjs",
-            "digest": "2f3a0bc2b15d94ab35c7d023a62c61f6ccb25567d63e029dcdb82ebb23c616fe"
+            "digest": "44630481a03daaff688d7023186625e94b4763fc13799b8e35d2e3c172651c8f"
           },
           {
             "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
@@ -13087,7 +13087,7 @@
       },
       {
         "target": "tests/issue-3110-worker1-terminal-recovery.test.mjs",
-        "targetDigest": "4e58cc1c79b437d466115b18c398e3d9a0c2afc4f9b460be66ceae0777059a28",
+        "targetDigest": "49dd8f5e161b305e1df12b28025b60090d191ec3ef3e808d606c8ca461ffcd93",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],
@@ -13121,7 +13121,7 @@
           },
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-pool.mjs",
-            "digest": "2f3a0bc2b15d94ab35c7d023a62c61f6ccb25567d63e029dcdb82ebb23c616fe"
+            "digest": "44630481a03daaff688d7023186625e94b4763fc13799b8e35d2e3c172651c8f"
           }
         ]
       }

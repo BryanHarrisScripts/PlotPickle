@@ -61,7 +61,7 @@ export function validateOwnerWorkOrder(work, expectedHead) {
     work.consent === 'ONE_OWNER_AUTHORIZED_JOB_NO_REPLAY' &&
     ROLES.some(role => role.slot >= 1 && role.id === work.assignedWorker) &&
     ID.test(work.requestId || '') && ID.test(work.grantId || '') &&
-    ID.test(work.publicationId || '') && work.grantId !== work.publicationId &&
+    ID.test(work.publicationId || '') && work.requestId !== work.grantId && work.requestId !== work.publicationId && work.grantId !== work.publicationId &&
     Number.isSafeInteger(work.issueNumber) && work.issueNumber > 0 &&
     work.issueNumber <= 9999999 && SHA.test(expectedHead || '') &&
     work.sourceHead === expectedHead);

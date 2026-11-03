@@ -9,7 +9,7 @@
  */
 import {execFile} from "node:child_process";
 import {promisify} from "node:util";
-import {lstat, mkdir, readdir, readFile, rename, rm, writeFile} from "node:fs/promises";
+import {lstat, mkdir, open, readdir, readFile, rename, rm, writeFile} from "node:fs/promises";
 import {randomUUID} from "node:crypto";
 import os from "node:os";
 import path from "node:path";
@@ -78,6 +78,7 @@ async function safeHistory(now) {
     if(!Number.isSafeInteger(record.at)||record.at>now+30000||record.at<0||
        !SHA.test(record.head||""))throw Error("RECEIPT_UNVERIFIABLE");
     const id=f.slice(8,44),kind=f.endsWith(".requested.json")?"requested":"result";
+    if(record.requestId!==id)throw Error("RECEIPT_ID_UNVERIFIABLE");
     const e=pending.get(id)||{};
     if(e[kind])throw Error("DUPLICATE_RECEIPT");
     e[kind]=record;pending.set(id,e);
@@ -97,13 +98,13 @@ export async function evaluateSupervisorRecovery({platform,head,branch,clean,
   if(platform!=="win32")return blocked("WINDOWS_ONLY");
   if(!SHA.test(head||"")||branch!=="main"||!clean)return blocked("CLEAN_MAIN_REQUIRED");
   if(!status||status.exactSha!==head)return blocked("SUPERVISOR_SOURCE_MISMATCH");
+  if(stop!=="ABSENT"||pause!=="ABSENT"||enabled!=="PRESENT")
+    return blocked("STOP_PAUSE_OR_CONSENT_UNVERIFIABLE");
   if(status.state==="RUNNING")return observation("OBSERVED","SUPERVISOR_HEARTBEAT_PRESENT_NOT_PROCESS_PROOF",{sourceHead:head});
   if(status.state!=="OFFLINE"||status.pauseAcknowledged===true)return blocked("SUPERVISOR_NOT_ELIGIBLE");
   if(!task||task.taskInstalled!==true||task.taskState!=="Ready"||
      task.sourceHead!==head||task.recoveryPolicyVerified!==true)
     return blocked("OWNED_TASK_NOT_READY");
-  if(stop!=="ABSENT"||pause!=="ABSENT"||enabled!=="PRESENT")
-    return blocked("STOP_PAUSE_OR_CONSENT_UNVERIFIABLE");
   if(lock!=="ABSENT")return blocked("LOCK_PRESENT_REQUIRES_SEPARATE_REVIEW");
   // Let the existing 3 x 5 minute Task Scheduler restart policy complete first.
   if(!Number.isSafeInteger(heartbeatAgeMs)||heartbeatAgeMs<1200000)
@@ -139,42 +140,58 @@ export async function recoverSupervisorOnce({now=Date.now(),platform=process.pla
   const decision=await evaluateSupervisorRecovery({platform,head,branch,clean,
     status,task,stop,pause,enabled,lock,history,heartbeatAgeMs,now});
   if(decision.state!=="ELIGIBLE")return decision;
-  // Before requesting start, atomically preserve the intent; no uncertain replay.
-  let requestId,requestPath;
-  try {
-    if((await runner("git",["-C",REPO,"rev-parse","HEAD"]))!==head||
-       (await runner("git",["-C",REPO,"status","--porcelain","--untracked-files=no"]))!=="")
-      return blocked("SOURCE_CHANGED_DURING_RECOVERY");
-    if((await markerState(path.join(SUPERVISOR_STATE,"running.lock")))!=="ABSENT"||
-       (await markerState(path.join(SUPERVISOR_STATE,"stop-request.json")))!=="ABSENT"||
-       (await markerState(path.join(SUPERVISOR_STATE,"pause-request.json")))!=="ABSENT")
-      return blocked("RECOVERY_STATE_CHANGED");
-    requestId=randomUUID();
-    requestPath=path.join(RECEIPTS,"attempt-"+requestId+".requested.json");
-    await writeFile(requestPath,JSON.stringify({requestId,at:now,head})+"\n",
-      {flag:"wx",mode:0o600});
-  }catch{return blocked("RECOVERY_INTENT_UNVERIFIABLE");}
-  let outcome="START_UNCONFIRMED";
-  try {
-    await runner("powershell.exe",["-NoProfile","-NonInteractive","-File",
-      INSTALLER,"-Start","-Consent",CONSENT]);
-    await new Promise(resolve=>setTimeout(resolve,10000));
-    const [current,owned]=await Promise.all([
-      readJsonCommand(process.execPath,[SUPERVISOR,"--status"]),
-      readJsonCommand("powershell.exe",["-NoProfile","-NonInteractive","-File",INSTALLER,"-Status"])
-    ]);
-    if(current.state==="RUNNING"&&current.exactSha===head&&
-       owned.taskInstalled===true&&owned.taskState==="Running"&&owned.sourceHead===head)
-      outcome="START_OBSERVED";
-  }catch{ /* uncertainty must be recorded; never silently retry */ }
-  try {
-    await writeFile(path.join(RECEIPTS,"attempt-"+requestId+".result.json"),
-      JSON.stringify({requestId,at:Date.now(),head,outcome})+"\n",
-      {flag:"wx",mode:0o600});
-  }catch{return blocked("RECOVERY_RESULT_UNPERSISTED_NO_REPLAY");}
-  return observation(outcome==="START_OBSERVED"?"RUNNING_OBSERVED":"BLOCKED",
-    outcome,{sourceHead:head,processOwnershipVerified:false,
-      independentWindowsAcceptance:false});
+  const gate=path.join(RECEIPTS,"start-inflight.lock");
+  let handle;
+  try{handle=await open(gate,"wx",0o600);}
+  catch{return blocked("START_ALREADY_INFLIGHT_OR_LOCK_UNVERIFIABLE");}
+  try{
+    // A persistent exclusive gate prevents concurrent CLI and Scheduled Task instances.
+    // A crash preserves the gate and the intent receipt for separate reconciliation.
+    let requestId,requestPath;
+    try {
+      if((await runner("git",["-C",REPO,"rev-parse","HEAD"]))!==head||
+         (await runner("git",["-C",REPO,"status","--porcelain","--untracked-files=no"]))!=="")
+        return blocked("SOURCE_CHANGED_DURING_RECOVERY");
+      if((await markerState(path.join(SUPERVISOR_STATE,"running.lock")))!=="ABSENT"||
+         (await markerState(path.join(SUPERVISOR_STATE,"stop-request.json")))!=="ABSENT"||
+         (await markerState(path.join(SUPERVISOR_STATE,"pause-request.json")))!=="ABSENT")
+        return blocked("RECOVERY_STATE_CHANGED");
+      const fresh=JSON.parse(await runner(process.execPath,[SUPERVISOR,"--status"]));
+      if(fresh?.state!=="OFFLINE"||fresh.exactSha!==head)
+        return blocked("RECOVERY_STATE_CHANGED");
+      const updated=await safeHistory(Date.now());
+      if(updated.uncertain||updated.attempts>=3)
+        return blocked("RECOVERY_RECEIPT_UNCERTAIN_OR_BUDGET_EXHAUSTED");
+      requestId=randomUUID();
+      requestPath=path.join(RECEIPTS,"attempt-"+requestId+".requested.json");
+      await writeFile(requestPath,JSON.stringify({requestId,at:now,head})+"\n",
+        {flag:"wx",mode:0o600});
+    }catch{return blocked("RECOVERY_INTENT_UNVERIFIABLE");}
+    let outcome="START_UNCONFIRMED";
+    try {
+      await runner("powershell.exe",["-NoProfile","-NonInteractive","-File",
+        INSTALLER,"-Start","-Consent",CONSENT]);
+      await new Promise(resolve=>setTimeout(resolve,10000));
+      const [current,owned]=await Promise.all([
+        readJsonCommand(process.execPath,[SUPERVISOR,"--status"]),
+        readJsonCommand("powershell.exe",["-NoProfile","-NonInteractive","-File",INSTALLER,"-Status"])
+      ]);
+      if(current.state==="RUNNING"&&current.exactSha===head&&
+         owned.taskInstalled===true&&owned.taskState==="Running"&&owned.sourceHead===head)
+        outcome="START_OBSERVED";
+    }catch{ /* uncertainty must be recorded; never silently retry */ }
+    try {
+      await writeFile(path.join(RECEIPTS,"attempt-"+requestId+".result.json"),
+        JSON.stringify({requestId,at:Date.now(),head,outcome})+"\n",
+        {flag:"wx",mode:0o600});
+    }catch{return blocked("RECOVERY_RESULT_UNPERSISTED_NO_REPLAY");}
+    return observation(outcome==="START_OBSERVED"?"RUNNING_OBSERVED":"BLOCKED",
+      outcome,{sourceHead:head,processOwnershipVerified:false,
+        independentWindowsAcceptance:false});
+  }finally{
+    await handle.close().catch(()=>{});
+    await rm(gate,{force:true}).catch(()=>{});
+  }
 }
 async function persistHeartbeat(result) {
   const root=path.join(PRIVATE,"service-manager");

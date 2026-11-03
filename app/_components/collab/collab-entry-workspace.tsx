@@ -156,66 +156,96 @@ export default function CollabEntryWorkspace({ projectTitle }: { readonly projec
         </dl>
       </section>
 
-      <section className={styles.agentWorkspace} aria-label="Elara Agent Workspace" data-agent-workspace="source-bound-first-slice">
+      <section className={styles.agentWorkspace} aria-label="Elara Agent Workspace" data-agent-workspace="source-bound-three-column">
         <div className={styles.agentHeading}>
           <div>
             <p className={styles.kicker}>HUMAN / ELARA / SPECIALISTS</p>
             <h2 className={styles.sectionTitle}>Elara's Agent Workspace</h2>
-            <p>Share one traceable objective, inspect the real Factory evidence and continue talking while work is delegated through approved tools. This first slice uses the existing durable conversation test; it does not issue specialist work orders.</p>
+            <p>One profile-owned story and mission, with the working objective in the centre and authenticated conversation evidence beside it. This workspace does not issue specialist work orders or invent completed agent work.</p>
           </div>
           <button type="button" className={styles.action} onClick={() => { void refreshEvidence(); void refreshMission(); }}>Refresh evidence</button>
         </div>
-        <dl className={styles.agentFacts}>
-          <div><dt>Current objective</dt><dd>Verify an authenticated, source-bound exchange before enabling delegation</dd></div>
-          <div><dt>Local Factory source</dt><dd><code>{supervisor?.sourceHead || "UNVERIFIED"}</code></dd></div>
-          <div><dt>Supervisor</dt><dd>{supervisor?.state || "UNAVAILABLE"}{supervisor?.state === "RUNNING" ? " · heartbeat, not worker proof" : ""}</dd></div>
-          <div><dt>Durable exchange</dt><dd>{exchangeVerified ? "REPLY SAVED AND READ BACK" : conversation?.code === "PENDING" && sourceBound ? "AWAITING CONNECTED CLIENT" : "UNVERIFIED"}</dd></div>
-          <div><dt>Evidence reference</dt><dd><code>{sourceBound ? conversation?.questionId || "NONE" : "UNVERIFIED"}</code></dd></div>
-          <div><dt>Next action</dt><dd>{exchangeVerified ? "Review a separate, authorized specialist delegation" : "Complete a two-way conversation receipt"}</dd></div>
-        </dl>
-        {status ? <p role="status" className={styles.agentNotice}>{status}</p> : null}
-        {supervisor && !sourceBound ? <p role="alert" className={styles.agentNotice}>Conversation and supervisor source identity are not jointly verified. No mission completion is claimed.</p> : null}
-        <section className={styles.missionPanel} aria-label="Durable mission draft">
-          <h3 className={styles.sectionTitle}>Mission journal</h3>
-          <p>Save a Human-approved objective against the current source. A draft is not a delegation, model call, grant or release.</p>
-          {mission ? <dl className={styles.missionFacts}>
-            <div><dt>Goal</dt><dd>{mission.goal}</dd></div>
-            <div><dt>Record</dt><dd><code>{mission.missionId}</code></dd></div>
-            <div><dt>Status</dt><dd>{mission.code} · {mission.state} · {mission.specialist}</dd></div>
-            <div><dt>Source</dt><dd><code>{mission.sourceHead}</code></dd></div>
-          </dl> : <p>No verified mission draft is available for this profile.</p>}
-          {mission?.code === "MISSION_SOURCE_REVIEW_REQUIRED" ?
-            <p role="alert" className={styles.agentNotice}>The saved mission belongs to another source revision. No work is authorized for the current revision.</p> : null}
-          <form className={styles.missionForm} onSubmit={(event) => { event.preventDefault(); void saveMissionDraft(); }}>
-            <label htmlFor="elara-mission-goal">Next objective</label>
-            <input id="elara-mission-goal" type="text" minLength={5} maxLength={180}
-              required value={missionGoal} onChange={(event) => setMissionGoal(event.target.value)}
-              placeholder="Describe one bounded goal for Elara to prepare"
-              disabled={missionSaving || missionCurrent} />
-            <button className={styles.action} type="submit"
-              disabled={missionSaving || missionCurrent || missionGoal.trim().length < 5}>
-              {missionSaving ? "Verifying readback…" : missionCurrent ? "Current draft saved" : "Save mission draft"}
-            </button>
-          </form>
-          {missionError ? <p role="alert" className={styles.agentNotice}>{missionError}</p> : null}
-          <p>Specialist execution remains unavailable until an independently authorized work order and a real reply are verified.</p>
-        </section>
-        <div className={styles.participants} aria-label="Collaboration participants">
-          <div><strong>Human owner</strong><span>{supervisor ? "Local profile authenticated for observation" : "Identity not verified here"}</span></div>
-          <div><strong>Elara / connected assistant</strong><span>{exchangeVerified ? "Durable reply observed; not a live-presence claim" : "Reply not verified"}</span></div>
-          <div><strong>Specialist agent</strong><span>NOT ASSIGNED · No delegation grant</span></div>
+
+        <div className={styles.agentColumns} data-agent-columns="story-mission-conversation">
+          <aside className={styles.agentRail} aria-label="Story and mission navigator">
+            <p className={styles.kicker}>STORY NAVIGATOR</p>
+            <h3 className={styles.sectionTitle}>Story and mission</h3>
+            <dl className={styles.navigatorFacts}>
+              <div><dt>Active story</dt><dd>{projectTitle || "Untitled Story"}</dd></div>
+              <div><dt>Mission</dt><dd><code>{mission?.missionId || "NOT SELECTED"}</code></dd></div>
+              <div><dt>Mission status</dt><dd>{mission?.code || "NO VERIFIED DRAFT"}</dd></div>
+              <div><dt>Source</dt><dd><code>{mission?.sourceHead || "UNVERIFIED"}</code></dd></div>
+            </dl>
+            <nav className={styles.navigatorLinks} aria-label="Canonical story workspaces">
+              <Link className={styles.action} href="/skin-v1?workspace=library">Story Library</Link>
+              <Link className={styles.action} href="/storyboard">Open Storyboard</Link>
+              <Link className={styles.action} href="/previs">Open Previs</Link>
+            </nav>
+            <p className={styles.agentNotice}>Act, Sequence, Block, Mini-Block and Shot are not selected here. Open the canonical Storyboard for source-linked shots; this panel does not create a parallel shot record.</p>
+          </aside>
+
+          <section className={styles.agentCanvas} aria-label="Mission canvas">
+            <p className={styles.kicker}>CREATIVE CANVAS</p>
+            <h3 className={styles.sectionTitle}>Current objective</h3>
+            <p className={styles.agentObjective}>{missionCurrent ? mission?.goal : "Save and verify a source-bound mission objective."}</p>
+            <section className={styles.missionPanel} aria-label="Durable mission draft">
+              <h3 className={styles.sectionTitle}>Mission journal</h3>
+              <p>Save a Human-approved objective against the current source. A draft is not a delegation, model call, grant or release.</p>
+              {mission ? <dl className={styles.missionFacts}>
+                <div><dt>Goal</dt><dd>{mission.goal}</dd></div>
+                <div><dt>Record</dt><dd><code>{mission.missionId}</code></dd></div>
+                <div><dt>Status</dt><dd>{mission.code} · {mission.state} · {mission.specialist}</dd></div>
+                <div><dt>Source</dt><dd><code>{mission.sourceHead}</code></dd></div>
+              </dl> : <p>No verified mission draft is available for this profile.</p>}
+              {mission?.code === "MISSION_SOURCE_REVIEW_REQUIRED" ?
+                <p role="alert" className={styles.agentNotice}>The saved mission belongs to another source revision. No work is authorized for the current revision.</p> : null}
+              <form className={styles.missionForm} onSubmit={(event) => { event.preventDefault(); void saveMissionDraft(); }}>
+                <label htmlFor="elara-mission-goal">Next objective</label>
+                <input id="elara-mission-goal" type="text" minLength={5} maxLength={180}
+                  required value={missionGoal} onChange={(event) => setMissionGoal(event.target.value)}
+                  placeholder="Describe one bounded goal for Elara to prepare"
+                  disabled={missionSaving || missionCurrent} />
+                <button className={styles.action} type="submit"
+                  disabled={missionSaving || missionCurrent || missionGoal.trim().length < 5}>
+                  {missionSaving ? "Verifying readback…" : missionCurrent ? "Current draft saved" : "Save mission draft"}
+                </button>
+              </form>
+              {missionError ? <p role="alert" className={styles.agentNotice}>{missionError}</p> : null}
+              <p>Specialist execution remains unavailable until an independently authorized work order and a real reply are verified.</p>
+            </section>
+            <h3 className={styles.sectionTitle}>Team 1 · Build → Test → Fix → Verify → Merge</h3>
+            <ol className={styles.teamRoles} aria-label="Five logical engineering responsibilities">
+              {STAGES.map((stage, index) => (
+                <li key={stage}>
+                  <strong>1.{index + 1} {stage}</strong>
+                  <span>{stage === "Merge" ? "NOT AUTHORIZED" : "NOT VERIFIED"}</span>
+                </li>
+              ))}
+            </ol>
+            <p className={styles.agentNotice}>Teams 2–5 are planned, not installed. A Factory heartbeat or an answered conversation never proves a coding, independent review or merge cycle.</p>
+          </section>
+
+          <aside className={styles.agentRoom} aria-label="Creative Room and durable conversation evidence">
+            <p className={styles.kicker}>CREATIVE ROOM / EVIDENCE</p>
+            <h3 className={styles.sectionTitle}>Human · Elara · specialist</h3>
+            <p className={styles.roomDescription}>The existing two-way conversation below can verify a durable exchange. It is not a simulated live specialist conversation and remains available beside the mission canvas.</p>
+            <dl className={styles.agentFacts}>
+              <div><dt>Local Factory source</dt><dd><code>{supervisor?.sourceHead || "UNVERIFIED"}</code></dd></div>
+              <div><dt>Supervisor</dt><dd>{supervisor?.state || "UNAVAILABLE"}{supervisor?.state === "RUNNING" ? " · heartbeat, not worker proof" : ""}</dd></div>
+              <div><dt>Durable exchange</dt><dd>{exchangeVerified ? "REPLY SAVED AND READ BACK" : conversation?.code === "PENDING" && sourceBound ? "AWAITING CONNECTED CLIENT" : "UNVERIFIED"}</dd></div>
+              <div><dt>Evidence reference</dt><dd><code>{sourceBound ? conversation?.questionId || "NONE" : "UNVERIFIED"}</code></dd></div>
+              <div><dt>Next action</dt><dd>{exchangeVerified ? "Review a separate, authorized specialist delegation" : "Complete a two-way conversation receipt"}</dd></div>
+            </dl>
+            {status ? <p role="status" className={styles.agentNotice}>{status}</p> : null}
+            {supervisor && !sourceBound ? <p role="alert" className={styles.agentNotice}>Conversation and supervisor source identity are not jointly verified. No mission completion is claimed.</p> : null}
+            <div className={styles.participants} aria-label="Collaboration participants">
+              <div><strong>Human owner</strong><span>{supervisor ? "Local profile authenticated for observation" : "Identity not verified here"}</span></div>
+              <div><strong>Elara / connected assistant</strong><span>{exchangeVerified ? "Durable reply observed; not a live-presence claim" : "Reply not verified"}</span></div>
+              <div><strong>Specialist agent</strong><span>NOT ASSIGNED · No delegation grant</span></div>
+            </div>
+            <TwoWayConversationTest />
+          </aside>
         </div>
-        <h3 className={styles.sectionTitle}>Team 1 · Build → Test → Fix → Verify → Merge</h3>
-        <ol className={styles.teamRoles} aria-label="Five logical engineering responsibilities">
-          {STAGES.map((stage, index) => (
-            <li key={stage}>
-              <strong>1.{index + 1} {stage}</strong>
-              <span>{stage === "Merge" ? "NOT AUTHORIZED" : "NOT VERIFIED"}</span>
-            </li>
-          ))}
-        </ol>
-        <p className={styles.agentNotice}>Teams 2–5 are planned, not installed. A Factory heartbeat or an answered conversation never proves a coding, independent review or merge cycle.</p>
-        <TwoWayConversationTest />
       </section>
 
       <section className={styles.destinations}>

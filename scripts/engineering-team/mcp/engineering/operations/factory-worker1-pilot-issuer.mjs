@@ -287,6 +287,50 @@ async function prior3110HistorySettled(root,entries,expectedHead,at){
   return true;
 }
 
+/**
+ * One additional #3110 job only after the exact FIRST consumed ticket is
+ * terminally no-write reconciled. Never reissue the first grant or accept
+ * a second reservation as authority to issue a third.
+ */
+async function original3110TerminalNoWrite(root,expectedHead,at){
+  try {
+    const marker=await historicalRecord(root,"owner-pilot-reservations","issue-3110.json");
+    if(marker.schemaVersion!==1||marker.issueNumber!==3110||
+       marker.state!=="GRANT_WRITES_RESERVED_NO_REPLAY"||
+       !ID.test(marker.requestId||"")||!SHA.test(marker.sourceHead||"")||
+       marker.sourceHead===expectedHead||!Number.isSafeInteger(marker.at)||
+       marker.at>=at)return false;
+    const work=await historicalRecord(root,"owner-work-orders",marker.requestId+".json");
+    if(!validateOwnerWorkOrder(work,work.sourceHead)||work.issueNumber!==3110||
+       work.requestId!==marker.requestId||work.sourceHead!==marker.sourceHead||
+       work.assignedWorker!=="coding-worker-1")return false;
+    const grant=await historicalRecord(root,"owner-coding-grants",work.grantId+".json");
+    const pub=await historicalRecord(root,"owner-publication-grants",work.publicationId+".json");
+    if(grant.grantId!==work.grantId||grant.issueNumber!==3110||
+       grant.sourceHead!==work.sourceHead||grant.maxRequests!==1||
+       !Number.isSafeInteger(grant.expiresAt)||grant.expiresAt>=at||
+       pub.publicationId!==work.publicationId||pub.grantId!==work.grantId||
+       pub.issueNumber!==3110||pub.sourceHead!==work.sourceHead||
+       pub.maxRequests!==1||!Number.isSafeInteger(pub.expiresAt)||
+       pub.expiresAt>=at)return false;
+    const coding=await historicalRecord(root,"coding-attempts",work.grantId+".result.json");
+    const released=await historicalRecord(root,"coding-attempts",work.grantId+".released.json");
+    if(coding.state!=="BLOCKED"||
+       coding.code!=="CODING_OUTCOME_UNCERTAIN_REVIEW_STAGE"||
+       coding.phase!=="VALIDATE_MODEL_EDIT"||coding.replayAuthorized!==false||
+       released.schemaVersion!==1||released.kind!=="coding-resource-release"||
+       released.grantId!==work.grantId||released.sourceHead!==work.sourceHead||
+       released.state!=="RECONCILED_MODEL_EDIT_REJECTED_NO_WRITE"||
+       released.phase!=="VALIDATE_MODEL_EDIT"||
+       released.localCommit!==undefined||released.branch!==undefined||
+       released.replayAuthorized!==false||released.publicationAuthorized!==false)
+      return false;
+    return await historicalAbsent(root,"publication-attempts",work.publicationId+".reserved.json")&&
+      await historicalAbsent(root,"publication-attempts",work.publicationId+".result.json")&&
+      await historicalAbsent(root,"engineering-receipts",work.grantId+".json");
+  }catch{return false;}
+}
+
 export async function issueOne3110Worker1Ticket({
   expectedHead,platform=process.platform,repoRoot=ROOT,
   verifyHead=readFactoryVerificationHead,root=privateGatewayRoot(),
@@ -310,7 +354,7 @@ export async function issueOne3110Worker1Ticket({
       return denied("WORKER1_STOP_PAUSE_OR_SOURCE_UNVERIFIED");
   }catch{return denied("WORKER1_READINESS_UNVERIFIED");}
 
-  let dirs;
+  let dirs,terminalRecovery=false;
   try{
     dirs={
       reserve:await ownerDirectory(root,"owner-pilot-reservations"),
@@ -324,8 +368,15 @@ export async function issueOne3110Worker1Ticket({
       return denied("WORKER1_PRIOR_ATTEMPT_UNVERIFIED_NO_REPLAY");
     const reservations=await readdir(dirs.reserve);
     if(reservations.some(n=>!["issue-3142.json",
-      "issue-3142-terminal-recovery.json"].includes(n)))
+      "issue-3142-terminal-recovery.json","issue-3110.json",
+      "issue-3110-terminal-recovery.json"].includes(n))||
+      reservations.includes("issue-3110-terminal-recovery.json"))
       return denied("WORKER1_ONCE_ALREADY_RESERVED");
+    if(reservations.includes("issue-3110.json")){
+      if(!await original3110TerminalNoWrite(root,expectedHead,at))
+        return denied("WORKER1_ONCE_ALREADY_RESERVED");
+      terminalRecovery=true;
+    }
   }catch{return denied("WORKER1_STORAGE_UNVERIFIED");}
 
   const requestId=id(),grantId=id(),publicationId=id();
@@ -340,7 +391,7 @@ export async function issueOne3110Worker1Ticket({
   const coding={schemaVersion:1,kind:"engineering-edit-once",grantId,
     issueNumber:3110,sourceHead:expectedHead,targetPath:TARGET,
     targetDigest:digest,focusedTest:TEST,
-    objective:"Fix the owner work-order validator to reject requestId equal to grantId or publicationId, in addition to the existing grantId/publicationId inequality. Change only that one existing JavaScript validation expression. Preserve other checks and behavior.",
+    objective:"Fix validateOwnerWorkOrder: make oldText exactly the unique source substring 'work.grantId !== work.publicationId &&' and newText exactly 'work.requestId !== work.grantId && work.requestId !== work.publicationId && work.grantId !== work.publicationId &&'. Return only JSON oldText/newText. Change no other expression, permission, test, or behavior.",
     model:"qwen2.5-coder:7b",maxOutputTokens:1200,expiresAt,maxRequests:1,
     consent:"AUTHORIZE_ONE_ENGINEERING_SOURCE_EDIT"};
   const publication={schemaVersion:1,kind:"draft-pr-publish-approved-coding-once",
@@ -360,7 +411,8 @@ export async function issueOne3110Worker1Ticket({
        (await dispatcherRead())?.state!=="ONLINE_OBSERVED")
       return denied("WORKER1_READINESS_CHANGED");
     // Write-once reservation FIRST; preserve partial failure for Human review.
-    await oneFile(dirs.reserve,"issue-3110.json",{
+    await oneFile(dirs.reserve,terminalRecovery
+      ? "issue-3110-terminal-recovery.json" : "issue-3110.json",{
       schemaVersion:1,issueNumber:3110,requestId,sourceHead:expectedHead,
       state:"GRANT_WRITES_RESERVED_NO_REPLAY",at});
     await oneFile(dirs.coding,grantId+".json",coding);

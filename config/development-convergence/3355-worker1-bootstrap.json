@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "issue": 3355,
+  "phase": "existing-factory-worker1-draft-pr-bootstrap",
+  "brief": "docs/developer-briefs/3355-worker1-bootstrap.md",
+  "allowedChanges": [
+    "config/development-convergence/3355-worker1-bootstrap.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/3355-worker1-bootstrap.md",
+    "scripts/engineering-team/gateway/worker-pool/dispatcher/native-dispatcher.mjs",
+    "scripts/engineering-team/gateway/worker-pool/issue-3355/prerequisites.mjs",
+    "scripts/engineering-team/gateway/worker-pool/issue-3355/worker-execution.mjs",
+    "scripts/engineering-team/gateway/worker-pool/worker-host.mjs",
+    "scripts/engineering-team/mcp/engineering/operations/issue-3355-worker1-issuer.mjs",
+    "scripts/engineering-team/mcp/factory-readonly-server.mjs",
+    "scripts/engineering-team/windows/autonomous-issue-coder.mjs",
+    "scripts/pi-worker-runtime.mjs",
+    "tests/issue-3355-worker1-bootstrap.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "HISTORY-NO-REPLAY",
+      "criterion": "The consumed #3110 result is reconciled from retained local evidence and live merged PR state without reconstructing its absent Factory publication receipt.",
+      "evidence": [
+        {"type": "file-contains", "path": "scripts/engineering-team/gateway/worker-pool/issue-3355/prerequisites.mjs", "contains": "MANUAL_PR=3387"},
+        {"type": "file-contains", "path": "scripts/engineering-team/gateway/worker-pool/issue-3355/prerequisites.mjs", "contains": "engineering-receipts"}
+      ]
+    },
+    {
+      "id": "ONE-OWNER-ORDER",
+      "criterion": "Only one fixed #3355 owner order is issued under exact MAIN, supervisor, Dispatcher, local model and immutable private reservation checks.",
+      "evidence": [
+        {"type": "file-contains", "path": "scripts/engineering-team/mcp/engineering/operations/issue-3355-worker1-issuer.mjs", "contains": "GRANT_WRITES_RESERVED_NO_REPLAY"},
+        {"type": "file-contains", "path": "tests/issue-3355-worker1-bootstrap.test.mjs", "contains": "one fresh #3355 order is write-once"}
+      ]
+    },
+    {
+      "id": "DISTINCT-WORKER-AND-STOP",
+      "criterion": "The existing Dispatcher launches a distinct fixed Worker 1 child and keeps its heartbeat fresh; the local Pi child has owned-tree STOP cancellation.",
+      "evidence": [
+        {"type": "file-contains", "path": "tests/issue-3355-worker1-bootstrap.test.mjs", "contains": "Dispatcher launches a distinct fixed Worker 1 child"},
+        {"type": "file-contains", "path": "scripts/engineering-team/windows/autonomous-issue-coder.mjs", "contains": "terminateVerificationProcessTree(child)"}
+      ]
+    },
+    {
+      "id": "DRAFT-ONLY",
+      "criterion": "One claimed job writes a durable draft-PR outcome or blocked result; neither the coder nor its receipt grants test truth, independent acceptance or merge.",
+      "evidence": [
+        {"type": "file-contains", "path": "tests/issue-3355-worker1-bootstrap.test.mjs", "contains": "failed claimed job writes a terminal blocked record"},
+        {"type": "file-contains", "path": "scripts/engineering-team/gateway/worker-pool/issue-3355/worker-execution.mjs", "contains": "automaticMergeAuthorized:false"}
+      ]
+    }
+  ],
+  "constraints": [
+    "The #3355 UI/headless workspace, Product Gate, CI, merge and restart proof remain separate later stages.",
+    "No second Factory, no replay of #3110 or legacy blocked jobs, no autonomous merge, and no activation of Workers 2-5."
+  ]
+}

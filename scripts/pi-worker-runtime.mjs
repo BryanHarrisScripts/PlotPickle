@@ -39,6 +39,7 @@ export async function runPortableCommand(command, commandArgs = [], options = {}
     windowsHide: true,
     shell: false,
     timeout: options.timeout || 0,
+    ...(options.signal ? { signal: options.signal } : {}),
     maxBuffer: options.maxBuffer || 32 * 1024 * 1024,
     encoding: "utf8",
   };
@@ -49,6 +50,9 @@ export async function runPortableCommand(command, commandArgs = [], options = {}
   } else {
     execution = exec(command, commandArgs, common);
   }
+  // A governed long-running worker may retain this exact child handle to
+  // cancel its owned process tree when local STOP or PAUSE is requested.
+  if (typeof options.onChild === "function") options.onChild(execution.child);
   // Pi print mode waits for piped stdin before interpreting a request. Keep
   // Human text out of argv/cmd.exe environment expansion and always send EOF.
   const input = new Promise((resolve, reject) => {

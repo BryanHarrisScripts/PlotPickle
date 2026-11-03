@@ -8,6 +8,7 @@ import path from 'node:path';
 import process from 'node:process';
 import {open,readFile,lstat,mkdir,readdir,rm,rename} from 'node:fs/promises';
 import {randomBytes} from 'node:crypto';
+import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {setTimeout as sleep} from 'node:timers/promises';
 import {privateGatewayRoot,gatewayAppSource} from '../../gateway-host.mjs';
@@ -15,6 +16,7 @@ import {ownerOneShotAllowed} from '../../owner-runtime-gate.mjs';
 import {supervisorStatus} from '../../../windows/supervisor/unattended-supervisor.mjs';
 import {validateOwnerWorkOrder} from '../worker-pool.mjs';
 import {readOwnerOrder,runOwnerWorkerTicket} from '../worker-host.mjs';
+import {terminateVerificationProcessTree} from '../../../../full-verification-process.mjs';
 
 const ID=/^[a-f0-9]{32}$/;
 const blocked=code=>Object.freeze({state:'BLOCKED',code,online:false,
@@ -57,7 +59,8 @@ export async function pickOwnerAuthorizedTicket({root,head,now=Date.now()}={}){
       if(!validateOwnerWorkOrder(order,head)||
          order.assignedWorker!=='coding-worker-1')continue;
       try{
-        const code=await readDispatcherRecord({file:path.join(root,'owner-coding-grants',order.grantId+'.json')});
+        const grantFolder=order.issueNumber===3355?'owner-pi-grants':'owner-coding-grants';
+        const code=await readDispatcherRecord({file:path.join(root,grantFolder,order.grantId+'.json')});
         const publish=await readDispatcherRecord({file:path.join(root,'owner-publication-grants',order.publicationId+'.json')});
         if(code.grantId!==order.grantId||code.sourceHead!==head||
            code.issueNumber!==order.issueNumber||
@@ -74,11 +77,72 @@ export async function pickOwnerAuthorizedTicket({root,head,now=Date.now()}={}){
     return {state:eligible.length?'ELIGIBLE':'IDLE',ticket:eligible[0]||null};
   }catch{return blocked('QUEUE_INTEGRITY_UNVERIFIABLE');}
 }
+function workerEnvironment(env){
+  const names=['PATH','Path','PATHEXT','SystemRoot','windir','WINDIR',
+    'USERPROFILE','HOMEDRIVE','HOMEPATH','APPDATA','LOCALAPPDATA',
+    'TEMP','TMP','COMSPEC','GH_CONFIG_DIR'];
+  return Object.fromEntries(names.filter(name=>typeof env[name]==='string')
+    .map(name=>[name,env[name]]));
+}
+/** Direct child PID and fixed argv are the only process ownership proof. */
+export async function runDistinctOwnerWorker1({requestId,repoRoot,env=process.env,
+  root=privateGatewayRoot(env),head,ready=ownerOneShotAllowed,
+  launch=spawn,stopTree=terminateVerificationProcessTree}={}){
+  if(!ID.test(requestId||'')||!path.isAbsolute(repoRoot||'')||
+     !/^[a-f0-9]{40}$/.test(head||''))return blocked('WORKER_CHILD_SELECTION_INVALID');
+  const script=path.resolve(path.dirname(fileURLToPath(import.meta.url)),
+    '..','worker-host.mjs');
+  const dir=path.join(root,'owner-worker1-process');
+  try{await mkdir(dir,{recursive:true,mode:0o700});
+    if(!await safeDir(dir))return blocked('WORKER_CHILD_STORAGE_UNVERIFIABLE');}
+  catch{return blocked('WORKER_CHILD_STORAGE_UNVERIFIABLE');}
+  if(await ready(head)!==true)return blocked('STOP_PAUSE_OR_HEAD_NOT_READY');
+  let child;
+  try{child=launch(process.execPath,[script,'--once','coding-worker-1',requestId],{
+    cwd:repoRoot,env:workerEnvironment(env),shell:false,windowsHide:true,
+    stdio:['ignore','pipe','ignore']});}
+  catch{return blocked('WORKER_CHILD_LAUNCH_FAILED');}
+  if(!Number.isSafeInteger(child?.pid)||child.pid<=0)
+    return blocked('WORKER_CHILD_PID_UNVERIFIED');
+  const closePromise=new Promise(resolve=>{
+    child.once('error',()=>resolve(-1));
+    child.once('close',code=>resolve(code));
+  });
+  let output='',stopping=null,monitorFlight=null;
+  child.stdout?.on('data',chunk=>{
+    output=(output+String(chunk)).slice(0,8193);
+    if(output.length>8192&&!stopping)stopping=stopTree(child);
+  });
+  const beat=async state=>{
+    const temporary=path.join(dir,'beat-'+randomBytes(8).toString('hex')+'.tmp');
+    const handle=await open(temporary,'wx',0o600);
+    try{await handle.writeFile(JSON.stringify({schemaVersion:1,requestId,
+      sourceHead:head,pid:child.pid,state,at:Date.now()})+'\n');await handle.sync();}
+    finally{await handle.close();}
+    await rename(temporary,path.join(dir,'heartbeat.json'));
+  };
+  try{await beat('RUNNING');}
+  catch{await stopTree(child);return blocked('WORKER_CHILD_HEARTBEAT_UNVERIFIED');}
+  const timer=setInterval(()=>{
+    if(monitorFlight||stopping)return;
+    monitorFlight=Promise.resolve().then(()=>ready(head)).then(async allowed=>{
+      if(allowed!==true){stopping=stopTree(child);await stopping;}
+      else await beat('RUNNING');
+    }).catch(()=>{if(!stopping)stopping=stopTree(child);})
+      .finally(()=>{monitorFlight=null;});
+  },5000);
+  let exit;
+  try{exit=await closePromise;}
+  finally{clearInterval(timer);if(monitorFlight)await monitorFlight;if(stopping)await stopping;}
+  if(exit!==0||stopping)return blocked('WORKER_CHILD_FAILED_OR_STOPPED');
+  try{const result=JSON.parse(output.trim());await beat('EXITED');return result;}
+  catch{return blocked('WORKER_CHILD_RESULT_UNVERIFIED');}
+}
 export async function dispatchOne({
   repoRoot=process.cwd(),env=process.env,platform=process.platform,
   source=gatewayAppSource,inspect=supervisorStatus,
   ready=ownerOneShotAllowed,pick=pickOwnerAuthorizedTicket,
-  run=runOwnerWorkerTicket,
+  run=runOwnerWorkerTicket,spawnWorker=runDistinctOwnerWorker1,
 }={}){
   if(platform!=='win32')return blocked('WINDOWS_ONLY');
   let s,supervisor;
@@ -95,8 +159,11 @@ export async function dispatchOne({
     return blocked('TICKET_OR_PRE_DISPATCH_STOP_UNVERIFIABLE');
   // The worker host performs its own independent-release and two STOP checks;
   // this dispatcher never grants authority based on a queue record.
-  const result=await run({role:'coding-worker-1',requestId:ticket.ticket.requestId,
-    repoRoot,env,platform});
+  const result=ticket.ticket.issueNumber===3355
+    ?await spawnWorker({requestId:ticket.ticket.requestId,repoRoot,env,
+      head:s.head,ready,root:privateGatewayRoot(env)})
+    :await run({role:'coding-worker-1',requestId:ticket.ticket.requestId,
+      repoRoot,env,platform});
   return Object.freeze({state:result.state==='DRAFT_PR_RECEIPT_READY'?
     'PR_PUBLISHED':'WORKER_RELEASE_BLOCKED',
     requestId:ticket.ticket.requestId,issueNumber:ticket.ticket.issueNumber,
@@ -116,11 +183,14 @@ async function heartbeat(dir,value){
 }
 export async function serve({
   root=privateGatewayRoot(),platform=process.platform,cycle=dispatchOne,
-  maxCycles=Infinity,intervalMs=15000,now=Date.now,
+  maxCycles=Infinity,intervalMs=15000,heartbeatIntervalMs=15000,now=Date.now,
 }={}){
   if(platform!=='win32')return blocked('WINDOWS_ONLY');
   if(!Number.isSafeInteger(intervalMs)||intervalMs<1000||intervalMs>60000)
     return blocked('INVALID_POLL_INTERVAL');
+  if(!Number.isSafeInteger(heartbeatIntervalMs)||
+     heartbeatIntervalMs<1000||heartbeatIntervalMs>30000)
+    return blocked('INVALID_HEARTBEAT_INTERVAL');
   const p=paths(root);await mkdir(p.dir,{recursive:true,mode:0o700});
   if(!await safeDir(p.dir))return blocked('DISPATCH_PRIVATE_DIR_UNVERIFIABLE');
   const nonce=randomBytes(16).toString('hex');
@@ -133,7 +203,16 @@ export async function serve({
   let count=0;
   try{
     while(count<maxCycles){
-      const result=await cycle();
+      // Keep the dispatcher's own PID/nonce heartbeat fresh while a distinct
+      // Worker 1 child spends minutes on its bounded local coding task.
+      let pulse=Promise.resolve();
+      const timer=setInterval(()=>{
+        pulse=pulse.then(()=>heartbeat(p.dir,{pid:process.pid,nonce,at:now(),
+          state:'WORKER_IN_FLIGHT',online:true,count}));
+      },heartbeatIntervalMs);
+      let result;
+      try{result=await cycle();}
+      finally{clearInterval(timer);await pulse;}
       count++;
       await heartbeat(p.dir,{pid:process.pid,nonce,at:now(),
         state:result.state,online:result.online===true,count});

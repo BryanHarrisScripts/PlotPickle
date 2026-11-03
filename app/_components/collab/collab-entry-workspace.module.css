@@ -1,7 +1,7 @@
 .page {
   display: grid;
   gap: var(--pp-space-6);
-  width: min(100%, var(--pp-width-editor));
+  width: min(100%, 96rem);
   margin-block: 0;
   margin-inline: auto;
   padding: var(--pp-space-8) var(--pp-space-6) var(--pp-space-12);
@@ -244,4 +244,103 @@
 .missionForm button:disabled { opacity: 0.6; cursor: not-allowed; }
 @media (max-width: 36rem) {
   .missionFacts { grid-template-columns: 1fr; }
+}
+
+
+/* #3355 first working three-column slice: reuse the mission API, PPF links,
+ * and durable conversation component. This is layout, not a second state store. */
+.agentColumns {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.85fr) minmax(0, 1.8fr) minmax(17rem, 1.15fr);
+  align-items: start;
+  gap: var(--pp-space-4);
+  min-width: 0;
+}
+.agentRail,
+.agentCanvas,
+.agentRoom {
+  display: grid;
+  align-content: start;
+  gap: var(--pp-space-4);
+  min-width: 0;
+  padding: var(--pp-space-4);
+  border: 1px solid var(--pp-line);
+  border-radius: var(--pp-radius-control);
+  background: var(--pp-surface);
+}
+.agentRail .sectionTitle,
+.agentCanvas .sectionTitle,
+.agentRoom .sectionTitle {
+  overflow-wrap: anywhere;
+}
+.navigatorFacts {
+  display: grid;
+  gap: var(--pp-space-3);
+  margin: 0;
+}
+.navigatorFacts > div {
+  display: grid;
+  min-width: 0;
+  gap: var(--pp-space-1);
+}
+.navigatorFacts dt {
+  color: var(--pp-muted);
+  font-size: var(--pp-text-xs);
+}
+.navigatorFacts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.navigatorFacts code { overflow-wrap: anywhere; }
+.navigatorLinks {
+  display: grid;
+  gap: var(--pp-space-2);
+}
+.navigatorLinks .action {
+  justify-self: stretch;
+  margin-top: 0;
+}
+.agentObjective {
+  margin: 0;
+  color: var(--pp-paper);
+  font-size: var(--pp-text-md);
+  line-height: var(--pp-leading-body);
+  overflow-wrap: anywhere;
+}
+.agentCanvas .missionPanel { padding: var(--pp-space-3); }
+.agentCanvas .teamRoles {
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+}
+.agentRoom {
+  position: sticky;
+  top: var(--pp-space-4);
+  max-height: calc(100vh - 2 * var(--pp-space-4));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.agentRoom .agentFacts,
+.agentRoom .participants {
+  grid-template-columns: minmax(0, 1fr);
+}
+.roomDescription {
+  margin: 0;
+  color: var(--pp-muted);
+  font-size: var(--pp-text-sm);
+  line-height: var(--pp-leading-body);
+}
+@media (max-width: 76rem) {
+  .agentColumns {
+    grid-template-columns: minmax(12rem, 0.8fr) minmax(0, 1.7fr);
+  }
+  .agentRoom {
+    grid-column: 1 / -1;
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+}
+@media (max-width: 48rem) {
+  .agentColumns { grid-template-columns: minmax(0, 1fr); }
+  .agentRoom { grid-column: auto; }
+  .agentRail, .agentCanvas, .agentRoom { padding: var(--pp-space-3); }
 }

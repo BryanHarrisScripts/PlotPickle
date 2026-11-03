@@ -64,7 +64,7 @@ async function historicalRecord(root,folder,name){
   return JSON.parse(await readFile(file,"utf8"));
 }
 async function historicalAbsent(root,folder,name){
-  if(!/^[a-f0-9]{32}(?:\.result)?\.json$/.test(name))return false;
+  if(!/^[a-f0-9]{32}(?:\.(?:result|reserved))?\.json$/.test(name))return false;
   try{
     const parent=path.join(root,folder);
     const stat=await lstat(parent);

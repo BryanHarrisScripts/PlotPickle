@@ -94,7 +94,8 @@
 .shell [data-studio-navigation-frame] {
   display: flex;
   flex-direction: column;
-  padding: 10px;
+  /* The existing Node control owns the top-left slot; do not cover it. */
+  padding: 84px 10px 10px;
   gap: 14px;
   min-height: 100%;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, type ReactNode, useCallback, useEffect, useState } from "react";
 import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
@@ -14,6 +15,7 @@ import {
   PROFILE_PRIVATE_SAVE_STATE_EVENT,
 } from "@/core/storage/profile-private-browser";
 import CommunityPublicConversationsRail from "./_components/community/community-public-conversations-rail";
+import TwoWayConversationTest from "./_components/settings/tunnel/two-way-conversation-panel";
 import {
   NAVIGATION_AREAS,
   PLOTPICKLE_OPEN_NODE_EVENT,
@@ -30,6 +32,7 @@ import {
   type RootWorkspace,
 } from "./navigation/global-shortcuts";
 import styles from "./plotpickle-workspace-shell.module.css";
+import studio from "./agent-native-studio-shell.module.css";
 
 export type { RootWorkspace } from "./navigation/global-shortcuts";
 
@@ -347,6 +350,21 @@ export default function PlotPickleWorkspaceShell({
   readonly onNavigate: (workspace: RootWorkspace) => void;
 }) {
   const router = useRouter();
+  // Presentation preference only: never changes story, provider, agent or profile authority.
+  const [studioColumns, setStudioColumns] = useState<1 | 2 | 3>(3);
+  useEffect(() => {
+    try {
+      const saved = window.sessionStorage.getItem("plotpickle:studio-columns:v1");
+      if (saved === "1" || saved === "2" || saved === "3") {
+        setStudioColumns(Number(saved) as 1 | 2 | 3);
+      }
+    } catch { /* Browser storage is not a dependency for viewing a story. */ }
+  }, []);
+  function chooseStudioColumns(columns: 1 | 2 | 3) {
+    setStudioColumns(columns);
+    try { window.sessionStorage.setItem("plotpickle:studio-columns:v1", String(columns)); }
+    catch { /* Keep working in memory if session storage is unavailable. */ }
+  }
 
   const runShortcut = useCallback((shortcut: GlobalShortcut) => {
     if (shortcut.action.kind === "workspace") {
@@ -396,14 +414,32 @@ export default function PlotPickleWorkspaceShell({
 
   return (
     <div
-      className={styles.shell}
+      className={`${styles.shell} ${studio.shell}`}
+      data-studio-columns={studioColumns}
       data-active-workspace={activeWorkspace}
       data-active-shortcut={activeShortcutId || activeWorkspace}
       data-current-navigation-area={activeArea}
       data-current-destination={currentDestination}
       data-current-context={contextId || undefined}
     >
+      <header className={studio.toolbar} aria-label="PlotPickle studio workspace controls">
+        <div className={studio.toolbarTitle}>
+          <strong>PlotPickle Studio</strong>
+          <small>One project · one Canon · shared Human and Elara surfaces</small>
+        </div>
+        <div className={studio.modeControls} role="group" aria-label="Workspace columns">
+          {([1, 2, 3] as const).map((columns) => (
+            <button key={columns} type="button" aria-pressed={studioColumns === columns}
+              onClick={() => chooseStudioColumns(columns)}
+              title={columns === 1 ? "Focus: canvas only" : columns === 2 ?
+                "Canvas and Elara" : "Navigator, canvas and Elara"}>
+              {columns}-COL
+            </button>
+          ))}
+        </div>
+      </header>
       <nav
+        data-studio-navigator="true"
         aria-label="PlotPickle global workflow"
         className={styles.navigator}
         data-plotpickle-global-nav="v4"
@@ -411,7 +447,7 @@ export default function PlotPickleWorkspaceShell({
       >
         <NodeControl />
 
-        <div className={styles.navigationFrame}>
+        <div className={styles.navigationFrame} data-studio-navigation-frame="true">
           <ol className={styles.areaList} data-workspace-areas="true">
             {NAVIGATION_AREAS.map((navigationAreaOption) => {
               const current = navigationAreaOption.id === activeArea;
@@ -512,8 +548,17 @@ export default function PlotPickleWorkspaceShell({
         </div>
       </nav>
 
-      <div className={styles.workspaceFrame} data-workspace-frame="true">{children}</div>
-      {activeWorkspace === "community" && !contextId ? <CommunityPublicConversationsRail /> : null}
+      <div className={`${styles.workspaceFrame} ${studio.canvas}`} data-workspace-frame="true">{children}</div>
+      <aside className={studio.room} data-studio-room="true" aria-label="Elara Creative Room">
+        <header className={studio.roomHead}>
+          <strong>Elara · Creative Room</strong>
+          <small>Authenticated collaboration · current story: {destinationLabel}</small>
+        </header>
+        <p className={studio.roomNote}>This is the existing durable conversation transport, not a simulated specialist agent or an autonomous approval.</p>
+        <TwoWayConversationTest />
+        <Link href="/?workspace=collab">Open Elara's full workspace</Link>
+        {activeWorkspace === "community" && !contextId ? <CommunityPublicConversationsRail /> : null}
+      </aside>
     </div>
   );
 }

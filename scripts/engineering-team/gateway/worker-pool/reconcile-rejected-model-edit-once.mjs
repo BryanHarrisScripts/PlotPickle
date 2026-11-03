@@ -103,7 +103,7 @@ export async function inspectRejectedModelEdit({
       `refs/heads/engineering/${issueNumber}-${grantId}`)!=='')
       return deny('REMOTE_BRANCH_PRESENT');
     const count=processCount===null
-      ?await powershell("@((Get-CimInstance Win32_Process -Filter \"Name = 'node.exe'\" -ErrorAction Stop) | Where-Object { $_.CommandLine -match '(worker-host\\.mjs[\\"'']?\\s+--(?:once|serve)\\s+coding-worker-1|authorized-coding-once\\.mjs)' }).Count")
+      ?await powershell("@((Get-CimInstance Win32_Process -Filter \"Name = 'node.exe'\" -ErrorAction Stop) | Where-Object { $_.CommandLine -match '(worker-host\\.mjs.{0,12}--(?:once|serve)\\s+coding-worker-1|authorized-coding-once\\.mjs)' }).Count")
       :String(processCount);
     if(count!=='0')return deny('ACTIVE_OR_UNKNOWN_WORKER_PROCESS');
     return Object.freeze({state:'READY_FOR_OWNER_NO_WRITE_RECONCILIATION',

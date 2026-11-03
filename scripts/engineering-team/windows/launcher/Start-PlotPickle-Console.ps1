@@ -43,7 +43,11 @@ function Read-Task([string]$Name) {
 function Read-Http([string]$Url) {
     try {
         $reply = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 2
-        if ($reply.StatusCode -eq 200) { return 'RESPONDING' }
+        if ($reply.StatusCode -eq 200 -or
+            ($Url -eq 'http://127.0.0.1:4173/' -and $reply.StatusCode -eq 204 -and
+                $reply.Headers['X-PlotPickle-Startup-Probe'] -eq 'liveness-no-render')) {
+            return 'RESPONDING'
+        }
     } catch { }
     return 'NOT_RESPONDING'
 }

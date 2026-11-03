@@ -210,10 +210,21 @@
   .shell[data-studio-columns="3"] .room { grid-column: 2; }
 }
 @media (max-width: 700px) {
+  /* Keep the authenticated Elara room visible below the canvas on narrow screens.
+   * Focus (1-column) mode intentionally retains the canvas-only presentation. */
   .shell[data-studio-columns="2"],
-  .shell[data-studio-columns="3"] { grid-template-columns: minmax(0, 1fr); }
+  .shell[data-studio-columns="3"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 54px minmax(0, 1fr) minmax(180px, 36dvh);
+  }
   .shell[data-studio-columns="2"] .room,
-  .shell[data-studio-columns="3"] .room { display: none; }
+  .shell[data-studio-columns="3"] .room {
+    display: flex;
+    grid-column: 1;
+    grid-row: 3;
+    border-left: 0;
+    border-top: 1px solid var(--studio-border);
+  }
   .toolbar { padding-inline: 8px; }
   .toolbarTitle small { display: none; }
   .modeControls button { min-width: 48px; padding: 0 6px; }

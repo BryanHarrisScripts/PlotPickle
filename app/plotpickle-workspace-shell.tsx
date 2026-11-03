@@ -482,6 +482,7 @@ export default function PlotPickleWorkspaceShell({
 
             <div
               className={styles.destinationScroller}
+              data-studio-destination-scroller="true"
               data-shell-local-order={activeArea === "home" ? "dashboard library profile" : undefined}
             >
               {NAVIGATION_AREAS.map((navigationAreaOption) => (

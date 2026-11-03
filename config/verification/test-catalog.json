@@ -13020,7 +13020,7 @@
       },
       {
         "target": "tests/issue-3355-worker1-bootstrap.test.mjs",
-        "targetDigest": "cb087e09cce13b40d3b862e58f25347dad014c4d18c48f3595f932f9c139ec6e",
+        "targetDigest": "7036b1e83d8f202f0b37a56de65ac329fd2aacb0d12e2035062068426ff08c77",
         "catalogueIds": [
           "agent.autonomous-factory-queue-3110"
         ],

@@ -23,6 +23,7 @@ async function record(root,folder,name){
 async function issue(root,overrides={}){
   let next=0;
   return issueOne3355Worker1Order({root,repoRoot:root,expectedHead:HEAD,
+    platform:'win32',
     verifyHead:async()=>HEAD,operatorReady:async()=>true,
     dispatcherRead:async()=>({state:'ONLINE_OBSERVED'}),
     previousOrders:async()=>true,issueOpen:async()=>true,

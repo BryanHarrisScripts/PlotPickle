@@ -161,6 +161,7 @@ export default function ElaraShotReadback() {
         disabled={!project || busy} onClick={() => { void inspect(); }}>
         {busy ? "Inspecting…" : "Inspect saved Shot"}
       </button>
+      <button type="button" className={styles.refresh} onClick={refreshProject}>Refresh active story</button>
       <p className={styles.status} role="status">{status}</p>
       {observation ? (
         <dl className={styles.evidence}>
@@ -176,6 +177,7 @@ export default function ElaraShotReadback() {
           ))}
         </dl>
       ) : null}
+      {!project ? <Link href="/?workspace=library">Open Library to select a story</Link> : null}
       <Link href="/storyboard">Open the owning Storyboard</Link>
     </section>
   );

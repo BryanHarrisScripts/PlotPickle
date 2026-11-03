@@ -4269,6 +4269,7 @@
           "tests/issue-3142-authenticated-operator-maintenance.test.mjs",
           "tests/issue-3142-worker1-pilot-issuer.test.mjs",
           "tests/issue-3110-worker1-one-shot-authorization.test.mjs",
+          "tests/issue-3110-worker1-terminal-recovery.test.mjs",
           "tests/issue-3142-supervisor-task-event-diagnostics.test.mjs"
         ]
       },
@@ -12870,7 +12871,7 @@
           },
           {
             "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
-            "digest": "c7979cad66be58bfe4ee8eeddd3da220a37703742173f5ae43a20b3ae9fd03d2"
+            "digest": "859e53fa213942654c443b8f460c6cc5b440612615662ccc573663d4b49e53f9"
           }
         ],
         "truthRefs": [
@@ -12898,7 +12899,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
-            "digest": "c7979cad66be58bfe4ee8eeddd3da220a37703742173f5ae43a20b3ae9fd03d2"
+            "digest": "859e53fa213942654c443b8f460c6cc5b440612615662ccc573663d4b49e53f9"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
@@ -13040,7 +13041,7 @@
         "inputs": [
           {
             "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
-            "digest": "c7979cad66be58bfe4ee8eeddd3da220a37703742173f5ae43a20b3ae9fd03d2"
+            "digest": "859e53fa213942654c443b8f460c6cc5b440612615662ccc573663d4b49e53f9"
           },
           {
             "path": "scripts/engineering-team/mcp/factory-readonly-server.mjs",
@@ -13081,6 +13082,46 @@
           {
             "path": "scripts/engineering-team/mcp/engineering/factory-host-diagnostics.mjs",
             "digest": "204442d37540a234a1fa35164a2674b64da6d941c5b94753f0ca831c0fc7ed3c"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3110-worker1-terminal-recovery.test.mjs",
+        "targetDigest": "4e58cc1c79b437d466115b18c398e3d9a0c2afc4f9b460be66ceae0777059a28",
+        "catalogueIds": [
+          "agent.autonomous-factory-queue-3110"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "AUTHOR-PROPOSED #3110 no-write recovery regression for separately reviewed W8/W9 obligations. Disposable fixtures check original consumed grant preservation, no-replay, exact no-write release witness, publication/remote/process denial and strict unique Qwen oldText. Does not certify owner-Windows processes, live receipts, independent semantic review, Product Gate, model invocation, PR publication or merge; approved-truth binding requires independent Human review before release.",
+        "inputs": [
+          {
+            "path": "scripts/engineering-team/mcp/engineering/operations/factory-worker1-pilot-issuer.mjs",
+            "digest": "859e53fa213942654c443b8f460c6cc5b440612615662ccc573663d4b49e53f9"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/reconcile-rejected-model-edit-once.mjs",
+            "digest": "d36e88e3179c07961bd1979271b7e3e7c3fd2bd5c392de44fbf406e1ed7d19c8"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/authorized-coding-once.mjs",
+            "digest": "e387641465928a85c88025c65e61474100e993c44706e5706c63bc0f92894eb4"
+          },
+          {
+            "path": "scripts/engineering-team/gateway/worker-pool/worker-pool.mjs",
+            "digest": "2f3a0bc2b15d94ab35c7d023a62c61f6ccb25567d63e029dcdb82ebb23c616fe"
           }
         ]
       }

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * #3142: owner-Windows inspect/reconcile ONE rejected model proposal.
+ * #3142/#3110: owner-Windows inspect/reconcile ONE rejected model proposal.
  * The original grant is consumed forever. This never calls a model, publishes,
  * deletes the worktree, retries a job, starts a dispatcher or authorizes merge.
  */
@@ -50,15 +50,18 @@ export async function inspectRejectedModelEdit({
     if(source?.channel!=='main'||!await ownerOneShotAllowed(source.head))
       return deny('CLEAN_MAIN_AND_SUPERVISOR_REQUIRED');
     const order=await readOwnerOrder(root,requestId);
-    if(order?.requestId!==requestId||order.issueNumber!==3142||
+    const issueNumber=order?.issueNumber;
+    if(order?.requestId!==requestId||![3142,3110].includes(issueNumber)||
        order.grantId!==grantId||order.assignedWorker!=='coding-worker-1'||
        !/^[a-f0-9]{40}$/.test(order.sourceHead||''))
       return deny('ORIGINAL_ORDER_UNVERIFIED');
-    // Only the owner-issued second recovery ticket is eligible; never turn
-    // this into a general historical-claim release endpoint.
-    const marker=await safeJson(path.join(root,'owner-pilot-reservations',
-      'issue-3142-terminal-recovery.json'));
-    if(marker.schemaVersion!==1||marker.issueNumber!==3142||
+    // #3142 supports only the already-issued second recovery ticket;
+    // #3110 supports only its original once-only issuer reservation.
+    // Neither branch accepts an arbitrary issue or a replacement ticket.
+    const markerName=issueNumber===3142
+      ? 'issue-3142-terminal-recovery.json' : 'issue-3110.json';
+    const marker=await safeJson(path.join(root,'owner-pilot-reservations',markerName));
+    if(marker.schemaVersion!==1||marker.issueNumber!==issueNumber||
        marker.state!=='GRANT_WRITES_RESERVED_NO_REPLAY'||
        marker.requestId!==requestId||marker.sourceHead!==order.sourceHead)
       return deny('SECOND_PILOT_MARKER_UNVERIFIED');
@@ -71,7 +74,7 @@ export async function inspectRejectedModelEdit({
       return deny('SOURCE_ANCESTRY_UNVERIFIED');
     const grant=await safeJson(path.join(root,'owner-coding-grants',grantId+'.json'));
     if(grant.kind!=='engineering-edit-once'||grant.grantId!==grantId||
-       grant.sourceHead!==order.sourceHead||grant.issueNumber!==3142||
+       grant.sourceHead!==order.sourceHead||grant.issueNumber!==issueNumber||
        grant.targetPath!==TARGET||grant.model!=='qwen2.5-coder:7b')
       return deny('ORIGINAL_GRANT_UNVERIFIED');
     const result=await safeJson(path.join(root,'coding-attempts',grantId+'.result.json'));
@@ -89,7 +92,7 @@ export async function inspectRejectedModelEdit({
     const st=await lstat(stage);
     if(!st.isDirectory()||st.isSymbolicLink()||
        await git(stage,'rev-parse','HEAD')!==order.sourceHead||
-       await git(stage,'branch','--show-current')!=='engineering/3142-'+grantId||
+       await git(stage,'branch','--show-current')!==`engineering/${issueNumber}-${grantId}`||
        await git(stage,'status','--porcelain','--untracked-files=normal')!==''||
        await git(stage,'diff','--cached','--name-only')!==''||
        await git(stage,'diff','--name-only')!=='')
@@ -97,10 +100,10 @@ export async function inspectRejectedModelEdit({
     await git(stage,'diff','--check');
     // A remote operation failure is not branch absence.
     if(await git(repoRoot,'ls-remote','--heads','origin',
-      'refs/heads/engineering/3142-'+grantId)!=='')
+      `refs/heads/engineering/${issueNumber}-${grantId}`)!=='')
       return deny('REMOTE_BRANCH_PRESENT');
     const count=processCount===null
-      ?await powershell("@((Get-CimInstance Win32_Process -Filter \"Name = 'node.exe'\" -ErrorAction Stop) | Where-Object { $_.CommandLine -match '(worker-host|authorized-coding-once)\\.mjs' }).Count")
+      ?await powershell("@((Get-CimInstance Win32_Process -Filter \"Name = 'node.exe'\" -ErrorAction Stop) | Where-Object { $_.CommandLine -match '(worker-host\\.mjs[\\"'']?\\s+--(?:once|serve)\\s+coding-worker-1|authorized-coding-once\\.mjs)' }).Count")
       :String(processCount);
     if(count!=='0')return deny('ACTIVE_OR_UNKNOWN_WORKER_PROCESS');
     return Object.freeze({state:'READY_FOR_OWNER_NO_WRITE_RECONCILIATION',

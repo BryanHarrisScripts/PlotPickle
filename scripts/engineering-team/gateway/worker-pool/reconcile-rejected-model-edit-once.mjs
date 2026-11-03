@@ -29,25 +29,33 @@ const safeJson=async file=>{
   return value;
 };
 const absent=async file=>{
+  const parent=await lstat(path.dirname(file));
+  if(!parent.isDirectory()||parent.isSymbolicLink())
+    throw Error('PRIVATE_PROOF_DIRECTORY_UNVERIFIABLE');
   try{await lstat(file);return false;}
   catch(e){if(e?.code==='ENOENT')return true;throw e;}
 };
 const git=async(cwd,...args)=>String((await exec('git',args,{
   cwd,windowsHide:true,timeout:15000,maxBuffer:32768
 })).stdout).trim();
+const isAncestor=async(from,to,repoRoot)=>await exec('git',
+  ['merge-base','--is-ancestor',from,to],
+  {cwd:repoRoot,windowsHide:true,timeout:15000,maxBuffer:4096}
+).then(()=>true,()=>false);
 const powershell=async command=>String((await exec('powershell.exe',
   ['-NoProfile','-NonInteractive','-Command',command],
   {windowsHide:true,timeout:20000,maxBuffer:4096})).stdout).trim();
 
 export async function inspectRejectedModelEdit({
   repoRoot=process.cwd(),root=privateGatewayRoot(),platform=process.platform,
-  requestId,grantId,processCount=null,
+  requestId,grantId,processCount=null,sourceRead=gatewayAppSource,
+  operatorReady=ownerOneShotAllowed,gitRead=git,ancestry=isAncestor,
 }={}){
   if(platform!=='win32'||!ID.test(requestId||'')||!ID.test(grantId||''))
     return deny('OWNER_WINDOWS_EXACT_ORDER_REQUIRED');
   try{
-    const source=await gatewayAppSource({repoRoot});
-    if(source?.channel!=='main'||!await ownerOneShotAllowed(source.head))
+    const source=await sourceRead({repoRoot});
+    if(source?.channel!=='main'||!await operatorReady(source.head))
       return deny('CLEAN_MAIN_AND_SUPERVISOR_REQUIRED');
     const order=await readOwnerOrder(root,requestId);
     const issueNumber=order?.issueNumber;
@@ -67,10 +75,7 @@ export async function inspectRejectedModelEdit({
       return deny('SECOND_PILOT_MARKER_UNVERIFIED');
     // The failed pilot was source-bound to an older MAIN; the recovery
     // implementation itself must be reviewed and merged before owner use.
-    if(!await exec('git',['merge-base','--is-ancestor',
-      order.sourceHead,source.head],{
-        cwd:repoRoot,windowsHide:true,timeout:15000,maxBuffer:4096
-      }).then(()=>true,()=>false))
+    if(!await ancestry(order.sourceHead,source.head,repoRoot))
       return deny('SOURCE_ANCESTRY_UNVERIFIED');
     const grant=await safeJson(path.join(root,'owner-coding-grants',grantId+'.json'));
     if(grant.kind!=='engineering-edit-once'||grant.grantId!==grantId||
@@ -91,15 +96,15 @@ export async function inspectRejectedModelEdit({
     const stage=path.join(root,'coding-worktrees',grantId);
     const st=await lstat(stage);
     if(!st.isDirectory()||st.isSymbolicLink()||
-       await git(stage,'rev-parse','HEAD')!==order.sourceHead||
-       await git(stage,'branch','--show-current')!==`engineering/${issueNumber}-${grantId}`||
-       await git(stage,'status','--porcelain','--untracked-files=normal')!==''||
-       await git(stage,'diff','--cached','--name-only')!==''||
-       await git(stage,'diff','--name-only')!=='')
+       await gitRead(stage,'rev-parse','HEAD')!==order.sourceHead||
+       await gitRead(stage,'branch','--show-current')!==`engineering/${issueNumber}-${grantId}`||
+       await gitRead(stage,'status','--porcelain','--untracked-files=normal')!==''||
+       await gitRead(stage,'diff','--cached','--name-only')!==''||
+       await gitRead(stage,'diff','--name-only')!=='')
       return deny('STAGE_NOT_CLEAN_AT_ORIGINAL_HEAD');
-    await git(stage,'diff','--check');
+    await gitRead(stage,'diff','--check');
     // A remote operation failure is not branch absence.
-    if(await git(repoRoot,'ls-remote','--heads','origin',
+    if(await gitRead(repoRoot,'ls-remote','--heads','origin',
       `refs/heads/engineering/${issueNumber}-${grantId}`)!=='')
       return deny('REMOTE_BRANCH_PRESENT');
     const count=processCount===null

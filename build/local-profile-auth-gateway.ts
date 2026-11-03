@@ -45,13 +45,6 @@ const missionPost: LocalProfileHandler = async (request) => {
   return route.POST(request);
 };
 
-// #3355: headless surface discovery uses the existing authenticated profile
-// request boundary. This endpoint exposes only canonical UI metadata.
-const surfaceInventoryGet: LocalProfileHandler = async (request) => {
-  const route = await import("../app/api/experience/surfaces/route");
-  return route.GET(request);
-};
-
 const PROFILE_API = "/api/auth/profile";
 const PROFILE_PRESENTATION_API = "/api/auth/profile-presentation";
 const PROFILE_PRIVATE_API = "/api/auth/profile-private";
@@ -107,10 +100,6 @@ const ROUTES = new Map<string, RouteContract>([
   ["/api/factory/mission", Object.freeze({
     maximumBodyBytes: 512,
     handlers: Object.freeze({ GET: missionGet, POST: missionPost }),
-  })],
-  ["/api/experience/surfaces", Object.freeze({
-    maximumBodyBytes: 0,
-    handlers: Object.freeze({ GET: surfaceInventoryGet }),
   })],
   [PROFILE_API, Object.freeze({
     maximumBodyBytes: BODY_LIMITS.get(PROFILE_API)!,

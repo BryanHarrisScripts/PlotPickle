@@ -178,7 +178,7 @@ export default function ElaraShotReadback() {
         </dl>
       ) : null}
       {!project ? <Link href="/?workspace=library">Open Library to select a story</Link> : null}
-      <Link href="/storyboard">Open the owning Storyboard</Link>
+      <Link href={`/storyboard?block=${block}&mini=${mini}`}>Open Storyboard · Block {String(block).padStart(2, "0")} / Mini {mini}</Link>
     </section>
   );
 }

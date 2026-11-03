@@ -179,6 +179,12 @@ function Sync-Main {
     $activeSource = @(Get-CimInstance Win32_Process -Filter "Name='node.exe'" |
         Where-Object { $_.CommandLine -match 'unattended-supervisor[.]mjs|supervisor-recovery-agent[.]mjs|worker-host[.]mjs|factory-readonly-server[.]mjs' })
     if ($activeSource.Count -gt 0) { throw 'MAIN_BEHIND_FACTORY_SOURCE_PROCESS_ACTIVE' }
+    $activeApp = @(Get-CimInstance Win32_Process |
+        Where-Object { $_.Name -in @('cmd.exe','node.exe') -and
+            $_.CommandLine -like ('*' + $repo + '*') -and
+            $_.CommandLine -match 'Start-PlotPickle[.]bat|vite|vinext' -and
+            $_.CommandLine -notmatch 'Start-PlotPickle[.]bat --console(?:-status)?' })
+    if ($activeApp.Count -gt 0) { throw 'MAIN_BEHIND_APP_SOURCE_PROCESS_ACTIVE' }
     & git.exe -C $repo merge --ff-only origin/main
     if ($LASTEXITCODE -ne 0) { throw 'MAIN_FAST_FORWARD_FAILED' }
     if ((Read-Source) -cne $remote) { throw 'MAIN_POST_SYNC_MISMATCH' }

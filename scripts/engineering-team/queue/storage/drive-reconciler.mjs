@@ -66,6 +66,7 @@ async function readGitState() {
       state: "OBSERVED",
       mainCheckout: branch === "main",
       headPresent: /^[a-f0-9]{40}$/u.test(head),
+      sourceHead: /^[a-f0-9]{40}$/u.test(head) ? head : null,
       registeredWorktreeCount: registeredWorktrees.length,
       registeredWorktrees,
       gitPackBytes: packValid ? String(Math.round(sizePackKiB * 1024)) : null,
@@ -76,7 +77,7 @@ async function readGitState() {
     };
   } catch {
     return { state: "UNVERIFIED", mainCheckout: false, headPresent: false,
-      registeredWorktreeCount: null, registeredWorktrees: [], gitPackBytes: null,
+      sourceHead: null, registeredWorktreeCount: null, registeredWorktrees: [], gitPackBytes: null,
       gitLooseObjectBytes: null, gitObjectStoreBytes: null };
   }
 }

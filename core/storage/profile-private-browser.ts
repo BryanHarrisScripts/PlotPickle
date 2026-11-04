@@ -225,7 +225,16 @@ export async function hydrateProfilePrivateBrowser(profileId: string, token: str
   // A normal sign-in hydration may never replace a newer working story.
   // A verified master commit is the sole deliberate forced fresh readback.
   if (!forceVerifiedReload && profilePrivateBrowserAuthorityMatches(profileId, token)) return;
+  // A token refresh for the SAME already-hydrated Human must not silently
+  // discard the film they deliberately selected in this browser session.
+  // Initial sign-in, profile switch, Logout and forced master reload remain
+  // Blank-at-launch: none of them inherit an earlier session selection.
+  const previousSameProfileSelection = !forceVerifiedReload
+    && hydratedProfileId === profileId && Boolean(csrfToken)
+    ? sessionActiveProjectId() : null;
   if (hydratedProfileId) await flushProfilePrivateWrites();
+  const previousSameProfileSnapshot = previousSameProfileSelection
+    ? loadLibraryProjectSnapshot(previousSameProfileSelection) : null;
   const epoch = ++authorityEpoch;
   acknowledgedProjects.clear();
   pendingLibraryWrite = null;
@@ -256,6 +265,16 @@ export async function hydrateProfilePrivateBrowser(profileId: string, token: str
     const restored = hydrateProfileProjectLibrary({ activeProjectId, projects });
     if (explicitSessionProjectId && restored.registry.activeProjectId === explicitSessionProjectId) {
       resumeSessionActiveProject(explicitSessionProjectId);
+    } else if (!explicitSessionProjectId
+      && previousSameProfileSnapshot
+      && restored.registry.activeProjectId === previousSameProfileSelection
+      && restored.activeProject?.id === previousSameProfileSelection
+      && restored.activeProject.revision === previousSameProfileSnapshot.revision) {
+      // Restore only the exact same-profile, same-project, same-revision
+      // selection acknowledged by the freshly reloaded encrypted vault.
+      // A different server project/revision fails closed; never adopt a
+      // browser-only record or infer authority from a route query.
+      resumeSessionActiveProject(previousSameProfileSelection);
     }
     hydrated = {
       ...next,

@@ -9,7 +9,7 @@ import {
   loadActiveLibraryProject,
   type LibraryPPFProject,
 } from "@/core/storage/project-library-browser";
-import { scanPageFlowDraft } from "@/lib/pageflow";
+import { scanPageFlowDraft } from "@/modules/build/pageflow";
 import {
   storyLearningContext,
   storyLearningHref,

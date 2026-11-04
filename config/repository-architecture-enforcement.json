@@ -15,31 +15,29 @@
   },
   "legacyDirectSourceRatchets": {
     "build": 84,
-    "lib": 113
+    "lib": 114
   },
-  "protectedDirectSourceRoots": [
-    "build",
-    "core",
-    "modules",
-    "lib"
-  ],
+  "protectedDirectSourceRoots": ["build", "core", "modules", "lib"],
   "forbiddenImports": [
     {
       "fromRoot": "core",
-      "toRoots": [
-        "app",
-        "build",
-        "modules"
-      ],
+      "toRoots": ["app", "build", "modules"],
       "reason": "Core contracts and authority may not depend on UI, runtime gateway implementations or product feature implementations."
     },
     {
       "fromRoot": "modules",
-      "toRoots": [
-        "app"
-      ],
+      "toRoots": ["app"],
       "reason": "Product modules may expose UI to app composition, but module implementation may not depend back on the Next.js app shell."
     }
   ],
-  "compatibilityBridgeExceptions": []
+  "compatibilityBridgeExceptions": [
+    {
+      "path": "lib/pageflow.ts",
+      "canonicalTarget": "modules/build/pageflow.ts",
+      "ownerIssue": 1466,
+      "removalCondition": "Retarget the two remaining route consumers to @/modules/build/pageflow, then delete this bridge.",
+      "consumerPaths": ["app/pageflow/page.tsx", "app/craftloop/page.tsx"],
+      "consumerImportFragment": "@/lib/pageflow"
+    }
+  ]
 }

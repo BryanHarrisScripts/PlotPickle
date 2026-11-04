@@ -204,7 +204,7 @@ async function recordStatus(directory, report) {
   }
 }
 
-export async function reconcile({ appHome, repo = REPO, persist = false } = {}) {
+export async function reconcile({ appHome, repo = REPO, persist = false, reviewOffset = null } = {}) {
   if (typeof appHome !== "string" || !path.isAbsolute(appHome)) throw Error("DRIVE_ROOT_UNVERIFIED");
   if (!samePath(repo, REPO)) throw Error("DRIVE_REPOSITORY_UNVERIFIED");
   const queue = path.join(appHome, "engineering-team", "autonomous-queue");
@@ -237,6 +237,10 @@ export async function reconcile({ appHome, repo = REPO, persist = false } = {}) 
       unregisteredOrUnknown: worktreeClass && gitState.state === "OBSERVED" ? names.length - matching : null,
       cleanupAuthorized: false }];
   }));
+  const stageReview = reviewOffset === null ? null : await reviewStageCheckouts({
+    roots, observations: seen, registeredWorktrees: gitState.registeredWorktrees,
+    offset: reviewOffset,
+  });
   const report = {
     schemaVersion: 1, component: "PlotPickle Drive Reconciler",
     observedAt: new Date().toISOString(),
@@ -249,7 +253,8 @@ export async function reconcile({ appHome, repo = REPO, persist = false } = {}) 
       referenceAndProcessAttested: false, restoreVerified: false,
       archiveAuthorized: false, movedBytes: "0",
     },
-    buckets, cleanupAuthorized: false, automaticDeletionImplemented: false,
+    buckets, ...(stageReview ? { stageReview } : {}),
+    cleanupAuthorized: false, automaticDeletionImplemented: false,
     archiveToGAuthorized: false, protected: [
       "PPF", "Library", "creative-media", "manual-backups", "locked-artifacts",
       "Git-worktrees", "runtime-active-and-fallback", "receipts", "unclassified-data",
@@ -261,14 +266,27 @@ export async function reconcile({ appHome, repo = REPO, persist = false } = {}) 
 }
 
 async function main() {
-  if (process.argv.length !== 3 || !["--startup", "--report"].includes(process.argv[2]))
+  const reviewRequested = process.argv[2] === "--review";
+  if (reviewRequested
+    ? process.argv.length !== 4 || !/^(0|[1-9][0-9]{0,5})$/u.test(process.argv[3])
+    : process.argv.length !== 3 || !["--startup", "--report"].includes(process.argv[2]))
     throw Error("DRIVE_MODE_UNSUPPORTED");
   const appHome = process.env.PLOTPICKLE_HOME && path.isAbsolute(process.env.PLOTPICKLE_HOME)
     ? path.resolve(process.env.PLOTPICKLE_HOME)
     : process.env.LOCALAPPDATA
       ? path.join(process.env.LOCALAPPDATA, "PlotPickle")
       : path.join(os.homedir(), ".plotpickle");
-  const result = await reconcile({ appHome, persist: process.argv[2] === "--startup" });
+  const result = await reconcile({
+    appHome, persist: process.argv[2] === "--startup",
+    reviewOffset: reviewRequested ? Number(process.argv[3]) : null,
+  });
+  if (reviewRequested) {
+    process.stdout.write("PLOTPICKLE_DRIVE_REVIEW " + JSON.stringify({
+      sourceHead: result.git.sourceHead, state: result.state,
+      archiveTarget: result.archiveTarget, stageReview: result.stageReview,
+    }) + "\\n".replace("\\n", "\n"));
+    return;
+  }
   process.stdout.write("PLOTPICKLE_DRIVE " + JSON.stringify({
     state: result.state, freeBytes: result.capacity.freeBytes,
     registeredWorktrees: result.git.registeredWorktreeCount,

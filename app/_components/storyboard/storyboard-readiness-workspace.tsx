@@ -110,6 +110,7 @@ export default function StoryboardReadinessWorkspace({
     setSelectedMiniBlockNumber(boundedMiniBlockNumber(initialMiniBlockNumber));
   }, [initialBlockNumber, initialMiniBlockNumber]);
   const [selectedImageByPosition, setSelectedImageByPosition] = useState<Readonly<Record<string, string>>>({});
+  const [focusedShot, setFocusedShot] = useState<{ address: string; position: number } | null>(null);
   const [promptSavingPosition, setPromptSavingPosition] = useState<number | null>(null);
   const [frameBusy, setFrameBusy] = useState(false);
   const frameMutation = useRef(false);
@@ -171,6 +172,13 @@ export default function StoryboardReadinessWorkspace({
     .find((position) => !lockedShotPositions.has(position)) ?? null;
   const nextShotHasCandidate = nextShotPosition !== null
     && frameArtifacts.some((artifact) => artifact.frameNumber === nextShotPosition && artifact.reviewState !== "rejected");
+  const shotAddress = `${project.id}.${selectedNumber}.${selectedMiniBlockNumber}`;
+  const focusedShotPosition = focusedShot?.address === shotAddress
+    ? focusedShot.position : nextShotPosition ?? 1;
+  function focusShot(position: number) {
+    setFocusedShot({ address: shotAddress, position });
+    window.setTimeout(() => document.getElementById(`storyboard-shot-${position}`)?.scrollIntoView({ block: "start" }), 0);
+  }
 
   async function saveFrameVersion(artifact: FoundationsVisualArtifact) {
     if (frameMutation.current || frameBusy) return;
@@ -672,9 +680,10 @@ export default function StoryboardReadinessWorkspace({
                 <small>Existing saved images stay untouched. This guide only reads the current project.</small>
               </div>
               {nextShotPosition !== null ? (
-                <a className={styles.productionGuideLink} href={`#storyboard-shot-${nextShotPosition}`}>
+                <button className={styles.productionGuideLink} type="button"
+                  onClick={() => focusShot(nextShotPosition)}>
                   {qaOnlyAccess ? "View" : "Continue with"} Shot {String(nextShotPosition).padStart(2, "0")}
-                </a>
+                </button>
               ) : null}
             </aside>
             <div className={styles.sceneList}>
@@ -684,6 +693,18 @@ export default function StoryboardReadinessWorkspace({
             <div className={styles.visualSequence}>
               <strong>25 Planned Shots</strong>
               <p>Scene and Beat remain variable-density story evidence. They may map across one or several planned Shots, but they never change the fixed Shot 01–25 count. Each planned Shot may hold multiple image candidates, while one locked Storyboard Image is the approved visual representation for that Shot.</p>
+              <nav className={styles.shotPicker} aria-label="Choose a Storyboard Shot">
+                {Array.from({ length: 25 }, (_, index) => {
+                  const position = index + 1;
+                  const hasCandidate = frameArtifacts.some((artifact) => artifact.frameNumber === position && artifact.reviewState !== "rejected");
+                  const state = lockedShotPositions.has(position) ? "Locked" : hasCandidate ? "Candidate" : "Empty";
+                  return <button key={position} type="button" aria-current={focusedShotPosition === position ? "step" : undefined}
+                    aria-label={`Shot ${String(position).padStart(2, "0")}: ${state}`}
+                    onClick={() => focusShot(position)}>
+                    {String(position).padStart(2, "0")}<span>{state}</span>
+                  </button>;
+                })}
+              </nav>
               <div className={styles.positionList} aria-label="25 planned Storyboard Shots">
                 {Array.from({ length: 25 }, (_, index) => {
                   const position = index + 1;
@@ -756,7 +777,7 @@ export default function StoryboardReadinessWorkspace({
                     ? [`Shot ${String(shot.order).padStart(2, "0")}`, shot.shotSize || shot.angle, shot.narrativePurpose || shot.visualIntent].filter(Boolean).join(" · ")
                     : "Planned Shot · camera intent open";
                   return (
-                    <div className={`${styles.positionRow} ${lockedImageHandoffReady ? styles.positionRowLocked : ""}`} data-storyboard-position={position} id={`storyboard-shot-${position}`} key={position}>
+                    <div className={`${styles.positionRow} ${lockedImageHandoffReady ? styles.positionRowLocked : ""}`} data-storyboard-position={position} id={`storyboard-shot-${position}`} key={position} hidden={position !== focusedShotPosition}>
                       <div className={styles.positionReviewColumn}>
                       <div className={styles.positionIdentity}>
                         <strong>Shot {String(position).padStart(2, "0")} of 25</strong>

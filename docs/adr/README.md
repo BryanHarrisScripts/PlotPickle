@@ -4,5 +4,6 @@
 - [ADR-0002: PPF is a portable package](0002-ppf-portable-package.md)
 - [ADR-0003: Git-native collaboration](0003-git-native-collaboration.md)
 - [ADR-0004: Canon Binder is the approved source of truth](0004-canon-binder-source-of-truth.md)
+- [ADR-0005: One Elara, connected factories, continuous improvement](0005-one-elara-connected-factories.md) (proposed)
 
 ADRs record why PlotPickle makes foundational choices. Accepted decisions may be superseded by a later ADR but are not rewritten to hide project history.

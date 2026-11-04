@@ -27,7 +27,7 @@
       "path": "core/storage/profile-private-browser.ts",
       "start": "export function persistActiveProfileProject",
       "end": "/**\n * A single, authenticated encrypted review draft.",
-      "digest": "029a030b407e7322c08732d8e42540205e13a9ec93df8bfea2e3e320869cbb53",
+      "digest": "67e1455dbefb6b051ce607fc93e40170c4821530422a838412a7c0e027b3944e",
       "excerptDigest": "4db3b3ee0779c4e10622267567ca2fcb306a24c82c2bcf1e0114139cb62c0ae3"
     },
     {

@@ -58,19 +58,26 @@ async function readGitState() {
       return split < 0 ? [line, ""] : [line.slice(0, split), line.slice(split + 2)];
     }));
     const sizePackKiB = Number(lines.get("size-pack"));
+    const sizeLooseKiB = Number(lines.get("size"));
+    const packValid = Number.isFinite(sizePackKiB) && sizePackKiB >= 0;
+    const looseValid = Number.isFinite(sizeLooseKiB) && sizeLooseKiB >= 0;
+    const registeredWorktrees = parseRegisteredWorktrees(worktrees);
     return {
       state: "OBSERVED",
       mainCheckout: branch === "main",
       headPresent: /^[a-f0-9]{40}$/u.test(head),
-      registeredWorktreeCount: parseRegisteredWorktrees(worktrees).length,
-      registeredWorktrees: parseRegisteredWorktrees(worktrees),
-      gitPackBytes: Number.isFinite(sizePackKiB) && sizePackKiB >= 0
-        ? String(Math.round(sizePackKiB * 1024)) : null,
-      packSizeScope: "Git object packs only; excludes worktree checkouts and runtimes",
+      registeredWorktreeCount: registeredWorktrees.length,
+      registeredWorktrees,
+      gitPackBytes: packValid ? String(Math.round(sizePackKiB * 1024)) : null,
+      gitLooseObjectBytes: looseValid ? String(Math.round(sizeLooseKiB * 1024)) : null,
+      gitObjectStoreBytes: packValid && looseValid
+        ? String(Math.round((sizePackKiB + sizeLooseKiB) * 1024)) : null,
+      packSizeScope: "Git object packs and loose objects only; excludes worktree checkouts, staged runtime copies and physical sharing",
     };
   } catch {
     return { state: "UNVERIFIED", mainCheckout: false, headPresent: false,
-      registeredWorktreeCount: null, registeredWorktrees: [], gitPackBytes: null };
+      registeredWorktreeCount: null, registeredWorktrees: [], gitPackBytes: null,
+      gitLooseObjectBytes: null, gitObjectStoreBytes: null };
   }
 }
 

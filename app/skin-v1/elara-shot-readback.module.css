@@ -62,3 +62,45 @@
 .evidence dt { color: #b2c0ca; }
 .evidence dd { margin: 0; color: #e1f3e8; text-align: right; overflow-wrap: anywhere; }
 .root a { color: #a3e9c5; font-size: 11px; text-decoration: underline; text-underline-offset: 3px; }
+
+.sourcePreview {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(141, 222, 178, .3);
+  border-radius: 7px;
+  background: #121e28;
+}
+.sourcePreview summary {
+  cursor: pointer;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.sourcePreview summary:focus-visible,
+.sourcePreview button:focus-visible {
+  outline: 2px solid #8bd7ac;
+  outline-offset: 2px;
+}
+.sourceNote {
+  color: #b8c6cf;
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.sourceList {
+  max-height: 320px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 10px 0;
+  padding: 0 0 0 20px;
+}
+.sourceList li {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, .09);
+  overflow-wrap: anywhere;
+}
+.sourceList small { color: #a0e1be; }
+.sourceList p {
+  white-space: pre-wrap;
+  line-height: 1.55;
+  margin: 4px 0 0;
+}

@@ -113,6 +113,63 @@ async function immediate(directory) {
     directories, skippedLinks, names, bytes: null };
 }
 
+/**
+ * Separate opt-in review of at most eight actually observed, registered stage
+ * checkouts. Git cleanliness is NOT a retirement permit: independent PR, task,
+ * process and immutable-receipt references are deliberately unverified here.
+ */
+export async function reviewStageCheckouts({ roots, observations, registeredWorktrees, offset = 0 } = {}) {
+  if (!Number.isSafeInteger(offset) || offset < 0 || offset > 100000) throw Error("DRIVE_REVIEW_OFFSET_INVALID");
+  const registered = new Set((registeredWorktrees ?? []).map(name =>
+    process.platform === "win32" ? name.toLowerCase() : name));
+  const eligibleRoots = new Set(["candidateStages", "issueWorktrees"]);
+  const choices = roots.flatMap(([id, directory], i) => eligibleRoots.has(id)
+    ? (observations[i]?.names ?? []).map(name => ({ id, directory, name })) : []);
+  const sampled = choices.slice(offset, offset + 8);
+  const decisions = [];
+  for (const candidate of sampled) {
+    const label = path.basename(candidate.name);
+    const key = process.platform === "win32" ? candidate.name.toLowerCase() : candidate.name;
+    const registeredHere = registered.has(key);
+    let head = null, worktreeClean = null, observation = "NOT_CHECKED";
+    if (registeredHere) {
+      try {
+        await checkedExistingDirectory(candidate.name);
+        const [rawHead, rawStatus] = await Promise.all([
+          exec("git", ["-C", candidate.name, "rev-parse", "HEAD"], {
+            timeout: 4000, maxBuffer: 16384, windowsHide: true,
+            env: { ...process.env, GIT_TERMINAL_PROMPT: "0", GCM_INTERACTIVE: "Never" },
+          }),
+          exec("git", ["-C", candidate.name, "status", "--porcelain=v1", "--untracked-files=all"], {
+            timeout: 4000, maxBuffer: 1024 * 1024, windowsHide: true,
+            env: { ...process.env, GIT_TERMINAL_PROMPT: "0", GCM_INTERACTIVE: "Never" },
+          }),
+        ]);
+        await checkedExistingDirectory(candidate.name);
+        head = /^[a-f0-9]{40}$/iu.test(rawHead.stdout.trim()) ? rawHead.stdout.trim() : null;
+        worktreeClean = rawStatus.stdout.trim() === "";
+        observation = head ? "GIT_OBSERVED" : "GIT_HEAD_UNVERIFIED";
+      } catch {
+        observation = "GIT_INSPECTION_UNVERIFIED";
+      }
+    }
+    decisions.push({
+      bucket: candidate.id, localDirectoryName: label, registeredHere,
+      head, worktreeClean, observation,
+      decision: "BLOCKED_REFERENCES_UNVERIFIED",
+      proofStillNeeded: ["PR_STATE", "TASK_AND_PROCESS_OWNERSHIP",
+        "STAGING_LEASES", "IMMUTABLE_RECEIPTS", "G_DRIVE_NTFS_AND_INTEGRITY"],
+      archived: false, cleanupAuthorized: false,
+    });
+  }
+  return {
+    state: choices.length > offset + sampled.length ? "PARTIAL" : "OBSERVED_BOUND",
+    totalObserved: choices.length, reviewed: decisions.length, offset,
+    limitedByRootInventory: observations.some(x => x?.state === "PARTIAL"),
+    decisions, archiveAuthorized: false, removedBytes: "0",
+  };
+}
+
 async function checkedCapacity(directory) {
   try {
     await checkedExistingDirectory(directory);

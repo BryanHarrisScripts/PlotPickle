@@ -6,7 +6,7 @@
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('Launch','Status','Watch','App','Tunnel')][string]$Mode = 'Launch',
+    [ValidateSet('Launch','Restart','Status','Watch','App','Tunnel')][string]$Mode = 'Launch',
     [ValidateSet('All','Factory','App','Tunnel','Supervisor','Dispatcher','Worker1','Recovery','Merge')]
     [string]$Role = 'All',
     [string]$RepoRoot = ''
@@ -56,7 +56,9 @@ function Read-TunnelLauncherState {
     try {
         $matches = @(Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" |
             Where-Object { $_.ProcessId -ne $PID -and
-                $_.CommandLine -like '*Start-PlotPickle-Tunnel-Authenticated.ps1*' })
+                ($_.CommandLine -like '*Start-PlotPickle-Tunnel-Authenticated.ps1*' -or
+                    ($_.CommandLine -like '*Start-PlotPickle-Console.ps1*' -and
+                        $_.CommandLine -like '*-Mode Tunnel*')) })
         foreach ($process in $matches) {
             $owner = (Invoke-CimMethod -InputObject $process -MethodName GetOwnerSid).Sid
             if ($owner -cne $sid) { return 'UNVERIFIED_PROCESS' }
@@ -97,6 +99,14 @@ function Read-Marker([string]$Path) {
     } catch [System.Management.Automation.ItemNotFoundException] {
         return 'ABSENT'
     } catch { return 'UNKNOWN' }
+}
+function Classify-State([string]$Role, [string]$Observed) {
+    if ($Role -eq 'Merge') { return 'BLOCKED' }
+    if ($Observed -match 'SOURCE_MISMATCH|RUNTIME_NOT_READY|RELEASE_GATED|Disabled') { return 'BLOCKED' }
+    if ($Observed -eq 'OFF') { return 'STOPPED' }
+    if ($Role -in @('App','Tunnel')) { return 'UNVERIFIED' } # HTTP alone proves no owner or source.
+    if ($Observed -eq 'RUNNING') { return 'RUNNING' }
+    return 'UNVERIFIED'
 }
 function Show-Status([string]$SelectedRole) {
     $head = $null
@@ -154,7 +164,10 @@ function Show-Status([string]$SelectedRole) {
         $pause = Read-Marker (Join-Path $private 'pause-request.json')
         Write-Host ('STOP: ' + $stop + '  PAUSE: ' + $pause)
     }
-    $rows | Format-Table -AutoSize | Out-Host
+    $rows | ForEach-Object {
+        [pscustomobject]@{ Role=$_.Role; State=(Classify-State $_.Role $_.State);
+            Observation=$_.State; Detail=$_.Detail }
+    } | Format-Table -AutoSize | Out-Host
     Write-Host 'Observations are not Product Gate, worker execution, or merge proof.'
 }
 function Sync-Main {
@@ -198,6 +211,18 @@ function Sync-Main {
     exit 0
 }
 if ($Mode -eq 'Status') { Show-Status $Role; return }
+if ($Mode -eq 'Restart') {
+    # A responding endpoint has no verified owner here. Reconciliation may
+    # start missing components, but must never terminate an unknown process.
+    if ((Read-AppState) -eq 'RESPONDING' -or (Read-TunnelLauncherState) -ne 'ABSENT' -or
+        (Read-TunnelState) -ne 'NOT_RESPONDING') {
+        Show-Status 'All'
+        throw 'RESTART_BLOCKED_ACTIVE_OR_UNVERIFIED_APP_OR_TUNNEL'
+    }
+    & $PSCommandPath -Mode Launch -RepoRoot $repo
+    if ($LASTEXITCODE -ne 0) { throw 'RESTART_LAUNCH_FAILED' }
+    return
+}
 if ($Mode -eq 'Watch') {
     while ($true) { Show-Status $Role; Start-Sleep -Seconds 30 }
 }
@@ -228,19 +253,20 @@ if ($Mode -eq 'Tunnel') {
     return
 }
 if ($Mode -ne 'Launch') { throw 'UNSUPPORTED_MODE' }
-Sync-Main
+$syncBlock = $null
+try { Sync-Main } catch { $syncBlock = $_.Exception.Message }
 $currentHead = Read-Source
 $supervisorBeforeLaunch = Read-NodeState $supervisorScript
-if ($null -eq $supervisorBeforeLaunch) { throw 'SUPERVISOR_STATUS_UNVERIFIABLE' }
-if ($supervisorBeforeLaunch.state -eq 'RUNNING' -and
+if ($null -eq $supervisorBeforeLaunch) { $syncBlock = 'SUPERVISOR_STATUS_UNVERIFIABLE' }
+if ($null -ne $supervisorBeforeLaunch -and $supervisorBeforeLaunch.state -eq 'RUNNING' -and
     $supervisorBeforeLaunch.exactSha -cne $currentHead) {
-    throw 'SUPERVISOR_SOURCE_MISMATCH_REQUIRES_OWNER_MIGRATION'
+    $syncBlock = 'SUPERVISOR_SOURCE_MISMATCH_REQUIRES_OWNER_MIGRATION'
 }
 $terminal = Get-Command wt.exe -ErrorAction Stop
 $script = $PSCommandPath
 $tabs = @(
-    @('Factory','#19806E','Watch'), @('App','#358A55','App'),
-    @('Tunnel','#337AAB','Tunnel'), @('Supervisor','#B87A35','Watch'),
+    @('Factory','#19806E','Watch'), @('App','#358A55',$(if($syncBlock){'Watch'}else{'App'})),
+    @('Tunnel','#337AAB',$(if($syncBlock){'Watch'}else{'Tunnel'})), @('Supervisor','#B87A35','Watch'),
     @('Dispatcher','#A76542','Watch'), @('Worker1','#5963A5','Watch'),
     @('Recovery','#A34B55','Watch'), @('Merge','#82558A','Watch')
 )
@@ -256,3 +282,4 @@ $arguments += @(';','new-tab','--title','PlotPickle Console','--tabColor','#E0A5
     '-File',$script,'-Mode','Watch','-Role','All','-RepoRoot',$repo)
 & $terminal.Source @arguments
 if ($LASTEXITCODE -ne 0) { throw 'WINDOWS_TERMINAL_LAUNCH_FAILED' }
+if ($syncBlock) { throw ('START_BLOCKED_STATUS_TABS_OPEN: ' + $syncBlock) }

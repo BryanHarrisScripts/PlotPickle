@@ -183,7 +183,6 @@ export default function StoryboardReadinessWorkspace({
   async function saveFrameVersion(artifact: FoundationsVisualArtifact) {
     if (frameMutation.current || frameBusy) return;
     setFrameNoticePosition(artifact.frameNumber ?? null);
-    if (!draftCreationAllowed) { setFrameNotice("A screenplay passage is required before saving a Storyboard draft here."); return; }
     frameMutation.current = true;
     setFrameSaving(true);
     setFrameNotice("Saving Storyboard Image…");
@@ -826,7 +825,10 @@ export default function StoryboardReadinessWorkspace({
                         <button
                           disabled={!selectedArtifact || !draftCreationAllowed || frameBusy || frameSaving}
                           type="button"
-                          onClick={() => selectedArtifact && void saveFrameVersion(selectedArtifact)}
+                          onClick={() => {
+                            if (!draftCreationAllowed) { setFrameNotice("A screenplay passage is required before saving a Storyboard draft here."); return; }
+                            if (selectedArtifact) void saveFrameVersion(selectedArtifact);
+                          }}
                         >{frameSaving ? "Saving…" : "Save"}</button>
                         <button
                           aria-pressed={accepted}

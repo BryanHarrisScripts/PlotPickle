@@ -1,0 +1,208 @@
+/**
+ * #3241 PlotPickle Drive Reconciler — startup observation, not a cleanup grant.
+ * The only persisted object is ONE replaced aggregate status snapshot.
+ * No PPF, media, Git checkout, runtime, lock, cache or evidence is removed.
+ */
+import os from "node:os";
+import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { lstat, mkdir, opendir, realpath, rename, statfs, writeFile, unlink } from "node:fs/promises";
+
+const exec = promisify(execFile);
+const REPO = fileURLToPath(new URL("../../../../", import.meta.url));
+const MAX_ITEMS = 512;
+const PER_ROOT_MS = 1250;
+const SNAPSHOT = "last-reconciliation.json";
+const samePath = (a, b) => process.platform === "win32"
+  ? path.resolve(a).toLowerCase() === path.resolve(b).toLowerCase()
+  : path.resolve(a) === path.resolve(b);
+
+async function checkedExistingDirectory(directory) {
+  let current = path.resolve(directory);
+  for (;;) {
+    const info = await lstat(current);
+    if (!info.isDirectory() || info.isSymbolicLink()) throw Error("REDIRECTED_OR_NON_DIRECTORY");
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+  if (!samePath(await realpath(directory), directory)) throw Error("REDIRECTED_OR_NON_DIRECTORY");
+}
+
+export function parseRegisteredWorktrees(porcelain) {
+  if (typeof porcelain !== "string") return [];
+  return porcelain.split(/\r?\n/u).filter(line => line.startsWith("worktree "))
+    .map(line => path.resolve(line.slice(9).trim())).filter(Boolean);
+}
+
+async function git(args) {
+  const result = await exec("git", ["-C", REPO, ...args], {
+    timeout: 1500, maxBuffer: 1024 * 1024, windowsHide: true,
+    env: { ...process.env, GIT_TERMINAL_PROMPT: "0", GCM_INTERACTIVE: "Never" },
+  });
+  return result.stdout.trim();
+}
+
+async function readGitState() {
+  try {
+    const [head, branch, worktrees, objects] = await Promise.all([
+      git(["rev-parse", "HEAD"]),
+      git(["branch", "--show-current"]),
+      git(["worktree", "list", "--porcelain"]),
+      git(["count-objects", "-v"]),
+    ]);
+    const lines = new Map(objects.split(/\r?\n/u).map(line => {
+      const split = line.indexOf(": ");
+      return split < 0 ? [line, ""] : [line.slice(0, split), line.slice(split + 2)];
+    }));
+    const sizePackKiB = Number(lines.get("size-pack"));
+    return {
+      state: "OBSERVED",
+      mainCheckout: branch === "main",
+      headPresent: /^[a-f0-9]{40}$/u.test(head),
+      registeredWorktreeCount: parseRegisteredWorktrees(worktrees).length,
+      registeredWorktrees: parseRegisteredWorktrees(worktrees),
+      gitPackBytes: Number.isFinite(sizePackKiB) && sizePackKiB >= 0
+        ? String(Math.round(sizePackKiB * 1024)) : null,
+      packSizeScope: "Git object packs only; excludes worktree checkouts and runtimes",
+    };
+  } catch {
+    return { state: "UNVERIFIED", mainCheckout: false, headPresent: false,
+      registeredWorktreeCount: null, registeredWorktrees: [], gitPackBytes: null };
+  }
+}
+
+async function immediate(directory) {
+  try {
+    await checkedExistingDirectory(directory);
+  } catch (error) {
+    return { state: error?.code === "ENOENT" ? "MISSING" : "UNVERIFIED",
+      observedEntries: 0, directories: 0, skippedLinks: 0, registered: null,
+      unregisteredOrUnknown: null, bytes: null };
+  }
+  let entries = 0, directories = 0, skippedLinks = 0, truncated = false;
+  const names = [];
+  const deadline = Date.now() + PER_ROOT_MS;
+  try {
+    const handle = await opendir(directory);
+    for await (const item of handle) {
+      if (entries >= MAX_ITEMS || Date.now() > deadline) { truncated = true; break; }
+      entries += 1;
+      const full = path.join(directory, item.name);
+      const info = await lstat(full);
+      if (info.isSymbolicLink()) { skippedLinks += 1; continue; }
+      if (!info.isDirectory() || !item.isDirectory()) continue;
+      directories += 1;
+      names.push(path.resolve(full));
+    }
+  } catch {
+    return { state: "UNVERIFIED", observedEntries: entries, directories,
+      skippedLinks, registered: null, unregisteredOrUnknown: null, bytes: null };
+  }
+  return { state: truncated ? "PARTIAL" : "COMPLETE", observedEntries: entries,
+    directories, skippedLinks, names, bytes: null };
+}
+
+async function checkedCapacity(directory) {
+  try {
+    await checkedExistingDirectory(directory);
+    const result = await statfs(directory, { bigint: true });
+    return { state: "OBSERVED", freeBytes: String(result.bavail * result.bsize),
+      totalBytes: String(result.blocks * result.bsize),
+      isReservation: false };
+  } catch {
+    return { state: "UNVERIFIED", freeBytes: null, totalBytes: null, isReservation: false };
+  }
+}
+
+async function recordStatus(directory, report) {
+  try {
+    await checkedExistingDirectory(directory);
+    const drive = path.join(directory, "drive");
+    try { await mkdir(drive); } catch (error) { if (error?.code !== "EEXIST") throw error; }
+    await checkedExistingDirectory(drive);
+    const destination = path.join(drive, SNAPSHOT);
+    // Never overwrite a redirected or non-regular output.
+    try {
+      const info = await lstat(destination);
+      if (!info.isFile() || info.isSymbolicLink()) throw Error("SNAPSHOT_UNVERIFIED");
+    } catch (error) { if (error?.code !== "ENOENT") throw error; }
+    const pending = path.join(drive, ".pending-" + process.pid + "-" + Date.now().toString(36));
+    await writeFile(pending, JSON.stringify(report, null, 2) + "\n", { flag: "wx", mode: 0o600 });
+    try { await rename(pending, destination); }
+    catch (error) { await unlink(pending).catch(() => {}); throw error; }
+    return "WRITTEN";
+  } catch {
+    return "NOT_WRITTEN";
+  }
+}
+
+export async function reconcile({ appHome, repo = REPO, persist = false } = {}) {
+  if (typeof appHome !== "string" || !path.isAbsolute(appHome)) throw Error("DRIVE_ROOT_UNVERIFIED");
+  if (!samePath(repo, REPO)) throw Error("DRIVE_REPOSITORY_UNVERIFIED");
+  const queue = path.join(appHome, "engineering-team", "autonomous-queue");
+  const roots = [
+    ["candidateStages", path.join(queue, "chat-candidate-stages")],
+    ["issueWorktrees", path.join(queue, "worktrees")],
+    ["storyUat", path.join(queue, "mcp-story-uat")],
+    ["runtimes", path.join(appHome, "runtimes")],
+    ["factoryNpmCache", path.join(queue, "npm-cache")],
+    ["packageCache", path.join(appHome, "npm-cache")],
+    ["verificationArtifacts", path.join(REPO, ".artifacts")],
+  ];
+  const [gitState, capacity, ...seen] = await Promise.all([
+    readGitState(), checkedCapacity(appHome), ...roots.map(row => immediate(row[1])),
+  ]);
+  const registered = new Set(gitState.registeredWorktrees.map(name => process.platform === "win32" ? name.toLowerCase() : name));
+  const buckets = Object.fromEntries(roots.map(([name], index) => {
+    const { names = [], ...data } = seen[index];
+    const worktreeClass = name === "candidateStages" || name === "issueWorktrees";
+    const matching = names.filter(p => registered.has(process.platform === "win32" ? p.toLowerCase() : p)).length;
+    return [name, { ...data, registered: worktreeClass && gitState.state === "OBSERVED" ? matching : null,
+      unregisteredOrUnknown: worktreeClass && gitState.state === "OBSERVED" ? names.length - matching : null,
+      cleanupAuthorized: false }];
+  }));
+  const report = {
+    schemaVersion: 1, component: "PlotPickle Drive Reconciler",
+    observedAt: new Date().toISOString(),
+    state: Object.values(buckets).every(b => b.state === "COMPLETE") && gitState.state === "OBSERVED"
+      ? "OBSERVED_METADATA_ONLY" : "PARTIAL_OR_UNVERIFIED",
+    capacity, git: { ...gitState, registeredWorktrees: undefined },
+    buckets, cleanupAuthorized: false, automaticDeletionImplemented: false,
+    archiveToGAuthorized: false, protected: [
+      "PPF", "Library", "creative-media", "manual-backups", "locked-artifacts",
+      "Git-worktrees", "runtime-active-and-fallback", "receipts", "unclassified-data",
+    ],
+    notes: "Startup reads fixed roots and replaces one aggregate status snapshot. No recursive sizes, actual disk reclamation, process/reference attestation or cleanup action. Git pack size excludes checkout copies. A missing reference always blocks retirement.",
+  };
+  const snapshotState = persist ? await recordStatus(appHome, report) : "NOT_REQUESTED";
+  return { ...report, snapshotState };
+}
+
+async function main() {
+  if (process.argv.length !== 3 || !["--startup", "--report"].includes(process.argv[2]))
+    throw Error("DRIVE_MODE_UNSUPPORTED");
+  const appHome = process.env.LOCALAPPDATA
+    ? path.join(process.env.LOCALAPPDATA, "PlotPickle")
+    : path.join(os.homedir(), ".plotpickle");
+  const result = await reconcile({ appHome, persist: process.argv[2] === "--startup" });
+  process.stdout.write("PLOTPICKLE_DRIVE " + JSON.stringify({
+    state: result.state, freeBytes: result.capacity.freeBytes,
+    registeredWorktrees: result.git.registeredWorktreeCount,
+    candidateStages: result.buckets.candidateStages.directories,
+    issueWorktrees: result.buckets.issueWorktrees.directories,
+    runtimes: result.buckets.runtimes.directories,
+    snapshotState: result.snapshotState, cleanupAuthorized: false,
+  }) + "\n");
+}
+
+if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
+  main().catch(error => {
+    const code = ["DRIVE_MODE_UNSUPPORTED", "DRIVE_ROOT_UNVERIFIED", "DRIVE_REPOSITORY_UNVERIFIED"]
+      .includes(error?.message) ? error.message : "DRIVE_RECONCILIATION_UNVERIFIED";
+    process.stderr.write(code + "\n");
+    process.exitCode = 1;
+  });
+}

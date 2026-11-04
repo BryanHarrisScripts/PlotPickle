@@ -432,7 +432,7 @@ export default function StoryboardReadinessWorkspace({
 
   async function generateFrame(position: number, prompt: string) {
     if (frameBusy || !prompt.trim() || !selectedTarget) return;
-    if (!draftCreationAllowed) { setFrameNotice("A screenplay passage is required before creating a Storyboard draft."); return; }
+    if (!draftCreationAllowed) { setFrameNotice("A screenplay passage is required before saving a Storyboard draft here."); return; }
     const blockNumberValue = selectedNumber;
     const mini = selectedMiniBlockNumber;
     const projectId = project.id;
@@ -825,10 +825,7 @@ export default function StoryboardReadinessWorkspace({
                         <button
                           disabled={!selectedArtifact || !draftCreationAllowed || frameBusy || frameSaving}
                           type="button"
-                          onClick={() => {
-                            if (!draftCreationAllowed) { setFrameNotice("A screenplay passage is required before saving a Storyboard draft here."); return; }
-                            if (selectedArtifact) void saveFrameVersion(selectedArtifact);
-                          }}
+                          onClick={() => selectedArtifact && void saveFrameVersion(selectedArtifact)}
                         >{frameSaving ? "Saving…" : "Save"}</button>
                         <button
                           aria-pressed={accepted}

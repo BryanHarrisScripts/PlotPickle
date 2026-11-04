@@ -103,7 +103,7 @@ function Read-Marker([string]$Path) {
 function Classify-State([string]$Role, [string]$Observed) {
     if ($Role -eq 'Merge') { return 'BLOCKED' }
     if ($Observed -match 'SOURCE_MISMATCH|RUNTIME_NOT_READY|RELEASE_GATED|Disabled') { return 'BLOCKED' }
-    if ($Observed -eq 'OFF') { return 'STOPPED' }
+    if ($Observed -in @('OFF','OFFLINE','NOT_RESPONDING')) { return 'STOPPED' }
     if ($Role -in @('App','Tunnel')) { return 'UNVERIFIED' } # HTTP alone proves no owner or source.
     if ($Observed -eq 'RUNNING') { return 'RUNNING' }
     return 'UNVERIFIED'
@@ -270,16 +270,37 @@ $tabs = @(
     @('Dispatcher','#A76542','Watch'), @('Worker1','#5963A5','Watch'),
     @('Recovery','#A34B55','Watch'), @('Merge','#82558A','Watch')
 )
-$arguments = @('-w','new')
+$existingRoles = @(
+    Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" |
+        Where-Object {
+            $_.CommandLine -and
+            $_.CommandLine -like ('*' + $script + '*') -and
+            $_.CommandLine -like ('*' + $repo + '*') -and
+            $_.CommandLine -match '-Mode (Watch|App|Tunnel) -Role (Factory|App|Tunnel|Supervisor|Dispatcher|Worker1|Recovery|Merge|All)(?:\s|$)'
+        } | ForEach-Object { $Matches[2] } | Select-Object -Unique
+)
+$arguments = @('-w','PlotPickle')
+$added = 0
 foreach ($tab in $tabs) {
-    if ($arguments.Count -gt 2) { $arguments += ';' }
+    if ($existingRoles -contains $tab[0]) { continue }
+    if ($added -gt 0) { $arguments += ';' }
     $arguments += @('new-tab','--title',('PlotPickle ' + $tab[0]),'--tabColor',$tab[1],
         '--suppressApplicationTitle','-d',$repo,'powershell.exe','-NoProfile','-NoExit',
         '-File',$script,'-Mode',$tab[2],'-Role',$tab[0],'-RepoRoot',$repo)
+    $added++
 }
-$arguments += @(';','new-tab','--title','PlotPickle Console','--tabColor','#E0A527',
-    '--suppressApplicationTitle','-d',$repo,'powershell.exe','-NoProfile','-NoExit',
-    '-File',$script,'-Mode','Watch','-Role','All','-RepoRoot',$repo)
-& $terminal.Source @arguments
-if ($LASTEXITCODE -ne 0) { throw 'WINDOWS_TERMINAL_LAUNCH_FAILED' }
+if ($existingRoles -notcontains 'All') {
+    if ($added -gt 0) { $arguments += ';' }
+    $arguments += @('new-tab','--title','PlotPickle Console','--tabColor','#E0A527',
+        '--suppressApplicationTitle','-d',$repo,'powershell.exe','-NoProfile','-NoExit',
+        '-File',$script,'-Mode','Watch','-Role','All','-RepoRoot',$repo)
+    $added++
+}
+if ($added -gt 0) {
+    & $terminal.Source @arguments
+    if ($LASTEXITCODE -ne 0) { throw 'WINDOWS_TERMINAL_LAUNCH_FAILED' }
+} else {
+    Write-Host 'PlotPickle tabs already open; no duplicate tabs launched.'
+    Show-Status 'All'
+}
 if ($syncBlock) { throw ('START_BLOCKED_STATUS_TABS_OPEN: ' + $syncBlock) }

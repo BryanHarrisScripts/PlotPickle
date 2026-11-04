@@ -184,9 +184,11 @@ export async function reconcile({ appHome, repo = REPO, persist = false } = {}) 
 async function main() {
   if (process.argv.length !== 3 || !["--startup", "--report"].includes(process.argv[2]))
     throw Error("DRIVE_MODE_UNSUPPORTED");
-  const appHome = process.env.LOCALAPPDATA
-    ? path.join(process.env.LOCALAPPDATA, "PlotPickle")
-    : path.join(os.homedir(), ".plotpickle");
+  const appHome = process.env.PLOTPICKLE_HOME && path.isAbsolute(process.env.PLOTPICKLE_HOME)
+    ? path.resolve(process.env.PLOTPICKLE_HOME)
+    : process.env.LOCALAPPDATA
+      ? path.join(process.env.LOCALAPPDATA, "PlotPickle")
+      : path.join(os.homedir(), ".plotpickle");
   const result = await reconcile({ appHome, persist: process.argv[2] === "--startup" });
   process.stdout.write("PLOTPICKLE_DRIVE " + JSON.stringify({
     state: result.state, freeBytes: result.capacity.freeBytes,

@@ -159,6 +159,18 @@ export default function StoryboardReadinessWorkspace({
     artifact.workflow === "storyboard-frame-webp-v2"
     && (artifact.sourceDecisionKeys ?? []).includes(`storyboard-anchor:block:block-${String(selectedNumber).padStart(2, "0")}:mini-${selectedMiniBlockNumber}`),
   );
+  // Derived from the existing saved/approved PPF. No duplicate progress ledger.
+  const lockedShotPositions = new Set(frameArtifacts
+    .filter((artifact) => artifact.reviewState !== "rejected"
+      && project.build.foundations.acceptedVisualArtifactIds.includes(artifact.id)
+      && storyboardArtifactSavedLocally(artifact)
+      && Number.isInteger(artifact.frameNumber)
+      && (artifact.frameNumber ?? 0) >= 1 && (artifact.frameNumber ?? 0) <= 25)
+    .map((artifact) => artifact.frameNumber));
+  const nextShotPosition = Array.from({ length: 25 }, (_, index) => index + 1)
+    .find((position) => !lockedShotPositions.has(position)) ?? null;
+  const nextShotHasCandidate = nextShotPosition !== null
+    && frameArtifacts.some((artifact) => artifact.frameNumber === nextShotPosition && artifact.reviewState !== "rejected");
 
   async function saveFrameVersion(artifact: FoundationsVisualArtifact) {
     if (frameMutation.current || frameBusy) return;
@@ -647,6 +659,24 @@ export default function StoryboardReadinessWorkspace({
               </div>
               <small>25 planned Shots · approximately 3 seconds per Shot</small>
             </header>
+            <aside className={styles.productionGuide} aria-label="Continue storyboard production" data-storyboard-production-guide>
+              <div>
+                <strong>{lockedShotPositions.size} of 25 shots saved and locked</strong>
+                {nextShotPosition !== null ? (
+                  <p>{qaOnlyAccess
+                    ? "This is a QA preview. You can inspect the saved story, but cannot create, save or lock an image here. Production needs the authorized Storyboard workspace."
+                    : nextShotHasCandidate
+                      ? `Continue Shot ${String(nextShotPosition).padStart(2, "0")}: review its existing image, then Save and Lock when you approve it.`
+                      : `Continue Shot ${String(nextShotPosition).padStart(2, "0")}: prepare an image prompt from the existing story, create an image, and review it before saving.`}</p>
+                ) : <p>All 25 storyboard shots are saved and locked. You can continue with Previs.</p>}
+                <small>Existing saved images stay untouched. This guide only reads the current project.</small>
+              </div>
+              {nextShotPosition !== null ? (
+                <a className={styles.productionGuideLink} href={`#storyboard-shot-${nextShotPosition}`}>
+                  {qaOnlyAccess ? "View" : "Continue with"} Shot {String(nextShotPosition).padStart(2, "0")}
+                </a>
+              ) : null}
+            </aside>
             <div className={styles.sceneList}>
               {blockScenes.length ? blockScenes.map((scene) => <article key={scene.id} data-storyboard-scene-id={scene.id}><strong>{scene.title}</strong><small>Scene spans {scene.relatedMiniBlockIds.length} Mini-Block{scene.relatedMiniBlockIds.length === 1 ? "" : "s"}</small><p>{scene.purpose || "Scene mapped from screenplay; visual Beat planning remains open."}</p></article>) : <p>No Scene is mapped to this Block yet. The 25 planned Shots remain available without inventing a Scene.</p>}
             </div>
@@ -726,7 +756,7 @@ export default function StoryboardReadinessWorkspace({
                     ? [`Shot ${String(shot.order).padStart(2, "0")}`, shot.shotSize || shot.angle, shot.narrativePurpose || shot.visualIntent].filter(Boolean).join(" · ")
                     : "Planned Shot · camera intent open";
                   return (
-                    <div className={`${styles.positionRow} ${lockedImageHandoffReady ? styles.positionRowLocked : ""}`} data-storyboard-position={position} key={position}>
+                    <div className={`${styles.positionRow} ${lockedImageHandoffReady ? styles.positionRowLocked : ""}`} data-storyboard-position={position} id={`storyboard-shot-${position}`} key={position}>
                       <div className={styles.positionReviewColumn}>
                       <div className={styles.positionIdentity}>
                         <strong>Shot {String(position).padStart(2, "0")} of 25</strong>
@@ -809,6 +839,8 @@ export default function StoryboardReadinessWorkspace({
                       </div>
                       </div>
                       <div className={styles.positionContextColumn} data-storyboard-shot-context={position}>
+                        <details className={styles.shotTechnicalDetails}>
+                          <summary>View image prompt and production details</summary>
                         <div className={styles.framePromptProvenance}>
                           <strong>Storyboard Image Prompt</strong>
                           <p>{existingPrompt ? existingPrompt.prompt : selectedImage ? (selectedImage.prompt || "Original Storyboard Image prompt unavailable for this image.") : "No Storyboard Image is selected. Create a Storyboard Image Prompt from the authored story context."}</p>
@@ -823,6 +855,7 @@ export default function StoryboardReadinessWorkspace({
                           <div><dt>Information boundary</dt><dd>{shot?.informationDirectives.map((directive) => `${directive.mode}: ${directive.statement}`).join(" · ") || "No special reveal/withhold directive"}</dd></div>
                           <div><dt>Continuity / Handoff</dt><dd>{continuity || "No authored transition / continuity handoff"}</dd></div>
                         </dl>
+                        </details>
                       </div>
                       {lockedImageHandoffReady ? <StoryboardLockedShotHandoff
                         blockNumber={selectedNumber}

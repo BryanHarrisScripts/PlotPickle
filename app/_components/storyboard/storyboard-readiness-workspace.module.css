@@ -375,6 +375,41 @@
 .sceneList p, .beatList p, .visualSequence p, .visualCandidates p { margin: 0; }
 .beatList, .visualSequence, .visualCandidates { display: grid; gap: var(--pp-skin-space-2); }
 .beatList { padding: var(--pp-skin-space-2); border-left: 2px solid var(--pp-skin-accent-bright); }
+.productionGuide {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--pp-skin-space-3);
+  padding: var(--pp-skin-space-3);
+  border: 2px solid var(--pp-skin-accent-bright);
+  background: var(--pp-skin-surface-1);
+}
+.productionGuide > div { display: grid; gap: var(--pp-skin-space-2); flex: 1 1 280px; }
+.productionGuide strong { color: var(--pp-skin-ink); font-size: 1rem; }
+.productionGuide p, .productionGuide small { margin: 0; color: var(--pp-skin-ink-soft); line-height: 1.5; }
+.productionGuideLink {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--pp-skin-space-3);
+  min-height: var(--pp-skin-control-height);
+  border: 1px solid var(--pp-skin-accent-bright);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+.productionGuideLink:hover, .productionGuideLink:focus-visible { outline: 2px solid var(--pp-skin-focus); outline-offset: 2px; }
+.positionRow[id^="storyboard-shot-"] { scroll-margin-top: var(--pp-skin-space-4); }
+.shotTechnicalDetails {
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-0);
+}
+.shotTechnicalDetails summary { cursor: pointer; color: var(--pp-skin-ink); font-weight: 700; }
+.shotTechnicalDetails[open] summary { margin-bottom: var(--pp-skin-space-2); }
+.shotTechnicalDetails:focus-within { outline: 1px solid var(--pp-skin-focus); outline-offset: 1px; }
 .positionList { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--pp-skin-space-2); }
 .positionRow {
   display: grid;

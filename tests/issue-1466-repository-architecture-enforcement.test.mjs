@@ -17,8 +17,8 @@ const importRules = [
 test("#1466 ratchets legacy governed roots without a big-bang restructure", () => {
   const report = runArchitectureEnforcement({ writeArtifact: false });
   assert.equal(report.status, "pass", report.violations.join("\n"));
-  assert.equal(report.metrics.lib.directSourceFiles, 113);
-  assert.equal(report.metrics.lib.directSourceLimit, 113);
+  assert.equal(report.metrics.lib.directSourceFiles, 114);
+  assert.equal(report.metrics.lib.directSourceLimit, 114);
   assert.equal(report.metrics.build.directSourceFiles, 84);
   assert.equal(report.metrics.build.directSourceLimit, 84);
   assert.equal(report.metrics.core.directSourceLimit, 16);
@@ -66,5 +66,12 @@ test("#1466 lets legacy compatibility debt shrink but rejects a newly introduced
 
 test("#1466 keeps consumer-level evidence for explicitly owned bridge exceptions", () => {
   const report = runArchitectureEnforcement({ writeArtifact: false });
-  assert.deepEqual(report.compatibilityBridges, []);
+  assert.deepEqual(report.compatibilityBridges, [
+    {
+      path: "lib/pageflow.ts",
+      canonicalTarget: "modules/build/pageflow.ts",
+      ownerIssue: 1466,
+      consumers: ["app/pageflow/page.tsx", "app/craftloop/page.tsx"],
+    },
+  ]);
 });

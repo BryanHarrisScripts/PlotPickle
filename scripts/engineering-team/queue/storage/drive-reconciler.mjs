@@ -284,7 +284,7 @@ async function main() {
     process.stdout.write("PLOTPICKLE_DRIVE_REVIEW " + JSON.stringify({
       sourceHead: result.git.sourceHead, state: result.state,
       archiveTarget: result.archiveTarget, stageReview: result.stageReview,
-    }) + "\\n".replace("\\n", "\n"));
+    }) + "\n");
     return;
   }
   process.stdout.write("PLOTPICKLE_DRIVE " + JSON.stringify({

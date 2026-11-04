@@ -4,7 +4,7 @@ param([switch]$Install, [switch]$Status)
 $ErrorActionPreference = 'Stop'
 if ($Install.IsPresent -eq $Status.IsPresent) { throw 'CHOOSE_INSTALL_OR_STATUS' }
 $repo = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..\..\..')).Path
-$entry = Join-Path $repo 'PlotPickle.cmd'
+$entry = Join-Path $PSScriptRoot 'PlotPickle.cmd'
 $bin = Join-Path $env:APPDATA 'npm'
 $shim = Join-Path $bin 'PlotPickle.cmd'
 $desktop = [Environment]::GetFolderPath('Desktop')

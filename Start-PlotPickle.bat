@@ -316,16 +316,6 @@ if not exist "%PLOTPICKLE_NODE_RUNTIME_DIR%" mkdir "%PLOTPICKLE_NODE_RUNTIME_DIR
 del /q "%PLOTPICKLE_SHUTDOWN_SIGNAL%" >nul 2>&1
 del /q "%PLOTPICKLE_BROWSER_STATE%" >nul 2>&1
 
-rem #3241 PlotPickle Drive: bounded startup reconciliation, NEVER a delete or Git cleanup.
-rem Writes one aggregate metadata snapshot; failure does not block the Human app.
-set "PLOTPICKLE_DRIVE_RECONCILER=scripts\engineering-team\queue\storage\drive-reconciler.mjs"
-if exist "!PLOTPICKLE_DRIVE_RECONCILER!" (
-  node "!PLOTPICKLE_DRIVE_RECONCILER!" --startup
-  if errorlevel 1 echo !WARNING! Drive reconciliation is unverified. No files were cleaned; application startup continues.
-) else (
-  echo !WARNING! Drive reconciliation is unavailable. No files were cleaned.
-)
-
 for /f %%V in ('npm --version') do set "NPM_VERSION=%%V"
 for /f %%V in ('node -p "require('./package.json').version"') do set "PLOTPICKLE_VERSION=%%V"
 echo !OK! PlotPickle !PLOTPICKLE_VERSION!

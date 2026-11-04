@@ -160,8 +160,16 @@ export async function reconcile({ appHome, repo = REPO, persist = false } = {}) 
     ["packageCache", path.join(appHome, "npm-cache")],
     ["verificationArtifacts", path.join(REPO, ".artifacts")],
   ];
-  const [gitState, capacity, ...seen] = await Promise.all([
-    readGitState(), checkedCapacity(appHome), ...roots.map(row => immediate(row[1])),
+  // G: is the owner-approved *archive* volume. It is not a second live
+  // Factory or a permitted destination until NTFS, references, capacity,
+  // copy integrity and a rollback plan have been independently checked.
+  const archiveRoot = process.platform === "win32" ? "G:\\" : null;
+  const [gitState, capacity, gDrive, ...seen] = await Promise.all([
+    readGitState(), checkedCapacity(appHome),
+    archiveRoot ? checkedCapacity(archiveRoot) : Promise.resolve({
+      state: "NOT_WINDOWS", freeBytes: null, totalBytes: null, isReservation: false,
+    }),
+    ...roots.map(row => immediate(row[1])),
   ]);
   const registered = new Set(gitState.registeredWorktrees.map(name => process.platform === "win32" ? name.toLowerCase() : name));
   const buckets = Object.fromEntries(roots.map(([name], index) => {
@@ -178,12 +186,18 @@ export async function reconcile({ appHome, repo = REPO, persist = false } = {}) 
     state: Object.values(buckets).every(b => b.state === "COMPLETE") && gitState.state === "OBSERVED"
       ? "OBSERVED_METADATA_ONLY" : "PARTIAL_OR_UNVERIFIED",
     capacity, git: { ...gitState, registeredWorktrees: undefined },
+    archiveTarget: {
+      volume: "G:", baseFolder: "PlotPickle-Archive", role: "ARCHIVE_ONLY",
+      capacity: gDrive, fileSystemVerified: false, targetWritableVerified: false,
+      referenceAndProcessAttested: false, restoreVerified: false,
+      archiveAuthorized: false, movedBytes: "0",
+    },
     buckets, cleanupAuthorized: false, automaticDeletionImplemented: false,
     archiveToGAuthorized: false, protected: [
       "PPF", "Library", "creative-media", "manual-backups", "locked-artifacts",
       "Git-worktrees", "runtime-active-and-fallback", "receipts", "unclassified-data",
     ],
-    notes: "Startup reads fixed roots and replaces one aggregate status snapshot. No recursive sizes, actual disk reclamation, process/reference attestation or cleanup action. Git pack size excludes checkout copies. A missing reference always blocks retirement.",
+    notes: "Startup reads fixed roots and replaces one aggregate status snapshot. G: archive is a planned destination, not a completed copy or a storage grant. No recursive sizes, physical reclamation, G: modification, process/reference attestation or cleanup action. Git object size excludes checkout copies; missing references block retirement.",
   };
   const snapshotState = persist ? await recordStatus(appHome, report) : "NOT_REQUESTED";
   return { ...report, snapshotState };

@@ -399,8 +399,15 @@
   color: var(--pp-skin-ink);
   font-weight: 700;
   text-decoration: none;
+  font: inherit;
+  cursor: pointer;
 }
 .productionGuideLink:hover, .productionGuideLink:focus-visible { outline: 2px solid var(--pp-skin-focus); outline-offset: 2px; }
+.shotPicker { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: var(--pp-skin-space-2); }
+.shotPicker button { display: grid; gap: var(--pp-skin-space-1); min-height: var(--pp-skin-control-height); padding: var(--pp-skin-space-2); border: 1px solid var(--pp-skin-line-strong); background: var(--pp-skin-surface-0); color: var(--pp-skin-ink); font: inherit; cursor: pointer; text-align: left; }
+.shotPicker button[aria-current="step"] { border: 2px solid var(--pp-skin-accent-bright); background: var(--pp-skin-accent-deep); }
+.shotPicker button:focus-visible { outline: 2px solid var(--pp-skin-focus); outline-offset: 2px; }
+.shotPicker span { color: var(--pp-skin-ink-soft); font-size: var(--pp-skin-font-meta); }
 .positionRow[id^="storyboard-shot-"] { scroll-margin-top: var(--pp-skin-space-4); }
 .shotTechnicalDetails {
   padding: var(--pp-skin-space-2);
@@ -420,6 +427,7 @@
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   background: var(--pp-skin-surface-1);
 }
+.positionRow[hidden] { display: none; }
 .positionRowLocked { grid-template-columns: minmax(250px, .82fr) minmax(0, 2fr); align-items: stretch; }
 .positionReviewColumn { display: grid; align-content: start; gap: var(--pp-skin-space-2); min-width: 0; }
 .positionContextColumn { display: grid; align-content: start; gap: var(--pp-skin-space-2); min-width: 0; }

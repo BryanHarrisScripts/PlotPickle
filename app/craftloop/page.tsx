@@ -7,7 +7,7 @@ import {
   normalizePlotPickleProject,
   type PlotPickleProject,
 } from "@/lib/projects/project";
-import { scanPageFlowDraft } from "@/lib/pageflow";
+import { scanPageFlowDraft } from "@/modules/build/pageflow";
 import styles from "./craftloop.module.css";
 
 const STORAGE_KEY = "plotpickle.project.v1";

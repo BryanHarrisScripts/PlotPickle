@@ -183,7 +183,6 @@ export default function StoryboardReadinessWorkspace({
   async function saveFrameVersion(artifact: FoundationsVisualArtifact) {
     if (frameMutation.current || frameBusy) return;
     setFrameNoticePosition(artifact.frameNumber ?? null);
-    if (qaOnlyAccess) { setFrameNotice("This QA preview cannot save story decisions."); return; }
     frameMutation.current = true;
     setFrameSaving(true);
     setFrameNotice("Saving Storyboard Image…");
@@ -343,6 +342,9 @@ export default function StoryboardReadinessWorkspace({
   const activeAnchorEvidence = selectedTarget
     ? storyboardAnchorEvidence(project, selectedTarget.id, selectedMiniBlockNumber)
     : null;
+  // Suggested screenplay placement can ground a draft image. Human review is
+  // still required before Lock makes that draft the approved Shot visual.
+  const draftCreationAllowed = !qaOnlyAccess || Boolean(activeAnchorEvidence?.passages.length);
   const storyboardBriefs = storyboardFrameBriefs({
     positions: Array.from({ length: 25 }, (_, index) => index + 1),
     passages: activeAnchorEvidence?.passages ?? [],
@@ -388,6 +390,7 @@ export default function StoryboardReadinessWorkspace({
 
   async function prepareFramePrompt(position: number) {
     if (frameBusy || promptSavingPosition !== null) return;
+    if (!draftCreationAllowed) { setFrameNotice("A screenplay passage is required before preparing a Storyboard draft."); return; }
     const anchorRef = storyboardAnchorTargetRef(selectedTarget!.id, selectedMiniBlockNumber);
     const generatedPrompt = generationPlanForPosition(position).prompt;
     if (!generatedPrompt.trim()) {
@@ -429,6 +432,7 @@ export default function StoryboardReadinessWorkspace({
 
   async function generateFrame(position: number, prompt: string) {
     if (frameBusy || !prompt.trim() || !selectedTarget) return;
+    if (!draftCreationAllowed) { setFrameNotice("A screenplay passage is required before saving a Storyboard draft here."); return; }
     const blockNumberValue = selectedNumber;
     const mini = selectedMiniBlockNumber;
     const projectId = project.id;
@@ -589,7 +593,7 @@ export default function StoryboardReadinessWorkspace({
               <p>{selectedTarget.storyboardAllowed
                 ? "Screenplay placement allows visual exploration. Select a Mini-Block in the Storyboard map above; its Scene/Beat evidence and 25 planned Shots stay on this page."
                 : qaOnlyAccess
-                  ? `QA access is open for this Block. Canonical prerequisites remain unresolved: ${selectedTarget.missingPrerequisites.join(" · ") || "BUILD evidence is incomplete."}`
+                  ? `Draft visual exploration is available from mapped screenplay passages. Approval remains blocked until ${selectedTarget.missingPrerequisites.join(" · ") || "BUILD evidence is complete."}`
                   : selectedTarget.missingPrerequisites.join(" · ") || "This Block remains visible but is not ready for visual authoring."}</p>
             </div>
             <span aria-label={`Status: ${STATE_LABELS[selectedTarget.state]}`} className={styles.blockState} data-state={selectedTarget.state}>
@@ -671,8 +675,10 @@ export default function StoryboardReadinessWorkspace({
               <div>
                 <strong>{lockedShotPositions.size} of 25 shots saved and locked</strong>
                 {nextShotPosition !== null ? (
-                  <p>{qaOnlyAccess
-                    ? "This is a QA preview. You can inspect the saved story, but cannot create, save or lock an image here. Production needs the authorized Storyboard workspace."
+                  <p>{qaOnlyAccess && draftCreationAllowed
+                    ? `Continue Shot ${String(nextShotPosition).padStart(2, "0")}: use the imported screenplay passages to create and save a draft image. Review the structural placement before Lock can approve it.`
+                    : qaOnlyAccess
+                    ? "This is a QA preview. No screenplay passage grounds a new image at this address. Review the source placement before production."
                     : nextShotHasCandidate
                       ? `Continue Shot ${String(nextShotPosition).padStart(2, "0")}: review its existing image, then Save and Lock when you approve it.`
                       : `Continue Shot ${String(nextShotPosition).padStart(2, "0")}: prepare an image prompt from the existing story, create an image, and review it before saving.`}</p>
@@ -682,7 +688,7 @@ export default function StoryboardReadinessWorkspace({
               {nextShotPosition !== null ? (
                 <button className={styles.productionGuideLink} type="button"
                   onClick={() => focusShot(nextShotPosition)}>
-                  {qaOnlyAccess ? "View" : "Continue with"} Shot {String(nextShotPosition).padStart(2, "0")}
+                  {draftCreationAllowed ? "Continue with" : "View"} Shot {String(nextShotPosition).padStart(2, "0")}
                 </button>
               ) : null}
             </aside>
@@ -817,7 +823,7 @@ export default function StoryboardReadinessWorkspace({
                       <div className={styles.frameReview} aria-label={`Review Storyboard Image for Shot ${position}`} data-review-state={reviewState}>
                         <span>{reviewLabel}</span>
                         <button
-                          disabled={!selectedArtifact || qaOnlyAccess || frameBusy || frameSaving}
+                          disabled={!selectedArtifact || !draftCreationAllowed || frameBusy || frameSaving}
                           type="button"
                           onClick={() => selectedArtifact && void saveFrameVersion(selectedArtifact)}
                         >{frameSaving ? "Saving…" : "Save"}</button>
@@ -829,7 +835,7 @@ export default function StoryboardReadinessWorkspace({
                           onClick={() => selectedArtifact && void reviewFrame(selectedArtifact, accepted ? "unaccept" : "accept")}
                         >{accepted ? "Unlock" : "Lock"}</button>
                         <button
-                          disabled={!promptIsPrepared || frameBusy || promptSavingPosition !== null}
+                          disabled={!promptIsPrepared || !draftCreationAllowed || frameBusy || promptSavingPosition !== null}
                           type="button"
                           onClick={() => void generateFrame(position, originalPrompt)}
                         >Redo</button>
@@ -848,9 +854,9 @@ export default function StoryboardReadinessWorkspace({
                       </div>
                       {frameNoticePosition === position && frameNotice ? <p className={styles.frameNotice} role="status">{frameNotice}</p> : null}
                       {promptIsPrepared ? (
-                        <button className={styles.framePromptButton} type="button" disabled={frameBusy || promptSavingPosition !== null || qaOnlyAccess} onClick={() => void generateFrame(position, originalPrompt)}>Create Storyboard Image</button>
+                        <button className={styles.framePromptButton} type="button" disabled={frameBusy || promptSavingPosition !== null || !draftCreationAllowed} onClick={() => void generateFrame(position, originalPrompt)}>Create Storyboard Image</button>
                       ) : (
-                        <button className={styles.framePromptButton} type="button" disabled={frameBusy || promptSavingPosition !== null || qaOnlyAccess} onClick={() => void prepareFramePrompt(position)}>{promptSavingPosition === position ? "Saving Image Prompt…" : "Create Storyboard Image Prompt"}</button>
+                        <button className={styles.framePromptButton} type="button" disabled={frameBusy || promptSavingPosition !== null || !draftCreationAllowed} onClick={() => void prepareFramePrompt(position)}>{promptSavingPosition === position ? "Saving Image Prompt…" : "Create Storyboard Image Prompt"}</button>
                       )}
                       <div className={styles.storyboardWorkflowActions} id={`storyboard-workflow-actions-${selectedNumber}-${selectedMiniBlockNumber}-${position}`} aria-label={`Shot ${position} analysis and narration actions`}>
                         {!lockedImageHandoffReady ? <>

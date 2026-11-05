@@ -23,6 +23,7 @@
         "targets": [
           "tests/layer1-skin-surface-contract.test.mjs",
           "tests/issue-2418-storyboard-batch-progression.test.mjs",
+          "tests/issue-3004-storyboard-source-draft.test.mjs",
           "tests/issue-2420-storyboard-frame-review.test.mjs",
           "tests/issue-2428-storyboard-frame-review-controls.test.mjs",
           "tests/issue-2483-storyboard-frame-chevrons-prompt.test.mjs",
@@ -6712,6 +6713,32 @@
           "static-source"
         ],
         "limits": "Synthetic PPF and injected save receipt verify source-identity, review-only provenance status, Human-grant negatives and immutable acceptance; static source asserts existing durable owner wiring. No real imported Brotherly Love text, provider task, GUI acceptance, Windows product session or playable media was executed.",
+        "inputs": []
+      },
+      {
+        "target": "tests/issue-3004-storyboard-source-draft.test.mjs",
+        "targetDigest": "d2e767017353b9957712b6bb4661fdb572bf1eee682b2fa11639ad7bcefcdd5c",
+        "catalogueIds": [
+          "experience.skin-surface-contract"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          },
+          {
+            "truthId": "PP-SAVE-001",
+            "obligationId": "T2"
+          }
+        ],
+        "scopes": [
+          "static-source"
+        ],
+        "limits": "Static source check of screenplay-grounded draft availability and separate Lock gate. No live Brotherly Love image request, provider result, encrypted vault acknowledgement, Windows app ownership, or Human placement review is proven.",
         "inputs": []
       },
       {

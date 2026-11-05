@@ -5,6 +5,8 @@ import {
   hydrateProfilePrivateBrowser,
   persistActiveProfileProject,
   profilePrivateBrowserAuthorityMatches,
+  profilePrivateBrowserReadyFor,
+  refreshProfilePrivateBrowserSession,
 } from "../../core/storage/profile-private-browser";
 import type {
   ExperienceAuthGateway,
@@ -56,7 +58,18 @@ export const browserProfileAuthGateway: ExperienceAuthGateway = {
     if (status.authenticated && status.profile) {
       if (!status.csrfToken) throw new Error("AUTHENTICATION_SESSION_NOT_ESTABLISHED");
       if (!profilePrivateBrowserAuthorityMatches(status.profile.profileId, status.csrfToken)) {
-        await hydrateProfilePrivateBrowser(status.profile.profileId, status.csrfToken);
+        if (window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) === status.profile.profileId
+          && profilePrivateBrowserReadyFor(status.profile.profileId)) {
+          // A refreshed CSRF for the same already-hydrated Human is not a
+          // new Library login. Verify the current server session and rotate
+          // the browser token in place; full hydration would clear the
+          // explicitly selected film from sessionStorage.
+          await refreshProfilePrivateBrowserSession(status.profile.profileId);
+        } else {
+          // Fresh login, different profile, and unhydrated browser still
+          // require exact encrypted vault hydration and Blank-at-launch.
+          await hydrateProfilePrivateBrowser(status.profile.profileId, status.csrfToken);
+        }
       }
     }
     return safeSnapshot(status);

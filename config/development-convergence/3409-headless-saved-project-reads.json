@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "issue": 3409,
+  "phase": "authenticated-explicit-saved-project-read-foundation",
+  "brief": "docs/developer-briefs/3409-headless-saved-project-reads.md",
+  "allowedChanges": [
+    "modules/intent/model/read-saved-project.ts",
+    "app/api/auth/profile-private/route.ts",
+    "tests/issue-3409-saved-project-reads.test.mjs",
+    "docs/developer-briefs/3409-headless-saved-project-reads.md",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "config/development-convergence/3409-headless-saved-project-reads.json"
+  ],
+  "acceptance": [
+    {
+      "id": "EXPLICIT-SAVED-READ",
+      "criterion": "Read an explicit saved project without changing active selection.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3409-saved-project-reads.test.mjs",
+          "contains": "assert.equal(await storage.loadActiveProject(first.authContext), null)"
+        }
+      ]
+    },
+    {
+      "id": "PROFILE-ISOLATION",
+      "criterion": "Existing vault owner enforces profile isolation and revocation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3409-saved-project-reads.test.mjs",
+          "contains": "await assert.rejects(read(selected(\"source\")))"
+        }
+      ]
+    },
+    {
+      "id": "SOURCE-AND-STRUCTURE",
+      "criterion": "Paginated retained source and canonical structure preserve provenance limitations.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "modules/intent/model/read-saved-project.ts",
+          "contains": "SCREENPLAY_PASSAGES_NOT_SHOT_MAPPING"
+        }
+      ]
+    },
+    {
+      "id": "EXISTING-AUTH",
+      "criterion": "Existing authenticated HTTP boundary runs before reading story data.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/api/auth/profile-private/route.ts",
+          "contains": "readSavedProject(query, authContext, runtimeState.privateStorage)"
+        }
+      ]
+    },
+    {
+      "id": "NO-PUBLIC-CLAIM",
+      "criterion": "Full plugin authorization and native proof remain explicitly unproven.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/3409-headless-saved-project-reads.md",
+          "contains": "GUI-closed readback remain UNPROVEN"
+        }
+      ]
+    }
+  ]
+}

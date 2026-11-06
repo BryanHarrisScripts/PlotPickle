@@ -4401,7 +4401,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-3203-read-only-project-observation.test.mjs",
-          "tests/issue-3203-dashboard-creator-intent.test.mjs"
+          "tests/issue-3203-dashboard-creator-intent.test.mjs",
+          "tests/issue-3409-saved-project-reads.test.mjs"
         ]
       },
       "cost": "fast",
@@ -9729,7 +9730,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "a2291ba57368f47b1dc0c5e84c010981cfbc5c28ae0c05d005cf6a22d0af29bc"
+            "digest": "cff069763b888767731417bbcfe86753e5b114b3462a6b0e19870831dd485b25"
           }
         ]
       },
@@ -13205,6 +13206,38 @@
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-pool.mjs",
             "digest": "44630481a03daaff688d7023186625e94b4763fc13799b8e35d2e3c172651c8f"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3409-saved-project-reads.test.mjs",
+        "targetDigest": "ba1f4c32b86be0edd262e11d921db257d86acb0c8369adf455ed81409bff4fa6",
+        "catalogueIds": [
+          "story-canon.intent-read-only-project-status-3203"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Author-proposed real encrypted synthetic-profile storage and actual-module explicit saved project reads without activation, cross-profile isolation, revision and coordinate/paging refusal, source truncation, unchanged storage and revoked-session denial. Static HTTP authentication/header wiring only. No live owner data, remote plugin authentication, HTTP session execution, MCP exposure, GUI-closed Windows acceptance or media-byte verification.",
+        "inputs": [
+          {
+            "path": "modules/intent/model/read-saved-project.ts",
+            "digest": "d1d5773a151c74a1b116d87265cecfd0bd814aae72bc64c66d9ffa180391325a"
+          },
+          {
+            "path": "app/api/auth/profile-private/route.ts",
+            "digest": "e750d9f5b7075dfafedcdb7d299d7b9787ee99e774349952f8fb71b7b36fe091"
           }
         ]
       }

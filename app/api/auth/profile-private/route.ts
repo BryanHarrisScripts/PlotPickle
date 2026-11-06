@@ -6,6 +6,7 @@ import {AfterglowSaveVerificationError} from "../../../../modules/library/master
 import type { ProfileProjectSummary } from "../../../../core/storage/profile-private/profile-private-storage";
 import { normalizeLibraryProject } from "../../../../core/storage/library-project";
 import {observeStoryboardShot} from "../../../../modules/intent/model/observe-project-status";
+import { readSavedProject } from "../../../../modules/intent/model/read-saved-project";
 import { normalizeAfterglowReviewDraft } from "../../../../modules/library/master/afterglow-review-draft.mjs";
 import { toPublicAuthError } from "../../../../core/auth/plotpickle-auth";
 import { toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
@@ -71,6 +72,10 @@ export async function GET(request: Request) {
   try {
     const { runtimeState, authContext } = await authorized(request);
     const query = new URL(request.url).searchParams;
+    if (query.has("storyRead")) {
+      const read = await readSavedProject(query, authContext, runtimeState.privateStorage);
+      return response(read.body, read.status);
+    }
     if (query.get("storyboardShot") === "1") {
       // Read the encrypted active Library PPF under the SAME Human session.
       // No project auto-selection, no provider call, no approval or mutation.

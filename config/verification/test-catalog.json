@@ -4401,7 +4401,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-3203-read-only-project-observation.test.mjs",
-          "tests/issue-3203-dashboard-creator-intent.test.mjs"
+          "tests/issue-3203-dashboard-creator-intent.test.mjs",
+          "tests/issue-3411-serverless-plugin.test.mjs"
         ]
       },
       "cost": "fast",
@@ -9729,7 +9730,7 @@
           },
           {
             "path": "config/verification/ownership-map.json",
-            "digest": "a2291ba57368f47b1dc0c5e84c010981cfbc5c28ae0c05d005cf6a22d0af29bc"
+            "digest": "80fd3b9c2248d056feee41018d584eeaa142bfcaedca3e827d4efb3ab63ffb96"
           }
         ]
       },
@@ -13205,6 +13206,54 @@
           {
             "path": "scripts/engineering-team/gateway/worker-pool/worker-pool.mjs",
             "digest": "44630481a03daaff688d7023186625e94b4763fc13799b8e35d2e3c172651c8f"
+          }
+        ]
+      },
+      {
+        "target": "tests/issue-3411-serverless-plugin.test.mjs",
+        "targetDigest": "c1fe013d090632dcf470a4456d675ee6035af6f9c1a82e9e78cb6ee508faeed3",
+        "catalogueIds": [
+          "story-canon.intent-read-only-project-status-3203"
+        ],
+        "truthRefs": [
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W8"
+          },
+          {
+            "truthId": "WHITE-PAPER-V3",
+            "obligationId": "W9"
+          }
+        ],
+        "scopes": [
+          "unit-fixture",
+          "static-source"
+        ],
+        "limits": "Author-proposed disposable existing-format PPF file and fresh Node subprocess tests of canonical bundled reader: identity, revision/hash pinning, structure math, ordered source paging, exported Save/Lock markers and no source writes. Does not prove actual owner project, plugin invocation, durable cross-chat recovery, Go/Plus plan availability, billed resource isolation, image bytes, hosted vault or public release.",
+        "inputs": [
+          {
+            "path": "tools/agent-plugins/plotpickle-story-reader/src/inspect-project.ts",
+            "digest": "8b6c66eca866adaab90683eb728b59e60042d977543e87db58991573bc184c28"
+          },
+          {
+            "path": "tools/agent-plugins/plotpickle-story-reader/build.mjs",
+            "digest": "7ff762fad92d86f351b916322eaefd00aa313308fa4d4fe6f69cb4e7fcce669c"
+          },
+          {
+            "path": "tools/agent-plugins/plotpickle-story-reader/plugin.json",
+            "digest": "15b15fb96242baa2b052f3c5527bd405c10d8f37227a8d74525883239c7b544d"
+          },
+          {
+            "path": "tools/agent-plugins/plotpickle-story-reader/skills/read-plotpickle-project/SKILL.md",
+            "digest": "257596c77702723daea68030f2dc86ba38799f3d4d122042d74a1b84fdeb5a32"
+          },
+          {
+            "path": "core/storage/library-project.ts",
+            "digest": "554738fa94b805fe2847c0c56d2ff832239b5d7bf64425cc4cae23509b8f784d"
+          },
+          {
+            "path": "modules/intent/model/observe-project-status.ts",
+            "digest": "e1f34e1404dbc2ab274cc01137e40aea363b6c9da960e4cf7c7f363a8df41b52"
           }
         ]
       }

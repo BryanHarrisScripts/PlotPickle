@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "issue": 3411,
+  "phase": "private-serverless-reader-prototype",
+  "brief": "docs/developer-briefs/3411-serverless-plugin-feasibility.md",
+  "allowedChanges": [
+    "tools/agent-plugins/plotpickle-story-reader/",
+    "tests/issue-3411-serverless-plugin.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/verification/ownership-map.json",
+    "docs/developer-briefs/3411-serverless-plugin-feasibility.md",
+    "config/development-convergence/3411-serverless-plugin.json"
+  ],
+  "acceptance": [
+    {
+      "id": "NO-SERVER",
+      "criterion": "The private plugin uses no MCP server, app binding or local application.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tools/agent-plugins/plotpickle-story-reader/plugin.json",
+          "contains": "no MCP server, Sites hosting, Windows app or provider key"
+        }
+      ]
+    },
+    {
+      "id": "CANONICAL-ENGINE",
+      "criterion": "The bundle reuses existing parser/projection/observer owners.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tools/agent-plugins/plotpickle-story-reader/src/inspect-project.ts",
+          "contains": "import { observeStoryboardShot }"
+        }
+      ]
+    },
+    {
+      "id": "READ-ONLY-REPEATABILITY",
+      "criterion": "Fresh-process output and unchanged project bytes are checked.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-3411-serverless-plugin.test.mjs",
+          "contains": "fresh-process repeatability"
+        }
+      ]
+    },
+    {
+      "id": "TRUTHFUL-LIMITS",
+      "criterion": "Host availability and recovery are not inferred from installation.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tools/agent-plugins/plotpickle-story-reader/skills/read-plotpickle-project/references/limits.md",
+          "contains": "The package has not been tested on Go."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "plotpickle-story-reader",
+  "version": "0.1.0",
+  "description": "Inspect an explicitly supplied PlotPickle project export using the existing canonical structure and Storyboard rules, without a server or local PlotPickle app.",
+  "author": { "name": "Bryan Harris" },
+  "repository": "https://github.com/BryanHarrisScripts/PlotPickle",
+  "license": "AGPL-3.0-or-later",
+  "extensions": {
+    "com.openai": {
+      "onboardingSkill": "./skills/read-plotpickle-project/SKILL.md",
+      "interface": {
+        "displayName": "PlotPickle Story Reader",
+        "shortDescription": "Read your saved story",
+        "longDescription": "Private read-only prototype. Inspect a supplied .ppf.json export, its retained screenplay passages, canonical 24/96 structure and shot Save/Lock metadata. Uses a bundled reader in the host's available Node environment; no MCP server, Sites hosting, Windows app or provider key. File availability and code execution depend on the user's plan and surface. Does not edit projects, verify image bytes, certify vault persistence or run unattended. Go and cross-conversation acceptance are not yet verified.",
+        "developerName": "Bryan Harris",
+        "category": "Creativity",
+        "capabilities": ["Read"],
+        "defaultPrompt": ["Inspect my PlotPickle project export without changing it.", "Read the retained screenplay source for my saved story."]
+      }
+    }
+  }
+}

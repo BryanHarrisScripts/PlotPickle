@@ -1,0 +1,7 @@
+{
+  "schema": "plotpickle.animatic-cues.v1",
+  "captions": { "full-shot-001": ["screenplay-6"] },
+  "cards": [
+    { "shotId": "full-shot-001", "position": "before", "text": "ACT I", "frames": 48 }
+  ]
+}

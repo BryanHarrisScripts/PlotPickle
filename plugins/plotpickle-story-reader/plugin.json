@@ -1,0 +1,34 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "author": {
+    "email": "bryan@bryanharris.ca",
+    "name": "Bryan Harris"
+  },
+  "description": "Story learning, visual planning and draft animatic production workflows.",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "capabilities": ["Read", "Write"],
+        "category": "Creativity",
+        "defaultPrompt": [
+          "Meet Elara and explore what PlotPickle can do.",
+          "Explore the PlotPickle storytelling lessons.",
+          "Help me storyboard a screenplay."
+        ],
+        "developerName": "Bryan Harris",
+        "displayName": "PlotPickle Story Reader",
+        "shortDescription": "Learn, storyboard, create",
+        "longDescription": "Welcome to PlotPickle, a creative storytelling workspace with Elara as your guide. Start with Meet Elara, Learn, Storyboard, or Connected Services. Explore 81 lessons across 12 storytelling topics, develop a screenplay or inspect a saved project, and plan visual shots with attention to story evidence and continuity. A portable animatic bridge can compile a revision-bound production manifest and render a validated draft MP4 when the user supplies project/media files and the host supports FFmpeg. Connected Services introduces Suno music-brief preparation, Buzz collaboration concepts, and Modem development feedback. Suno generation, Buzz community connection, and Modem integration are not built into this release. Story changes, media adoption, provider spending, and durable saves remain separately governed.",
+        "brandColor": "#6346B8",
+        "brandColorDark": "#AC9AF6",
+        "composerIcon": "./assets/composer-icon.png",
+        "logo": "./assets/plotpickle-logo.png"
+      },
+      "onboardingSkill": "./skills/plotpickle-welcome/SKILL.md"
+    }
+  },
+  "license": "AGPL-3.0-or-later",
+  "name": "plotpickle-story-reader",
+  "repository": "https://github.com/BryanHarrisScripts/PlotPickle",
+  "version": "0.8.3"
+}

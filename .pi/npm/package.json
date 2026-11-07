@@ -8,7 +8,7 @@
     "pi-context-view": "0.7.1"
   },
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "1.3.0"
+    "@earendil-works/pi-coding-agent": "1.5.0"
   },
   "overrides": {
     "undici": "8.12.2"
